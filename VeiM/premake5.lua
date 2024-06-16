@@ -19,6 +19,7 @@ project "VeiM"
     includedirs
     {
         "src",
+		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.ImGui}",
