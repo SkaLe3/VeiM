@@ -12,6 +12,7 @@ group "Dependencies"
 	include "VeiM/vendor/GLFW"
 	include "VeiM/vendor/Glad"
 	include "VeiM/vendor/imgui"
+	include "VeiM/vendor/yaml-cpp"
 group ""
 
 group "Core"

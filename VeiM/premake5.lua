@@ -10,9 +10,10 @@ project "VeiM"
     files
     {
         "src/**.h",
-        "src/**.cpp"
+        "src/**.cpp",
 		-- stb_image
-		-- glm
+		"vendor/glm/glm/**.hpp",
+		"vendor/glm/glm/**.inl"
     }
 
     includedirs
@@ -20,13 +21,16 @@ project "VeiM"
         "src",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.GLFW}",
-		"%{IncludeDir.ImGui}"
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.glm}",
+		"%{IncludeDir.yaml_cpp}"
     }
 
 	defines
 	{
         "_CRT_SECURE_NO_WARNINGS",
-		"GLFW_INCLUDE_NONE"
+		"GLFW_INCLUDE_NONE",
+		"YAML_CPP_STATIC_DEFINE"
 	}
     
 
@@ -35,7 +39,7 @@ project "VeiM"
 		"Glad",
 		"GLFW",
 		"ImGui",
-		--"yaml-cpp",
+		"yaml-cpp",
 		"opengl32.lib"
 	}
 
