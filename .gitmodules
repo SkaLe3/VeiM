@@ -1,0 +1,7 @@
+[submodule "VeiM/vendor/GLFW"]
+	path = VeiM/vendor/GLFW
+	url = https://github.com/SkaLe3/glfw
+[submodule "VeiM/vendor/imgui"]
+	path = VeiM/vendor/imgui
+	url = https://github.com/SkaLe3/imgui
+	branch = docking
