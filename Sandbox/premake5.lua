@@ -16,7 +16,10 @@ project "Sandbox"
     includedirs
     {
         "%{wks.location}/VeiM/src",
-		"%{wks.location}/VeiM/vendor"
+		"%{wks.location}/VeiM/vendor",
+		"src",
+		"%{wks.location}/VeiM/vendor/glm",
+		"%{wks.location}/VeiM/vendor/imgui",	
     }
 
 	links 

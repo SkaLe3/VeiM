@@ -4,7 +4,8 @@
 IncludeDir = {}
 IncludeDir["Glad"] = "%{wks.location}/VeiM/vendor/Glad/include"
 IncludeDir["GLFW"] = "%{wks.location}/VeiM/vendor/GLFW/include"
-IncludeDir["ImGui"] = "%{wks.location}/VeiM/vendor/imgui"
+IncludeDir["ImGui"] = "%{wks.location}/VeiM/vendor/imgui/"
 IncludeDir["glm"] = "%{wks.location}/VeiM/vendor/glm"
 IncludeDir["yaml_cpp"] = "%{wks.location}/VeiM/vendor/yaml-cpp/include"
 IncludeDir["spdlog"] = "%{wks.location}/VeiM/vendor/spdlog/include"
+IncludeDir["stb_image"] = "%{wks.location}/VeiM/vendor/stb_image"

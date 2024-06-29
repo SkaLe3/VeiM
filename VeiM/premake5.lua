@@ -11,7 +11,8 @@ project "VeiM"
     {
         "src/**.h",
         "src/**.cpp",
-		-- stb_image
+		"vendor/stb_image/**.h",
+		"vendor/stb_image/**cpp",
 		"vendor/glm/glm/**.hpp",
 		"vendor/glm/glm/**.inl"
     }
@@ -19,12 +20,14 @@ project "VeiM"
     includedirs
     {
         "src",
+		"vendor",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
-		"%{IncludeDir.yaml_cpp}"
+		"%{IncludeDir.yaml_cpp}",
+		"%{IncludeDir.stb_image}"
     }
 
 	defines
