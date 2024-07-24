@@ -9,17 +9,17 @@ project "Sandbox"
 
     files
     {
-        "src/**.h",
-        "src/**.cpp"
+        "Source/**.h",
+        "Source/**.cpp"
     }
 
     includedirs
     {
-        "%{wks.location}/VeiM/src",
-		"%{wks.location}/VeiM/vendor",
-		"src",
-		"%{wks.location}/VeiM/vendor/glm",
-		"%{wks.location}/VeiM/vendor/imgui",	
+        "%{wks.location}/VeiM/Source",
+		"%{wks.location}/VeiM/ThirdParty",
+		"Source",
+		"%{wks.location}/VeiM/ThirdParty/glm",
+		"%{wks.location}/VeiM/ThirdParty/imgui",	
     }
 
 	links 

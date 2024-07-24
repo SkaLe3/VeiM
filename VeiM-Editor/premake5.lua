@@ -9,14 +9,14 @@ project "VeiMEditor"
 
     files
     {
-        "src/**.h",
-        "src/**.cpp"
+        "Source/**.h",
+        "Source/**.cpp"
     }
 
     includedirs
     {
-        "%{wks.location}/VeiM/src",
-		"%{wks.location}/VeiM/vendor"
+        "%{wks.location}/VeiM/Source",
+		"%{wks.location}/VeiM/ThirdParty"
     }
 
 	links 

@@ -9,18 +9,18 @@ project "VeiM"
 
     files
     {
-        "src/**.h",
-        "src/**.cpp",
-		"vendor/stb_image/**.h",
-		"vendor/stb_image/**cpp",
-		"vendor/glm/glm/**.hpp",
-		"vendor/glm/glm/**.inl"
+        "Source/**.h",
+        "Source/**.cpp",
+		"ThirdParty/stb_image/**.h",
+		"ThirdParty/stb_image/**cpp",
+		"ThirdParty/glm/glm/**.hpp",
+		"ThirdParty/glm/glm/**.inl"
     }
 
     includedirs
     {
-        "src",
-		"vendor",
+        "Source",
+		"ThirdParty",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.GLFW}",
