@@ -4,8 +4,8 @@ project "VeiM"
 	cppdialect "C++20"
 	staticruntime "off"
 
-	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
+	targetdir ("%{wks.location}/Build/bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("%{wks.location}/Build/bin-int/" .. outputdir .. "/%{prj.name}")
 
     files
     {
