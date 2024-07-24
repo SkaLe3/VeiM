@@ -1,4 +1,4 @@
-[submodule "VeiM/ThirdParty/GLFW"]
+[submodule "VeiM/vendor/GLFW"]
 	path = VeiM/ThirdParty/GLFW
 	url = https://github.com/SkaLe3/glfw
 [submodule "VeiM/ThirdParty/imgui"]
