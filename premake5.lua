@@ -20,7 +20,7 @@ group "Core"
 group ""
 
 group "Tools"
-	include "VeiMEditor"
+	include "VeiM-Editor"
 group ""
 
 group "Misc"
