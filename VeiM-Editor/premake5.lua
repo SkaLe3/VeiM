@@ -16,7 +16,9 @@ project "VeiMEditor"
     includedirs
     {
         "%{wks.location}/VeiM/Source",
-		"%{wks.location}/VeiM/ThirdParty"
+		"%{wks.location}/VeiM/ThirdParty", 
+		"%{wks.location}/VeiM/ThirdParty/glm",
+		"%{wks.location}/VeiM/ThirdParty/imgui"
     }
 
 	links 
