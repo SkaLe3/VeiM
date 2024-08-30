@@ -51,19 +51,41 @@ project "VeiM"
 		systemversion "latest"
 
 	filter "configurations:Debug"
+		--removefiles { "Source/VeiM/ImGui/**.cpp", "Source/VeiM/ImGui/**.h","Source/VeiM/UI/**.cpp", "Source/VeiM/UI/**.h" }
+		--temporary remove
 		defines "VM_DEBUG"
 		runtime "Debug"
 		symbols "on"
-
-	filter "configurations:Release"
-		defines "VM_RELEASE"
+		defines {"VM_WITH_EDITOR"} --temporary define
+	
+	filter "configurations:Debug_Editor"
+		defines "VM_DEBUG"
+		runtime "Debug"
+		symbols "on"
+		defines {"VM_WITH_EDITOR"}
+		
+	filter "configurations:Development"
+		--removefiles { "Source/VeiM/ImGui/**.cpp", "Source/VeiM/ImGui/**.h","Source/VeiM/UI/**.cpp", "Source/VeiM/UI/**.h" }
+				--temporary remove
+		defines "VM_DEVELOPMENT"
 		runtime "Release"
 		optimize "on"
         symbols "on"
+		defines {"VM_WITH_EDITOR"} --temporary define
 
-    filter "configurations:Dist"
-		defines "VM_Dist"
+	filter "configurations:Development_Editor"
+		defines "VM_DEVELOPMENT"
+		runtime "Release"
+		optimize "on"
+        symbols "on"
+		defines {"VM_WITH_EDITOR"}
+
+	filter "configurations:Shipping"
+		--removefiles { "Source/VeiM/ImGui/**.cpp", "Source/VeiM/ImGui/**.h","Source/VeiM/UI/**.cpp", "Source/VeiM/UI/**.h" }
+				--temporary remove
+		defines "VM_SHIPPING"
 		runtime "Release"
 		optimize "on"
         symbols "off"
+		defines {"VM_WITH_EDITOR"} --temporary define
 

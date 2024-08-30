@@ -1,5 +1,6 @@
 #pragma once
 #include "Application.h"
+#include "VeiM/IO/Log.h"
 
 extern VeiM::Application* VeiM::CreateApplication(int argc, char** argv);
 bool g_ApplicationRunning = true;
@@ -8,6 +9,7 @@ namespace VeiM
 {
 	int Main(int argc, char** argv)
 	{
+		Log::Init();
 		while (g_ApplicationRunning)
 		{
 			VeiM::Application* app = VeiM::CreateApplication(argc, argv);

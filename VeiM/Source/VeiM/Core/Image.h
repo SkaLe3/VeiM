@@ -1,6 +1,9 @@
 #pragma once
 #include <cstdint>
 #include <string>
+
+
+// TODO: Move to Editor project
 namespace VeiM
 {
 

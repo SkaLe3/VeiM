@@ -1,58 +1,93 @@
-#include "Window.h"
+#include "VeiM/Core/Window.h"
 
-#include "VeiM/Application.h"
+#include "VeiM/Core/Application.h"
+#include "VeiM/IO/Log.h"
 
-#include <imgui.h>
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_opengl3.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>		 
 #include <stb_image.h>
 
-#include <iostream>
-
-static void glfw_error_callback(int error, const char* description)
-{
-	std::cout << "GLFW Error (" << error << "): " << description;
-}
-
 namespace VeiM
 {
-
-	Window::Window(ApplicationSpecification& specs) : m_Specification(specs)
+	static void glfw_error_callback(int error, const char* description)
 	{
-		Init();
-		m_TitleBar = std::make_shared<UI::TitleBar>(this);
+		VM_CORE_ERROR("[GLFW] Error({0}) : {1}", error, description);
 	}
 
-	void Window::OnUpdate()
+	Window::Window(const WindowConfig& config)
 	{
+		WindowData WD;
+		WD.Title = config.Title;
+		WD.Width = config.Width;
+		WD.Height = config.Height;
+		WD.VSync = config.VSync;
+		WD.CustomTitlebar = config.CustomTitlebar;
+		WD.Mode = config.Mode;
+		m_Data = WD;
+		Init(config);
+	}
+
+
+	void Window::SwapBuffers()
+	{
+		glfwSwapBuffers(m_Window);
+	}
+
+	void Window::PollEvents()
+	{
+		// Poll and handle events (inputs, window resize, etc.)
+		// You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
+		// - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
+		// - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
+		// Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
 		glfwPollEvents();
-		// SwapBuffers();
 	}
 
 	void Window::SetVSync(bool enabled)
 	{
 		if (enabled)
 		{
-			std::cout << "VSync enabled\n";
+			VM_CORE_TRACE("[GLFW] VSync enabled");
 			glfwSwapInterval(1);
 		}
 		else
 		{
-			std::cout << "VSync disabled\n";
+			VM_CORE_TRACE("[GLFW] VSync disabled");
 			glfwSwapInterval(0);
 		}
+		m_Data.VSync = enabled;
 	}
 
-	bool Window::IsVSync() const
+	bool Window::IsVSyncEnabled() const
 	{
 		return m_Data.VSync;
 	}
 
-	bool Window::IsMaximized() const
+	void Window::SetRawInput(bool enabled)
 	{
-		return (bool)glfwGetWindowAttrib(m_Window, GLFW_MAXIMIZED);
+		if (glfwRawMouseMotionSupported())
+		{
+			if (enabled)
+			{
+				VM_CORE_TRACE("[GLFW] Raw mouse motion enabled");
+				glfwSetInputMode(m_Window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+
+			}
+			else
+			{
+				VM_CORE_TRACE("[GLFW] Raw mouse motion enabled");
+				glfwSetInputMode(m_Window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
+			}
+		}
+		else
+		{
+			VM_CORE_WARN("[GLFW] Raw mouse motion not supported on this platform!");
+		}
+	}
+
+	bool Window::IsRawInputEnabled() const
+	{
+		return glfwGetInputMode(m_Window, GLFW_RAW_MOUSE_MOTION) == GLFW_TRUE;
 	}
 
 	GLFWwindow* Window::GetNativeWindow() const
@@ -60,100 +95,181 @@ namespace VeiM
 		return m_Window;
 	}
 
-	void Window::DrawBase()
+
+	void Window::SetWindowMode(EWindowMode mode)
 	{
-		const bool isMaximized = IsMaximized();
+		EWindowMode currentMode = GetWindowMode();
+		GLFWwindow* hWnd = reinterpret_cast<GLFWwindow*>(m_Window);
+		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+
+		if (currentMode == mode)
+			return;
+
+		// Remove fullscreen
+		if (currentMode == EWindowMode::Fullscreen)
 		{
-			ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(255, 50, 50, 255));
-			// Draw window border if the window is not maximized
-			if (!isMaximized)
-				UI::RenderWindowOuterBorders(ImGui::GetCurrentWindow());
-			ImGui::PopStyleColor(); // ImGuiCol_Border
+			const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+			glfwSetWindowMonitor(hWnd, nullptr, 0, 0, m_Data.Width, m_Data.Width, mode->refreshRate);
 		}
-		if (GetSpecifications().CustomTitleBar)
+
+		switch (mode)
 		{
-			float titleBarHeight;
-			m_TitleBar->Draw(titleBarHeight);
-			ImGui::SetCursorPosY(titleBarHeight);
+		case EWindowMode::Windowed:
+		{
+			glfwRestoreWindow(hWnd);
+			break;
 		}
+		case EWindowMode::WindowedFullscreen:
+		{
+			glfwMaximizeWindow(hWnd);
+			break;
+		}
+		case EWindowMode::Minimized:
+		{
+			glfwIconifyWindow(hWnd);
+			break;
+		}
+		case EWindowMode::Fullscreen:
+		{
+			GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+			const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+			glfwSetWindowMonitor(hWnd, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+			break;
+		}
+		}
+
+		m_Data.Mode = mode;
 	}
 
-	void Window::Init()
+	void Window::UpdateCachedMode()
 	{
-		glfwSetErrorCallback(glfw_error_callback);
+		m_Data.CachedOnMinimizeMode = GetWindowMode();
+	}
 
-		std::cout << "Creating Window " << m_Specification.Name << " ( " << m_Specification.Width << " x " << m_Specification.Height << " )\n";
-		int succeed = glfwInit();
-		// TODO : Make assert
-		if (!succeed)
+	// TODO: Make Create function
+	void Window::Init(const WindowConfig& config)
+	{
+		VM_CORE_INFO("Creating Window {0} ({1}, {2})", m_Data.Title, m_Data.Width, m_Data.Height);
+
+		if (s_WindowCount == 0)
 		{
-			std::cout << "Could not initialize GLFW\n";
-			return;
+			int succeed = glfwInit();
+			VM_CORE_ASSERT(succeed, "Could not initialize GLFW"); // TODO: Make verify
+			VM_CORE_INFO("[GLFW] GLFW Init");
+
+			glfwSetErrorCallback(glfw_error_callback);
 		}
-		// TODO : check somewhere
-		const char* glsl_version = "#version 130";
+
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-		// ----------------------
 
-		if (m_Specification.CustomTitleBar)
+		if (m_Data.CustomTitlebar)
 		{
 			glfwWindowHint(GLFW_TITLEBAR, false);
 			//glfwWindowHint(GLFW_DECORATED, false);
 			glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, true);
 		}
 
-		GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
-		const GLFWvidmode* videoMode = glfwGetVideoMode(primaryMonitor);
+		// Can be used later
+		//GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+		//const GLFWvidmode* videoMode = glfwGetVideoMode(primaryMonitor);
+		//int monitorX, monitorY;
+		//glfwGetMonitorPos(primaryMonitor, &monitorX, &monitorY);
 
-		int monitorX, monitorY;
-		glfwGetMonitorPos(primaryMonitor, &monitorX, &monitorY);
 		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+#if defined(VM_DEBUG)
+		glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+#endif
 
-		// Create window with graphics context
-		m_Window = glfwCreateWindow(m_Specification.Width, m_Specification.Height, m_Specification.Name.c_str(), nullptr, nullptr);
+		m_Window = glfwCreateWindow(m_Data.Width, m_Data.Height, m_Data.Title.c_str(), nullptr, nullptr);
+		++s_WindowCount;
 
-		// TODO : Make assert
-		if (m_Window == nullptr)
-		{
-			std::cout << "Failed to create window\n";
-			return;
-		}
+		VM_CORE_ASSERT(m_Window, "[GLFW] Failed to create window!");
 
 		glfwShowWindow(m_Window);
+
 		// TODO : Move to graphics context class
 		glfwMakeContextCurrent(m_Window);
 		int gladStatus = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-		if (!gladStatus)
-			// TODO : make assert
-			std::cout << "Failed to initialize Glad\n";
-		// TODO : Output info
-		
+		VM_CORE_ASSERT(gladStatus, "Failed to initialize Glad!");
+
+		VM_CORE_INFO("OpenGL Info:");
+		VM_CORE_INFO("    Vendor: {0}", (char*)glGetString(GL_VENDOR));
+		VM_CORE_INFO("    Renderer: {0}", (char*)glGetString(GL_RENDERER));
+		VM_CORE_INFO("    Version: {0}", (char*)glGetString(GL_VERSION));
+
+		VM_CORE_ASSERT(GLVersion.major > 4 || (GLVersion.major == 4 && GLVersion.minor >= 5), "VeiM requires OpenGL version 4.5 or higher");
+
 		SetVSync(true);
 
-		// Set icon
-		GLFWimage icon;
-		int channels;
-		if (!m_Specification.IconPath.empty())
-		{
-			std::string iconPathStr = m_Specification.IconPath.string();
-			icon.pixels = stbi_load(iconPathStr.c_str(), &icon.width, &icon.height, &channels, 4);
-			glfwSetWindowIcon(m_Window, 1, &icon);
-			stbi_image_free(icon.pixels);
-		}
+		glfwSetWindowUserPointer(m_Window, &m_Data);
+		glfwSetWindowAttrib(m_Window, GLFW_RESIZABLE, config.WindowResizeable ? GLFW_TRUE : GLFW_FALSE);
 
-		glfwSetWindowUserPointer(m_Window, this);
-		glfwSetTitlebarHitTestCallback(m_Window, [](GLFWwindow* window, int x, int y, int* hit)
-									   {
-										   Window* appWindow = (Window*)glfwGetWindowUserPointer(window);
-										   *hit = appWindow->m_TitleBar->IsHovered();
-									   });
+		SetEventCallbacks(m_Window);
+		SetIcon(config.IconPath);
+		SetWindowMode(config.Mode);
+
+		SetRawInput(true);
 	}
 
 	void Window::Shutdown()
 	{
 		glfwDestroyWindow(m_Window);
 		glfwTerminate();
+	}
+
+	void Window::SetIcon(std::filesystem::path iconPath)
+	{
+		GLFWimage icon;
+		int channels;
+		if (!iconPath.empty())
+		{
+			String iconPathStr = iconPath.string();
+			icon.pixels = stbi_load(iconPathStr.c_str(), &icon.width, &icon.height, &channels, 4);
+			glfwSetWindowIcon(m_Window, 1, &icon);
+			stbi_image_free(icon.pixels);
+		}
+	}
+
+	void Window::SetEventCallbacks(GLFWwindow* windowHandle)
+	{
+		glfwSetWindowSizeCallback(windowHandle, [](GLFWwindow* window, int width, int height)
+								  {
+									  // TODO: Make function for getting user pointer
+									  Window::WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+									  data.Width = width;
+									  data.Height = height;
+									  data.EventCallback(std::string("Window resize: ") + std::to_string(data.Width) + " | " + std::to_string(data.Height));
+
+									  // Handling the situation when window mode should changed, but no other callbacks were called
+									  if (glfwGetWindowAttrib(window, GLFW_MAXIMIZED))
+										  Application::Get().GetWindow().SetWindowMode(EWindowMode::WindowedFullscreen);
+									  else if (!glfwGetWindowAttrib(window, GLFW_ICONIFIED))
+										  Application::Get().GetWindow().SetWindowMode(EWindowMode::Windowed);
+								  });
+
+		glfwSetTitlebarHitTestCallback(m_Window, [](GLFWwindow* window, int x, int y, int* hit)
+									   {
+										   Window::WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+										   if (data.CustomTitlebar && data.TitlebarHitTest)
+										   {
+											   *hit = data.TitlebarHitTest();
+										   }
+									   });
+		glfwSetWindowIconifyCallback(m_Window, [](GLFWwindow* window, int iconified)
+									 {
+										 if (iconified)
+										 {
+											 Window::WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+											 data.CachedOnMinimizeMode = data.Mode;
+										 }
+										 else
+										 {
+											 Window::WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+											 Application::Get().GetWindow().SetWindowMode(data.CachedOnMinimizeMode);
+										 }
+									 });
 	}
 
 }

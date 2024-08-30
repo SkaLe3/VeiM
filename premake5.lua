@@ -4,8 +4,9 @@ include "Dependencies.lua"
 workspace "VeiM"
 	architecture "x64"
 	startproject "VeiMEditor"
-	configurations { "Debug", "Release", "Dist" }
-
+	configurations { "Debug","Debug_Editor", "Development", "Development_Editor", "Shipping" }
+	buildoptions { "/MP" }
+	
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 group "Dependencies"
@@ -26,3 +27,8 @@ group ""
 group "Misc"
 	include "Sandbox"
 group ""
+
+
+
+
+

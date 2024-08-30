@@ -1,4 +1,4 @@
-#include <VeiM/EntryPoint.h>
+#include <VeiM/Core/EntryPoint.h>
 
 VeiM::Application* VeiM::CreateApplication(int argc, char** argv)
 {

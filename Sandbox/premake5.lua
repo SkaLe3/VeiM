@@ -34,15 +34,26 @@ project "Sandbox"
 		defines "VM_DEBUG"
 		runtime "Debug"
 		symbols "on"
+		
+	filter "configurations:Debug Editor"
+		defines {"VM_DEBUG","VM_WITH_EDITOR"} 
+		runtime "Debug"
+		symbols "on"
 
-	filter "configurations:Release"
-		defines "VM_RELEASE"
+	filter "configurations:Developmnet"
+		defines "VM_DEVELOPMENT"
 		runtime "Release"
 		optimize "on"
         symbols "on"
 
-    filter "configurations:Dist"
-		defines "VM_Dist"
+	filter "configurations:Developmnet Editor"
+		defines {"VM_DEVELOPMENT","VM_WITH_EDITOR"} 
+		runtime "Release"
+		optimize "on"
+        symbols "on"
+    
+	filter "configurations:SHIPPING"
+		defines "VM_SHIPPING"
 		runtime "Release"
 		optimize "on"
         symbols "off"

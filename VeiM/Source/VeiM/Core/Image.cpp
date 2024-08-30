@@ -7,14 +7,8 @@
 #include "Application.h"
 #include "stb_image.h"
 
-
-//temp
-#include <iostream>
-
 namespace VeiM
 {
-
-
 	Image::Image(uint32_t width, uint32_t height, ImageFormat format)
 		: m_Width(width), m_Height(height), m_Format(format)
 	{
@@ -44,9 +38,7 @@ namespace VeiM
 			data = stbi_load(m_Path.c_str(), &width, &height, &channels, 4);
 			m_Format = ImageFormat::RGBA;
 		}
-		// Make assert
-		if (!data)
-			std::cout << "Failed to load image" << std::endl;
+		VM_CORE_ASSERT(data, "Failed to load image!");
 		m_Width = width;
 		m_Height = height;
 
@@ -91,8 +83,6 @@ namespace VeiM
 			bpp = 16;
 			break;
 		}
-
-		//make assert
 		size_t size = m_Width * m_Height * bpp;
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);

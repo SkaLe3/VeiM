@@ -1,110 +1,202 @@
 #pragma once
+
 #include <imgui.h>
-#include <cstdint>
-#include <iostream>
-namespace VeiM::UI {
 
+#include "VeiM/Core/CoreDefines.h"
+#include <unordered_map>
+#include <vector>
+#include <yaml-cpp/yaml.h>
 
-	struct ApplicationTheme
+namespace YAML
+{
+	class Node;
+}
+namespace VeiM::UI
+{
+
+	struct EditorPalette
 	{
-		ApplicationTheme() = default;
-		ApplicationTheme(const ApplicationTheme& theme);
-		~ApplicationTheme() = default;
-		// Headers
-		ImVec4 Header = ImVec4();
-		ImVec4 HeaderHovered = ImVec4();
-		ImVec4 HeaderActive = ImVec4();
-
-		// Buttons
-		ImVec4 Button = ImVec4();
-		ImVec4 ButtonHovered = ImVec4();
-		ImVec4 ButtonActive = ImVec4();
-
-		// Frame BG
-		ImVec4 FrameBg = ImVec4();
-		ImVec4 FrameBgHovered = ImVec4();
-		ImVec4 FrameBgActive = ImVec4();
-
-		// Tabs
-		ImVec4 Tab = ImVec4();
-		ImVec4 TabHovered = ImVec4();
-		ImVec4 TabActive = ImVec4();
-		ImVec4 TabUnfocused = ImVec4();
-		ImVec4 TabUnfocusedAvtive = ImVec4();
-
-		// Title
-		ImVec4 TitleBg = ImVec4();
-		ImVec4 TitleBgActive = ImVec4();
-		ImVec4 TitleBgCollapsed = ImVec4();
-
-		//Resize Grip
-		ImVec4 ResizeGrip = ImVec4();
-		ImVec4 ResizeGripHovered = ImVec4();
-		ImVec4 ResizeGripActive = ImVec4();
-
-		// Scrollbar
-		ImVec4 ScrollBarBg = ImVec4();
-		ImVec4 ScrollbarGrab = ImVec4();
-		ImVec4 ScrollbarGrabHovered = ImVec4();
-		ImVec4 ScrollbarGrabActive = ImVec4();
-
-		// Check Mark
-		ImVec4 CheckMark = ImVec4();
-
-		// Slider
-		ImVec4 SliderGrab = ImVec4();
-		ImVec4 SliderGrabActive = ImVec4();
-
-		// Text
-		ImVec4 Text = ImVec4();
-
-		// Checkbox
-		ImVec4 CheckBox = ImVec4();
-
-		// Separator
-		ImVec4 Separator = ImVec4();
-		ImVec4 SeparatorActive = ImVec4();
-		ImVec4 SeparatorHovered = ImVec4();
-
-		// WindowBg
-		ImVec4 WindowBg = ImVec4();
-		ImVec4 ChildBg = ImVec4();
-		ImVec4 PopupBg = ImVec4();
-		ImVec4 Border = ImVec4();
-
-		// Tables
-		ImVec4 TableHeaderBg = ImVec4();
-		ImVec4 TableBorderLight = ImVec4();
-
-		// Menubar
-		ImVec4 MenuBarBg = ImVec4();
-
-		/// Style
-		float FrameRounding = 0.0f;
-		float FrameBorderSize = 0.0f;
-		float IndentSpacing = 0.0f;
-
-
-		uint32_t accent = IM_COL32(236, 158, 36, 255);
-		uint32_t highlight = IM_COL32(39, 185, 242, 255);
-		uint32_t niceBlue = IM_COL32(83, 232, 254, 255);
-		uint32_t compliment = IM_COL32(78, 151, 166, 255);
-		uint32_t background = IM_COL32(36, 36, 36, 255);
-		uint32_t backgroundDark = IM_COL32(26, 26, 26, 255);
-		uint32_t titlebar = IM_COL32(21, 21, 21, 255);
-		uint32_t propertyField = IM_COL32(15, 15, 15, 255);
-		uint32_t text = IM_COL32(192, 192, 192, 255);
-		uint32_t textBrighter = IM_COL32(210, 210, 210, 255);
-		uint32_t textDarker = IM_COL32(128, 128, 128, 255);
-		uint32_t textError = IM_COL32(230, 51, 51, 255);
-		uint32_t muted = IM_COL32(77, 77, 77, 255);
-		uint32_t groupHeader = IM_COL32(47, 47, 47, 255);
-		uint32_t selection = IM_COL32(237, 192, 119, 255);
-		uint32_t selectionMuted = IM_COL32(237, 201, 142, 23);
-		uint32_t backgroundPopup = IM_COL32(50, 50, 50, 255);
-		uint32_t validPrefab = IM_COL32(82, 179, 222, 255);
-		uint32_t invalidPrefab = IM_COL32(222, 43, 43, 255);
-		uint32_t missingMesh = IM_COL32(230, 102, 76, 255);
-		uint32_t meshNotSet = IM_COL32(250, 101, 23, 255);
+		// TODO: Add color for Positive and Negavite buttons so it is consistent
+		ImU32 Accent = IM_COL32(236, 158, 36, 255);
+		ImU32 Highlight = IM_COL32(39, 185, 242, 255);
+		ImU32 NiceBlue = IM_COL32(83, 232, 254, 255);
+		ImU32 Compliment = IM_COL32(78, 151, 166, 255);
+		ImU32 Background = IM_COL32(36, 36, 36, 255);
+		ImU32 BackgroundDark = IM_COL32(26, 26, 26, 255);
+		ImU32 Titlebar = IM_COL32(21, 21, 21, 255);
+		ImU32 Border = IM_COL32(51, 51, 51, 255);
+		ImU32 PropertyField = IM_COL32(15, 15, 15, 255);
+		ImU32 Text = IM_COL32(205, 205, 205, 255);
+		ImU32 TextBrighter = IM_COL32(255, 255, 255, 255);
+		ImU32 TextDarker = IM_COL32(128, 128, 128, 255);
+		ImU32 TextError = IM_COL32(230, 51, 51, 255);
+		ImU32 Muted = IM_COL32(77, 77, 77, 255);
+		ImU32 GroupHeader = IM_COL32(47, 47, 47, 255);
+		ImU32 Selection = IM_COL32(237, 192, 119, 255);
+		ImU32 SelectionMuted = IM_COL32(237, 201, 142, 23);
+		ImU32 BackgroundPopup = IM_COL32(50, 50, 50, 255);
+		ImU32 ValidPrefab = IM_COL32(82, 179, 222, 255);
+		ImU32 InvalidPrefab = IM_COL32(222, 43, 43, 255);
+		ImU32 MissingMesh = IM_COL32(230, 102, 76, 255);
+		ImU32 MeshNotSet = IM_COL32(250, 101, 23, 255);
+		ImU32 Positive = IM_COL32(180, 75, 50, 255);
+		ImU32 PositiveHovered = IM_COL32(205, 75, 50, 255);
+		ImU32 PositiveActive = IM_COL32(128, 50, 25, 255);
+		ImU32 Negative = IM_COL32(75, 180, 50, 255);
+		ImU32 NegativeHovered = IM_COL32(75, 205, 50, 255);
+		ImU32 NegativeActive = IM_COL32(50, 128, 25, 255);
 	};
+	struct GUIPalette
+	{
+		ImVec4 Text;
+		ImVec4 TextDisabled;
+		ImVec4 WindowBg;
+		ImVec4 ChildBg;
+		ImVec4 PopupBg;
+		ImVec4 Border;
+		ImVec4 BorderShadow;
+		ImVec4 FrameBg;
+		ImVec4 FrameBgHovered;
+		ImVec4 FrameBgActive;
+		ImVec4 TitleBg;
+		ImVec4 TitleBgActive;
+		ImVec4 TitleBgcollapsed;
+		ImVec4 MenuBarBg;
+		ImVec4 ScrollbarBg;
+		ImVec4 ScrollbarGrab;
+		ImVec4 ScrollbarGrabHovered;
+		ImVec4 ScrollbarGrabActive;
+		ImVec4 CheckMark;
+		ImVec4 SliderGrab;
+		ImVec4 SliderGrabActive;
+		ImVec4 Button;
+		ImVec4 ButtonHovered;
+		ImVec4 ButtonActive;
+		ImVec4 Header;
+		ImVec4 HeaderHovered;
+		ImVec4 HeaderActive;
+		ImVec4 Separator;
+		ImVec4 SeparatorHovered;
+		ImVec4 SeparatorActive;
+		ImVec4 ResizeGrip;
+		ImVec4 ResizeGripHovered;
+		ImVec4 ResizeGripActive;
+		ImVec4 Tab;
+		ImVec4 TabHovered;
+		ImVec4 TabActive;
+		ImVec4 TabUnfocused;
+		ImVec4 TabUnfocusedActive;
+		ImVec4 DockingPreview;
+		ImVec4 DockingEmptyBg;
+		ImVec4 PlotLines;
+		ImVec4 PlotLineHovered;
+		ImVec4 PlotHistogram;
+		ImVec4 PlotHistogramHovered;
+		ImVec4 TableHeaderBg;
+		ImVec4 TableBorderStrong;
+		ImVec4 TableBorderLight;
+		ImVec4 TableRowBg;
+		ImVec4 TableRowBgAlt;
+		ImVec4 TextSelectedBg;
+		ImVec4 DragDropTarget;
+		ImVec4 NavHighlight;
+		ImVec4 NavWindowingHighlight;
+		ImVec4 NavWindowingDimBg;
+		ImVec4 ModalWindowDibBg;
+	};
+	struct GUIStyle
+	{
+		float       Alpha;                      
+		float       DisabledAlpha;              
+		ImVec2      WindowPadding;              
+		float       WindowRounding;             
+		float       WindowBorderSize;           
+		ImVec2      WindowMinSize;              
+		ImVec2      WindowTitleAlign;           
+		ImGuiDir    WindowMenuButtonPosition;   
+		float       ChildRounding;              
+		float       ChildBorderSize;            
+		float       PopupRounding;              
+		float       PopupBorderSize;            
+		ImVec2      FramePadding;               
+		float       FrameRounding;              
+		float       FrameBorderSize;            
+		ImVec2      ItemSpacing;                
+		ImVec2      ItemInnerSpacing;           
+		ImVec2      CellPadding;                
+		ImVec2      TouchExtraPadding;         
+		float       IndentSpacing;              
+		float       ColumnsMinSpacing;          
+		float       ScrollbarSize;              
+		float       ScrollbarRounding;          
+		float       GrabMinSize;                
+		float       GrabRounding;               
+		float       LayoutAlign;                
+		float       LogSliderDeadzone;          
+		float       TabRounding;                
+		float       TabBorderSize;              
+		float       TabMinWidthForCloseButton;  
+		float       TabBarBorderSize;           
+		float       TableAngledHeadersAngle;    
+		ImVec2      TableAngledHeadersTextAlign;
+		ImGuiDir    ColorButtonPosition;        
+		ImVec2      ButtonTextAlign;            
+		ImVec2      SelectableTextAlign;        
+		float       SeparatorTextBorderSize;    
+		ImVec2      SeparatorTextAlign;         
+		ImVec2      SeparatorTextPadding;       
+		ImVec2      DisplayWindowPadding;       
+		ImVec2      DisplaySafeAreaPadding;     
+		float       DockingSeparatorSize;       
+		float       MouseCursorScale;           
+		bool        AntiAliasedLines;           
+		bool        AntiAliasedLinesUseTex;     
+		bool        AntiAliasedFill;            
+		float       CurveTessellationTol;       
+		float       CircleTessellationMaxError;
+	};
+
+	struct Theme
+	{
+		static Theme& Get();
+		static void Editor();
+		static Theme GetDefault();
+		static bool TryLoadThemes();
+
+		EditorPalette EditorColors;
+		GUIPalette GUIColors;
+		GUIStyle Style;
+
+	private:
+		inline static std::unordered_map<String, YAML::Node> m_Themes;
+		inline static String m_DefaultThemeName;
+		inline static int32 m_ThemeIdx = 0;
+		inline static std::vector<String> m_ThemeNames;
+		inline static char m_NewThemeName[32];
+		inline static bool m_NameCollision;
+		static inline std::filesystem::path m_ConfPath = "Config/Themes.ini";
+
+	private:
+
+		static void SaveNewTheme(Theme& theme);
+		static void UpdateCurrentTheme();
+
+		static void UploadThemes(YAML::Emitter& out);
+
+		static void UpdateConfirmPopup(bool& open);
+
+		static void LoadThemes();
+		static Theme LoadTheme(const String& themeName);
+		static void SetTheme(const String& themeName);
+		// Should only be called by the engine itself, when Themes.ini does not exist
+		static void InitConfig();
+
+		static YAML::Node FillNodeWith(Theme& theme);
+
+		static bool FileExists(const String& filename);
+
+	private:
+		static bool ThemeSelector(const char* label);
+	};
+
 }
