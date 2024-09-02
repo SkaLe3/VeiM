@@ -2,7 +2,6 @@
 #include "VeiM/Core/Application.h"
 #include "VeiM/UI/UI.h"
 #include "VeiM/UI/Theme.h" 
-#include <iostream> // TODO: remove
 
 
 namespace VeiM
@@ -182,8 +181,6 @@ namespace VeiM
 			}
 		}
 		ImGui::End();
-
-		std::filesystem::path working = std::filesystem::current_path();
 	}
 
 	void EditorLayer::ImGuiWindowMenu()
