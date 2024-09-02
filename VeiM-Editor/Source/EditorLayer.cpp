@@ -2,6 +2,7 @@
 #include "VeiM/Core/Application.h"
 #include "VeiM/UI/UI.h"
 #include "VeiM/UI/Theme.h" 
+#include <iostream> // TODO: remove
 
 
 namespace VeiM
@@ -156,8 +157,33 @@ namespace VeiM
 
 		ImGuiWindowsRender();
 		ThemeEditorRender();
+		static GUIDebug& gdebug = Application::Get().GetGUIContext()->GetDebug();
+		if (gdebug.FlashColorTime > 0)
+		{
+			float hue = fmod(gdebug.FlashColorTime / 0.5f, 1.0f);
+			float r;
+			float g;
+			float b;
+			ImGui::ColorConvertHSVtoRGB(hue, 1.0f, 1.0f, r, g, b);
+			if (gdebug.FlashColor4)
+			{
+				*gdebug.FlashColor4 = ImVec4(r, g, b, 1.0f);
+			}	
+			if (gdebug.FlashColorU32)
+			{
+				*gdebug.FlashColorU32 = IM_COL32(r * 255.0f, g * 255.0f, b * 255.0f, 255.0f);
+			}
 
+			gdebug.FlashColorTime -= Application::Get().GetDeltaTime();
+			if (gdebug.FlashColorTime <= 0)
+			{
+				UI::Theme::DebugFlashColorStopGUI();
+				UI::Theme::DebugFlashColorStopEditor();
+			}
+		}
 		ImGui::End();
+
+		std::filesystem::path working = std::filesystem::current_path();
 	}
 
 	void EditorLayer::ImGuiWindowMenu()

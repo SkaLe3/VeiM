@@ -48,7 +48,7 @@ namespace VeiM
 
 		void Close() { m_Running = false; }
 
-		//float GetTime();
+		inline float GetDeltaTime() { return m_DeltaTime; }
 		Window& GetWindow() const { return *m_Window; }
 #ifdef VM_WITH_EDITOR
 		VeiM::GUIContext* GetGUIContext() { return m_GUIContext; }

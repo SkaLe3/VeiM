@@ -4,6 +4,7 @@
 #include <imgui_internal.h>
 #include <glm/glm.hpp>
 #include <memory>
+#include <functional>
 
 
 #include "VeiM/Core/Image.h" 
@@ -145,16 +146,17 @@ namespace VeiM::UI
 	void TextCentered(const String& label);
 	bool ButtonCentered(const char* label, const ImVec2& size = ImVec2(0, 0));
 
+	bool ColorEditU32(const char* label, ImU32* color, ImGuiColorEditFlags flags = 0);
 	// Parameters
 	bool BeginParameterTable(const char* label);
 	void EndParameterTable();
 
-	void ParameterRow(const char* label, float height);
+	void ParameterRow(const char* label, float height, std::function<void()> buttons = nullptr);
 	bool ParameterSlider(const char* label, float* v, float min, float max, const char* format = "%.0f", ImGuiSliderFlags flags = 0);
 	bool ParameterSlider2(const char* label, float v[2], float min, float max, const char* format = "%.0f", ImGuiSliderFlags flags = 0);
 	bool ParameterCombo(const char* label, int* current_item, const char* items);
+	bool ParameterColorU32(const char* label, ImU32& color, ImGuiColorEditFlags flags = 0, std::function<void()> buttons = nullptr);
+	bool ParameterColor4(const char* label, ImVec4& color, ImGuiColorEditFlags flags = 0, std::function<void()> buttons = nullptr);
 
-	bool ColorEditU32(const char* label, ImU32* color, ImGuiColorEditFlags flags);
-
-
+	void HelpMarker(const char* desc);
 }

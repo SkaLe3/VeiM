@@ -98,6 +98,8 @@ namespace VeiM
 		void SetIcon(std::filesystem::path iconPath);
 		void SetEventCallbacks(GLFWwindow* windowHandle);
 
+
+
 	private:
 		struct WindowData
 		{
@@ -114,6 +116,7 @@ namespace VeiM
 			TitlebarHitTestCallback TitlebarHitTest = []() { return false; };
 		};
 		WindowData m_Data;
+		static WindowData& GetUserPointer(GLFWwindow* hndl);
 
 		GLFWwindow* m_Window;
 		// TODO: Graphics context

@@ -41,14 +41,12 @@ namespace VeiM
 #ifdef VM_WITH_EDITOR
 	void Application::InitGUI()
 	{
-		 // TODO: Check if imgui enabled
 		m_GUIContext = new GUIContext();
 		PushOverlay(m_GUIContext);
 	}
 
 	void Application::RenderGUI()
 	{
-	   // TODO: Check if imgui enabled
 		m_GUIContext->BeginFrame();
 		m_GUIContext->EnableDocking(*m_Window);
 		{
@@ -86,7 +84,7 @@ namespace VeiM
 			m_Window->PollEvents();
 
 			float time = Time::GetTime();
-			float deltaTime = time - m_LastFrameTime;
+			m_DeltaTime = time - m_LastFrameTime;
 			m_LastFrameTime = time;
 
 

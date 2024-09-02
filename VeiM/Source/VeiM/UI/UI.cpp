@@ -115,20 +115,20 @@ namespace VeiM::UI
 		};
 
 		auto GetResizeBorderRect = [](ImGuiWindow* window, int border_n, float perp_padding, float thickness)
+		{
+			ImRect rect = window->Rect();
+			if (thickness == 0.0f)
 			{
-				ImRect rect = window->Rect();
-				if (thickness == 0.0f)
-				{
-					rect.Max.x -= 1;
-					rect.Max.y -= 1;
-				}
-				if (border_n == ImGuiDir_Left) { return ImRect(rect.Min.x - thickness, rect.Min.y + perp_padding, rect.Min.x + thickness, rect.Max.y - perp_padding); }
-				if (border_n == ImGuiDir_Right) { return ImRect(rect.Max.x - thickness, rect.Min.y + perp_padding, rect.Max.x + thickness, rect.Max.y - perp_padding); }
-				if (border_n == ImGuiDir_Up) { return ImRect(rect.Min.x + perp_padding, rect.Min.y - thickness, rect.Max.x - perp_padding, rect.Min.y + thickness); }
-				if (border_n == ImGuiDir_Down) { return ImRect(rect.Min.x + perp_padding, rect.Max.y - thickness, rect.Max.x - perp_padding, rect.Max.y + thickness); }
-				IM_ASSERT(0);
-				return ImRect();
-			};
+				rect.Max.x -= 1;
+				rect.Max.y -= 1;
+			}
+			if (border_n == ImGuiDir_Left) { return ImRect(rect.Min.x - thickness, rect.Min.y + perp_padding, rect.Min.x + thickness, rect.Max.y - perp_padding); }
+			if (border_n == ImGuiDir_Right) { return ImRect(rect.Max.x - thickness, rect.Min.y + perp_padding, rect.Max.x + thickness, rect.Max.y - perp_padding); }
+			if (border_n == ImGuiDir_Up) { return ImRect(rect.Min.x + perp_padding, rect.Min.y - thickness, rect.Max.x - perp_padding, rect.Min.y + thickness); }
+			if (border_n == ImGuiDir_Down) { return ImRect(rect.Min.x + perp_padding, rect.Max.y - thickness, rect.Max.x - perp_padding, rect.Max.y + thickness); }
+			IM_ASSERT(0);
+			return ImRect();
+		};
 
 
 		ImGuiContext& g = *GImGui;
@@ -310,10 +310,16 @@ namespace VeiM::UI
 
 	bool BeginParameterTable(const char* label)
 	{
-		const ImGuiTableFlags tableFlags = ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable |
+		const ImGuiTableFlags tableFlags = ImGuiTableFlags_SizingStretchSame |	ImGuiTableFlags_Resizable |
 			ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_SizingFixedFit;
 		UI::ShiftCursorY(1.0f);
-		return ImGui::BeginTable(label, 2, tableFlags);
+		if (ImGui::BeginTable(label, 2, tableFlags))
+		{
+			ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_NoResize);
+			ImGui::TableSetupColumn("Edit", ImGuiTableColumnFlags_NoResize);
+			return true;
+		}
+		return false;
 	}
 
 	void EndParameterTable()
@@ -321,7 +327,7 @@ namespace VeiM::UI
 		ImGui::EndTable();
 	}
 
-	void ParameterRow(const char* label, float height)
+	void ParameterRow(const char* label, float height, std::function<void()> buttons)
 	{
 		const float offset = 12.f;
 
@@ -329,6 +335,10 @@ namespace VeiM::UI
 		ImGui::TableSetColumnIndex(0);
 		ShiftCursorY((height + offset - ImGui::GetTextLineHeight()) / 2.f - 2.f);
 		ImGui::Text(label);
+		if (buttons)
+		{
+			buttons();
+		}
 		ImGui::TableSetColumnIndex(1);
 		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 15.f);
 		ShiftCursorY(offset / 2.f);
@@ -363,6 +373,40 @@ namespace VeiM::UI
 
 		ImGui::PushID(label);
 		bool active = ImGui::Combo("##Parameter", current_item, items);
+		ImGui::PopID();
+		return active;
+	}
+
+	void HelpMarker(const char* desc)
+	{
+		ImGui::TextDisabled("(?)");
+		if (ImGui::BeginItemTooltip())
+		{
+			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+			ImGui::TextUnformatted(desc);
+			ImGui::PopTextWrapPos();
+			ImGui::EndTooltip();
+		}
+	}
+
+	bool ParameterColorU32(const char* label, ImU32& color, ImGuiColorEditFlags flags /*= 0*/, std::function<void()> buttons)
+	{
+		float height = ImGui::GetFrameHeight();
+		ParameterRow(label, height, buttons);
+
+		ImGui::PushID(label);
+		bool active = UI::ColorEditU32("##Parameter", &color, flags);
+		ImGui::PopID();
+		return active;
+	}
+
+	bool ParameterColor4(const char* label, ImVec4& color, ImGuiColorEditFlags flags /*= 0*/, std::function<void()> buttons /*= nullptr*/)
+	{
+		float height = ImGui::GetFrameHeight();
+		ParameterRow(label, height, buttons);
+
+		ImGui::PushID(label);
+		bool active = ImGui::ColorEdit4("##Parameter", (float*)&color, flags);
 		ImGui::PopID();
 		return active;
 	}

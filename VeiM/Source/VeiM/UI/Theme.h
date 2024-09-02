@@ -160,28 +160,39 @@ namespace VeiM::UI
 	{
 		static Theme& Get();
 		static void Editor();
-		static Theme GetDefault();
-		static bool TryLoadThemes();
+		static Theme GetDefault();	 // Default editor theme provided by developer
+		static Theme GetSelected();
+		static bool TryLoadThemes(); // Call on application init
+
+		static void DebugFlashColorEditor(ImU32& color);
+		static void DebugFlashColorGUI(ImVec4& color);
+		static void DebugFlashColorStopEditor();
+		static void DebugFlashColorStopGUI();
 
 		EditorPalette EditorColors;
 		GUIPalette GUIColors;
 		GUIStyle Style;
 
 	private:
-		inline static std::unordered_map<String, YAML::Node> m_Themes;
-		inline static String m_DefaultThemeName;
-		inline static int32 m_ThemeIdx = 0;
-		inline static std::vector<String> m_ThemeNames;
-		inline static char m_NewThemeName[32];
-		inline static bool m_NameCollision;
-		static inline std::filesystem::path m_ConfPath = "Config/Themes.ini";
+		static std::unordered_map<String, YAML::Node> m_Themes;
+		static String m_DefaultThemeName;
+		static String m_SelectedThemeName;
+		static int32 m_ThemeIdx;
+		static std::vector<String> m_ThemeNames;
+		static char m_NewThemeName[32];
+		static bool m_NameCollision;
+		static Theme m_SavedTheme;
+		static ImGuiTextFilter m_ColorFilter;
+		static std::filesystem::path m_ConfPath;
 
 	private:
 
 		static void SaveNewTheme(Theme& theme);
-		static void UpdateCurrentTheme();
+		static void UpdateTheme(Theme& theme);
 
-		static void UploadThemes(YAML::Emitter& out);
+		static void EmitThemesContent(YAML::Emitter& out);
+		static void EndEmit(YAML::Emitter& out);
+		static void UploadContent(YAML::Emitter& out);
 
 		static void UpdateConfirmPopup(bool& open);
 
@@ -197,6 +208,8 @@ namespace VeiM::UI
 
 	private:
 		static bool ThemeSelector(const char* label);
+		static void ColorEdit_EditorPalette(const char* label, ImU32& themeVar, ImU32& savedVar);
+		static void ColorEdit_GUIPalette(const char* label, ImVec4& themeVar, ImVec4& savedVar);
 	};
 
 }

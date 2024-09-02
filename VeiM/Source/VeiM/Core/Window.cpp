@@ -147,6 +147,11 @@ namespace VeiM
 		m_Data.CachedOnMinimizeMode = GetWindowMode();
 	}
 
+	Window::WindowData& Window::GetUserPointer(GLFWwindow* hndl)
+	{
+		return *(WindowData*)glfwGetWindowUserPointer(hndl);
+	}
+
 	// TODO: Make Create function
 	void Window::Init(const WindowConfig& config)
 	{
@@ -236,8 +241,7 @@ namespace VeiM
 	{
 		glfwSetWindowSizeCallback(windowHandle, [](GLFWwindow* window, int width, int height)
 								  {
-									  // TODO: Make function for getting user pointer
-									  Window::WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+									  Window::WindowData& data = GetUserPointer(window);
 									  data.Width = width;
 									  data.Height = height;
 									  data.EventCallback(std::string("Window resize: ") + std::to_string(data.Width) + " | " + std::to_string(data.Height));
@@ -251,7 +255,7 @@ namespace VeiM
 
 		glfwSetTitlebarHitTestCallback(m_Window, [](GLFWwindow* window, int x, int y, int* hit)
 									   {
-										   Window::WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+										   Window::WindowData& data = GetUserPointer(window);
 										   if (data.CustomTitlebar && data.TitlebarHitTest)
 										   {
 											   *hit = data.TitlebarHitTest();
@@ -261,12 +265,12 @@ namespace VeiM
 									 {
 										 if (iconified)
 										 {
-											 Window::WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+											 Window::WindowData& data = GetUserPointer(window);
 											 data.CachedOnMinimizeMode = data.Mode;
 										 }
 										 else
 										 {
-											 Window::WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+											 Window::WindowData& data = GetUserPointer(window);
 											 Application::Get().GetWindow().SetWindowMode(data.CachedOnMinimizeMode);
 										 }
 									 });

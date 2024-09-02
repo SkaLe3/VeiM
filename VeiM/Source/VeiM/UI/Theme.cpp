@@ -62,6 +62,16 @@ namespace YAML
 
 namespace VeiM::UI
 {
+	Theme Theme::m_SavedTheme;
+	std::unordered_map<String, YAML::Node> Theme::m_Themes;
+	String Theme::m_DefaultThemeName = "DefaultDark";
+	String Theme::m_SelectedThemeName = "DefaultDark";
+	int32 Theme::m_ThemeIdx = 0;
+	std::vector<String> Theme::m_ThemeNames;
+	bool Theme::m_NameCollision;
+	char Theme::m_NewThemeName[32];
+	ImGuiTextFilter Theme::m_ColorFilter;
+	std::filesystem::path Theme::m_ConfPath = "Config/Themes.ini";
 
 	YAML::Emitter& operator<<(YAML::Emitter& out, const ImVec2& v)
 	{
@@ -89,16 +99,24 @@ namespace VeiM::UI
 		UI::TextCentered("General");
 
 		ThemeSelector("Themes##Selector");
-		// FontSelector
+
+
+		// TODO: FontSelector
 		ImGui::InputText("New Theme Name", &m_NewThemeName[0], 32);
-		if (m_NameCollision || m_NewThemeName[0] == '\0')
+		if (m_NameCollision)
 		{
-			ImGui::TextColored(ImGui::ColorConvertU32ToFloat4(Get().EditorColors.Negative), "Theme with such name already exists or name is empty");
+			ImGui::TextColored(ImGui::ColorConvertU32ToFloat4(Get().EditorColors.Negative), "Theme with such name already exists");
 		}
+		if (m_NewThemeName[0] == '\0')
+		{
+			ImGui::TextColored(ImGui::ColorConvertU32ToFloat4(Get().EditorColors.Negative), "Theme  name is empty");
+		}
+		ImGui::ShowFontSelector("Fonts##Selector");
 
 		if (ImGui::Button("Save"))
 		{
 			SaveNewTheme(theme);
+			m_SavedTheme = theme;
 		}
 		ImGui::SameLine();
 
@@ -121,8 +139,6 @@ namespace VeiM::UI
 			SetTheme(m_ThemeNames[m_ThemeIdx]);
 		}
 		UpdateConfirmPopup(showConfirmationDialog);
-
-
 
 		ImGui::Separator();
 		if (ImGui::BeginTabBar("##tabs", ImGuiTabBarFlags_None))
@@ -187,8 +203,9 @@ namespace VeiM::UI
 						theme.Style.WindowMenuButtonPosition = (ImGuiDir)(window_menu_button_position - 1);
 					UI::ParameterCombo("ColorButtonPosition", (int*)&theme.Style.ColorButtonPosition, "Left\0Right\0");
 					UI::ParameterSlider2("ButtonTextAlign", (float*)&theme.Style.ButtonTextAlign, 0.0f, 1.0f, "%.2f");
-					// TODO: Add HelpMarker
+					ImGui::SameLine(); HelpMarker("Alignment applies when a button is larger than its text content.");
 					UI::ParameterSlider("SeparatorTextBorderSize", &theme.Style.SeparatorTextBorderSize, 0.0f, 10.0f);
+					ImGui::SameLine(); HelpMarker("Alignment applies when a selectable is larger than its text content.");
 					UI::ParameterSlider2("SeparatorTextAlign", (float*)&theme.Style.SeparatorTextAlign, 0.0f, 1.0f, "%.2f");
 					UI::ParameterSlider2("SeparatorTextPadding", (float*)&theme.Style.SeparatorTextPadding, 0.0f, 40.0f);
 					UI::ParameterSlider("LogSliderDeadzone", &theme.Style.LogSliderDeadzone, 0.0f, 12.0f);
@@ -216,6 +233,106 @@ namespace VeiM::UI
 			}
 			if (ImGui::BeginTabItem("Colors"))
 			{
+				m_ColorFilter.Draw("Filter colors", ImGui::GetFontSize() * 16);
+				ImGui::SameLine();
+				UI::HelpMarker(
+					"In the color list:\n"
+					"Left-click on color square to open color picker,\n"
+					"Right-click to open edit options menu");
+				ImGui::Spacing();
+				UI::TextCentered("Editor Palette");
+				if (UI::BeginParameterTable("Editor Palette"))
+				{
+
+					ColorEdit_EditorPalette("Accent", theme.EditorColors.Accent, m_SavedTheme.EditorColors.Accent);
+					ColorEdit_EditorPalette("Highlight", theme.EditorColors.Highlight, m_SavedTheme.EditorColors.Highlight);
+					ColorEdit_EditorPalette("NiceBlue", theme.EditorColors.NiceBlue, m_SavedTheme.EditorColors.NiceBlue);
+					ColorEdit_EditorPalette("Compliment", theme.EditorColors.Compliment, m_SavedTheme.EditorColors.Compliment);
+					ColorEdit_EditorPalette("Background", theme.EditorColors.Background, m_SavedTheme.EditorColors.Background);
+					ColorEdit_EditorPalette("BackgroundDark", theme.EditorColors.BackgroundDark, m_SavedTheme.EditorColors.BackgroundDark);
+					ColorEdit_EditorPalette("Titlebar", theme.EditorColors.Titlebar, m_SavedTheme.EditorColors.Titlebar);
+					ColorEdit_EditorPalette("Border", theme.EditorColors.Border, m_SavedTheme.EditorColors.Border);
+					ColorEdit_EditorPalette("PropertyField", theme.EditorColors.PropertyField, m_SavedTheme.EditorColors.PropertyField);
+					ColorEdit_EditorPalette("Text", theme.EditorColors.Text, m_SavedTheme.EditorColors.Text);
+					ColorEdit_EditorPalette("TextBrighter", theme.EditorColors.TextBrighter, m_SavedTheme.EditorColors.TextBrighter);
+					ColorEdit_EditorPalette("TextDarker", theme.EditorColors.TextDarker, m_SavedTheme.EditorColors.TextDarker);
+					ColorEdit_EditorPalette("TextError", theme.EditorColors.TextError, m_SavedTheme.EditorColors.TextError);
+					ColorEdit_EditorPalette("Muted", theme.EditorColors.Muted, m_SavedTheme.EditorColors.Muted);
+					ColorEdit_EditorPalette("GroupHeader", theme.EditorColors.GroupHeader, m_SavedTheme.EditorColors.GroupHeader);
+					ColorEdit_EditorPalette("Selection", theme.EditorColors.Selection, m_SavedTheme.EditorColors.Selection);
+					ColorEdit_EditorPalette("SelectionMuted", theme.EditorColors.SelectionMuted, m_SavedTheme.EditorColors.SelectionMuted);
+					ColorEdit_EditorPalette("BackgroundPopup", theme.EditorColors.BackgroundPopup, m_SavedTheme.EditorColors.BackgroundPopup);
+					ColorEdit_EditorPalette("ValidPrefab", theme.EditorColors.ValidPrefab, m_SavedTheme.EditorColors.ValidPrefab);
+					ColorEdit_EditorPalette("InvalidPrefab", theme.EditorColors.InvalidPrefab, m_SavedTheme.EditorColors.InvalidPrefab);
+					ColorEdit_EditorPalette("MissingMesh", theme.EditorColors.MissingMesh, m_SavedTheme.EditorColors.MissingMesh);
+					ColorEdit_EditorPalette("MeshNotSet", theme.EditorColors.MeshNotSet, m_SavedTheme.EditorColors.MeshNotSet);
+					ColorEdit_EditorPalette("Positive", theme.EditorColors.Positive, m_SavedTheme.EditorColors.Positive);
+					ColorEdit_EditorPalette("PositiveHovered", theme.EditorColors.PositiveHovered, m_SavedTheme.EditorColors.PositiveHovered);
+					ColorEdit_EditorPalette("PositiveActive", theme.EditorColors.PositiveActive, m_SavedTheme.EditorColors.PositiveActive);
+					ColorEdit_EditorPalette("Negative", theme.EditorColors.Negative, m_SavedTheme.EditorColors.Negative);
+					ColorEdit_EditorPalette("NegativeHovered", theme.EditorColors.NegativeHovered, m_SavedTheme.EditorColors.NegativeHovered);
+					ColorEdit_EditorPalette("NegativeActive", theme.EditorColors.NegativeActive, m_SavedTheme.EditorColors.NegativeActive);
+				}
+				UI::EndParameterTable();
+				ImGui::Spacing();
+				UI::TextCentered("Editor Palette");
+				if (UI::BeginParameterTable("GUI Palette"))
+				{
+					ColorEdit_GUIPalette("Text", theme.GUIColors.Text, m_SavedTheme.GUIColors.Text);
+					ColorEdit_GUIPalette("TextDisabled", theme.GUIColors.TextDisabled, m_SavedTheme.GUIColors.TextDisabled);
+					ColorEdit_GUIPalette("WindowBg", theme.GUIColors.WindowBg, m_SavedTheme.GUIColors.WindowBg);
+					ColorEdit_GUIPalette("ChildBg", theme.GUIColors.ChildBg, m_SavedTheme.GUIColors.ChildBg);
+					ColorEdit_GUIPalette("PopupBg", theme.GUIColors.PopupBg, m_SavedTheme.GUIColors.PopupBg);
+					ColorEdit_GUIPalette("Border", theme.GUIColors.Border, m_SavedTheme.GUIColors.Border);
+					ColorEdit_GUIPalette("BorderShadow", theme.GUIColors.BorderShadow, m_SavedTheme.GUIColors.BorderShadow);
+					ColorEdit_GUIPalette("FrameBg", theme.GUIColors.FrameBg, m_SavedTheme.GUIColors.FrameBg);
+					ColorEdit_GUIPalette("FrameBgHovered", theme.GUIColors.FrameBgHovered, m_SavedTheme.GUIColors.FrameBgHovered);
+					ColorEdit_GUIPalette("FrameBgActive", theme.GUIColors.FrameBgActive, m_SavedTheme.GUIColors.FrameBgActive);
+					ColorEdit_GUIPalette("TitleBg", theme.GUIColors.TitleBg, m_SavedTheme.GUIColors.TitleBg);
+					ColorEdit_GUIPalette("TitleBgActive", theme.GUIColors.TitleBgActive, m_SavedTheme.GUIColors.TitleBgActive);
+					ColorEdit_GUIPalette("TitleBgCollapsed", theme.GUIColors.TitleBgcollapsed, m_SavedTheme.GUIColors.TitleBgcollapsed);
+					ColorEdit_GUIPalette("MenuBarBg", theme.GUIColors.MenuBarBg, m_SavedTheme.GUIColors.MenuBarBg);
+					ColorEdit_GUIPalette("ScrollbarBg", theme.GUIColors.ScrollbarBg, m_SavedTheme.GUIColors.ScrollbarBg);
+					ColorEdit_GUIPalette("ScrollbarGrab", theme.GUIColors.ScrollbarGrab, m_SavedTheme.GUIColors.ScrollbarGrab);
+					ColorEdit_GUIPalette("ScrollbarGrabHovered", theme.GUIColors.ScrollbarGrabHovered, m_SavedTheme.GUIColors.ScrollbarGrabHovered);
+					ColorEdit_GUIPalette("ScrollbarGrabActive", theme.GUIColors.ScrollbarGrabActive, m_SavedTheme.GUIColors.ScrollbarGrabActive);
+					ColorEdit_GUIPalette("CheckMark", theme.GUIColors.CheckMark, m_SavedTheme.GUIColors.CheckMark);
+					ColorEdit_GUIPalette("SliderGrab", theme.GUIColors.SliderGrab, m_SavedTheme.GUIColors.SliderGrab);
+					ColorEdit_GUIPalette("SliderGrabActive", theme.GUIColors.SliderGrabActive, m_SavedTheme.GUIColors.SliderGrabActive);
+					ColorEdit_GUIPalette("Button", theme.GUIColors.Button, m_SavedTheme.GUIColors.Button);
+					ColorEdit_GUIPalette("ButtonHovered", theme.GUIColors.ButtonHovered, m_SavedTheme.GUIColors.ButtonHovered);
+					ColorEdit_GUIPalette("ButtonActive", theme.GUIColors.ButtonActive, m_SavedTheme.GUIColors.ButtonActive);
+					ColorEdit_GUIPalette("Separator", theme.GUIColors.Separator, m_SavedTheme.GUIColors.Separator);
+					ColorEdit_GUIPalette("SeparatorHovered", theme.GUIColors.SeparatorHovered, m_SavedTheme.GUIColors.SeparatorHovered);
+					ColorEdit_GUIPalette("SeparatorActive", theme.GUIColors.SeparatorActive, m_SavedTheme.GUIColors.SeparatorActive);
+					ColorEdit_GUIPalette("ResizeGrip", theme.GUIColors.ResizeGrip, m_SavedTheme.GUIColors.ResizeGrip);
+					ColorEdit_GUIPalette("ResizeGripHovered", theme.GUIColors.ResizeGripHovered, m_SavedTheme.GUIColors.ResizeGripHovered);
+					ColorEdit_GUIPalette("ResizeGripActive", theme.GUIColors.ResizeGripActive, m_SavedTheme.GUIColors.ResizeGripActive);
+					ColorEdit_GUIPalette("Tab", theme.GUIColors.Tab, m_SavedTheme.GUIColors.Tab);
+					ColorEdit_GUIPalette("TabHovered", theme.GUIColors.TabHovered, m_SavedTheme.GUIColors.TabHovered);
+					ColorEdit_GUIPalette("TabActive", theme.GUIColors.TabActive, m_SavedTheme.GUIColors.TabActive);
+					ColorEdit_GUIPalette("TabUnfocused", theme.GUIColors.TabUnfocused, m_SavedTheme.GUIColors.TabUnfocused);
+					ColorEdit_GUIPalette("TabUnfocusedActive", theme.GUIColors.TabUnfocusedActive, m_SavedTheme.GUIColors.TabUnfocusedActive);
+					ColorEdit_GUIPalette("DockingPreview", theme.GUIColors.DockingPreview, m_SavedTheme.GUIColors.DockingPreview);
+					ColorEdit_GUIPalette("DockingEmptyBg", theme.GUIColors.DockingEmptyBg, m_SavedTheme.GUIColors.DockingEmptyBg);
+					ColorEdit_GUIPalette("PlotLines", theme.GUIColors.PlotLines, m_SavedTheme.GUIColors.PlotLines);
+					ColorEdit_GUIPalette("PlotLineHovered", theme.GUIColors.PlotLineHovered, m_SavedTheme.GUIColors.PlotLineHovered);
+					ColorEdit_GUIPalette("PlotHistogram", theme.GUIColors.PlotHistogram, m_SavedTheme.GUIColors.PlotHistogram);
+					ColorEdit_GUIPalette("PlotHistogramHovered", theme.GUIColors.PlotHistogramHovered, m_SavedTheme.GUIColors.PlotHistogramHovered);
+					ColorEdit_GUIPalette("TableHeaderBg", theme.GUIColors.TableHeaderBg, m_SavedTheme.GUIColors.TableHeaderBg);
+					ColorEdit_GUIPalette("TableBorderStrong", theme.GUIColors.TableBorderStrong, m_SavedTheme.GUIColors.TableBorderStrong);
+					ColorEdit_GUIPalette("TableBorderLight", theme.GUIColors.TableBorderLight, m_SavedTheme.GUIColors.TableBorderLight);
+					ColorEdit_GUIPalette("TableRowBg", theme.GUIColors.TableRowBg, m_SavedTheme.GUIColors.TableRowBg);
+					ColorEdit_GUIPalette("TableRowBgAlt", theme.GUIColors.TableRowBgAlt, m_SavedTheme.GUIColors.TableRowBgAlt);
+					ColorEdit_GUIPalette("TextSelectedBg", theme.GUIColors.TextSelectedBg, m_SavedTheme.GUIColors.TextSelectedBg);
+					ColorEdit_GUIPalette("DragDropTarget", theme.GUIColors.DragDropTarget, m_SavedTheme.GUIColors.DragDropTarget);
+					ColorEdit_GUIPalette("NavHighlight", theme.GUIColors.NavHighlight, m_SavedTheme.GUIColors.NavHighlight);
+					ColorEdit_GUIPalette("NavWindowingHighlight", theme.GUIColors.NavWindowingHighlight, m_SavedTheme.GUIColors.NavWindowingHighlight);
+					ColorEdit_GUIPalette("NavWindowingDimBg", theme.GUIColors.NavWindowingDimBg, m_SavedTheme.GUIColors.NavWindowingDimBg);
+					ColorEdit_GUIPalette("ModalWindowDibBg", theme.GUIColors.ModalWindowDibBg, m_SavedTheme.GUIColors.ModalWindowDibBg);
+				}
+				UI::EndParameterTable();
+
 				ImGui::EndTabItem();
 			}
 			ImGui::EndTabBar();
@@ -225,7 +342,12 @@ namespace VeiM::UI
 
 	Theme Theme::GetDefault()
 	{
-		return LoadTheme("DefaultDark");
+		return LoadTheme(m_DefaultThemeName);
+	}
+
+	Theme Theme::GetSelected()
+	{
+		return LoadTheme(m_SelectedThemeName);
 	}
 
 	void Theme::UpdateConfirmPopup(bool& open)
@@ -282,7 +404,8 @@ namespace VeiM::UI
 			{
 				open = false;
 				ImGui::CloseCurrentPopup();
-				UpdateCurrentTheme();
+				UpdateTheme(Get());
+				m_SavedTheme = Get();
 
 			}
 			ImGui::SameLine();
@@ -303,31 +426,27 @@ namespace VeiM::UI
 
 	void Theme::SaveNewTheme(Theme& theme)
 	{
+		m_NameCollision = std::find(m_ThemeNames.begin(), m_ThemeNames.end(), m_NewThemeName) != m_ThemeNames.end();
+		if (m_NameCollision)
+		{
+			VM_CORE_ERROR("[Editor] Theme with such name already exists");
+			return;
+		}
+		if (m_NewThemeName[0] == '\0')
+		{
+			VM_CORE_ERROR("[Editor] Theme name is empty");
+			return;
+		}
+		m_SelectedThemeName = m_NewThemeName;
+
 		YAML::Emitter out;
-		UploadThemes(out);
+		EmitThemesContent(out);
 
 		YAML::Node newTheme = FillNodeWith(theme);
-
-		m_NameCollision = std::find(m_ThemeNames.begin(), m_ThemeNames.end(), m_NewThemeName) != m_ThemeNames.end();
-		if (m_NameCollision || m_NewThemeName[0] == '\0')
-		{
-			VM_CORE_ERROR("[Editor] Theme with such name already exists or name is empty");
-			return;
-		}
-
 		out << YAML::Key << m_NewThemeName << YAML::Value << newTheme;
 
-		out << YAML::EndMap;
-		out << YAML::EndMap;
-
-		std::ofstream fout(m_ConfPath);
-		if (!fout.is_open())
-		{
-			VM_CORE_ERROR("[Editor] Failed to open file for writing: %s", m_ConfPath.string());
-			return;
-		}
-		fout << out.c_str();
-		fout.close();
+		EndEmit(out);
+		UploadContent(out);
 
 		bool loaded = TryLoadThemes();
 		if (!loaded)
@@ -335,13 +454,16 @@ namespace VeiM::UI
 			VM_CORE_ERROR("[Editor] Failed to update themes after save");
 			return;
 		}
-		m_ThemeIdx = m_Themes.size() - 1;
+	
 	}
 	void Theme::LoadThemes()
 	{
 		YAML::Node config = YAML::LoadFile(m_ConfPath.string());
-		m_DefaultThemeName = config["general"]["default_theme"].as<std::string>();
+		m_DefaultThemeName = config["general"]["default_theme"].as<String>();
+		m_SelectedThemeName = config["general"]["selected_theme"].as<String>();
 		VM_CORE_ASSERT(!m_DefaultThemeName.empty(), "[Editor] Default theme section is missing in the Themes.ini file.");	  // TODO: Make as verify
+		if (m_SelectedThemeName.empty())
+			m_SelectedThemeName = m_DefaultThemeName;
 
 		YAML::Node themesNode = config["themes"];
 		VM_CORE_ASSERT(themesNode, "[Editor] Themes section is missing in the Themes.ini  file."); // TODO: Make as verify
@@ -652,12 +774,14 @@ namespace VeiM::UI
 
 		YAML::Node themeNode = FillNodeWith(theme);
 
-		YAML::Node defaultTheme;
-		defaultTheme["default_theme"] = "DefaultDark";
+		YAML::Node generalNode;
+		generalNode["default_theme"] = m_DefaultThemeName;
+		YAML::Node selectedTheme;
+		generalNode["selected_theme"] = m_SelectedThemeName;
 
 		YAML::Emitter out;
 		out << YAML::BeginMap;
-		out << YAML::Key << "general" << YAML::Value << defaultTheme;
+		out << YAML::Key << "general" << YAML::Value << generalNode;
 
 		out << YAML::Key << "themes" << YAML::Value << YAML::BeginMap;
 		out << YAML::Key << "DefaultDark" << YAML::Value << themeNode;
@@ -701,6 +825,11 @@ namespace VeiM::UI
 		for (const auto& [themeName, properties] : m_Themes)
 		{
 			m_ThemeNames.push_back(themeName);
+		}
+		auto it = std::find(m_ThemeNames.begin(), m_ThemeNames.end(), m_SelectedThemeName);
+		if (it != m_ThemeNames.end())
+		{
+			m_ThemeIdx = std::distance(m_ThemeNames.begin(), it);
 		}
 		return true;
 	}
@@ -873,8 +1002,14 @@ namespace VeiM::UI
 		{
 			if (m_ThemeIdx != prev_ThemeIdx)
 			{
-				SetTheme(m_ThemeNames[m_ThemeIdx]);
+				m_SelectedThemeName = m_ThemeNames[m_ThemeIdx];
+				SetTheme(m_SelectedThemeName);
 				prev_ThemeIdx = m_ThemeIdx;
+				YAML::Emitter out;
+				EmitThemesContent(out);
+				EndEmit(out);
+				UploadContent(out);
+
 			}
 
 			return true;
@@ -884,18 +1019,43 @@ namespace VeiM::UI
 
 	void Theme::SetTheme(const String& themeName)
 	{
-		Application::Get().GetGUIContext()->SetTheme(LoadTheme(themeName));
+		m_SavedTheme = LoadTheme(themeName);
+		Application::Get().GetGUIContext()->SetTheme(m_SavedTheme);
 	}
 
-	void Theme::UpdateCurrentTheme()
+	void Theme::UpdateTheme(Theme& theme)
 	{
-		YAML::Node currentTheme = FillNodeWith(Get());
+		YAML::Node currentTheme = FillNodeWith(theme);
 		m_Themes[m_ThemeNames[m_ThemeIdx]] = currentTheme;
 		YAML::Emitter out;
-		UploadThemes(out);
-		YAML::EndMap;
-		YAML::EndMap;
+		EmitThemesContent(out);
+		EndEmit(out);
+		UploadContent(out);
 
+	}
+
+	void Theme::EmitThemesContent(YAML::Emitter& out)
+	{
+		out << YAML::BeginMap;
+		out << YAML::Key << "general" << YAML::Value << YAML::BeginMap;
+		out << YAML::Key << "default_theme" << YAML::Value << m_DefaultThemeName;
+		out << YAML::Key << "selected_theme" << YAML::Value << m_SelectedThemeName;
+		out << YAML::EndMap;
+
+		out << YAML::Key << "themes" << YAML::Value << YAML::BeginMap;
+		for (const auto& [themeName, properties] : m_Themes)
+		{
+			out << YAML::Key << themeName << YAML::Value << properties;
+		}
+	}
+
+	void Theme::EndEmit(YAML::Emitter& out)
+	{
+		YAML::EndMap;
+		YAML::EndMap;
+	}
+	void Theme::UploadContent(YAML::Emitter& out)
+	{
 		std::ofstream fout(m_ConfPath);
 		if (!fout.is_open())
 		{
@@ -906,18 +1066,122 @@ namespace VeiM::UI
 		fout.close();
 	}
 
-	void Theme::UploadThemes(YAML::Emitter& out)
+	void Theme::ColorEdit_EditorPalette(const char* label, ImU32& themeVar, ImU32& savedVar)
 	{
-		out << YAML::BeginMap;
-		out << YAML::Key << "general" << YAML::Value << YAML::BeginMap;
-		out << YAML::Key << "default_theme" << YAML::Value << m_DefaultThemeName;
-		out << YAML::EndMap;
-
-		out << YAML::Key << "themes" << YAML::Value << YAML::BeginMap;
-		for (const auto& [themeName, properties] : m_Themes)
-		{
-			out << YAML::Key << themeName << YAML::Value << properties;
-		}
+		if (!m_ColorFilter.PassFilter(label))
+			return;
+		Theme& theme = Get();
+		UI::ParameterColorU32(label, themeVar, 0, [&]()
+							  {
+								  float space = ImGui::GetContentRegionAvail().x;
+								  float title = ImGui::CalcTextSize(label).x;
+								  float hint = ImGui::CalcTextSize("?").x;
+								  if (memcmp(&themeVar, &savedVar, sizeof(themeVar)) != 0)
+								  {
+								  	float saveB = ImGui::CalcTextSize("Save").x;
+								  	float revertB = ImGui::CalcTextSize("Revert").x;
+								  	float gap = saveB + revertB + title + hint + theme.Style.ItemInnerSpacing.x * 2 + theme.Style.FramePadding.x * 6;
+								  
+								  	// TODO: Check docs/FONTS.md  to use icons				
+								  	ImGui::SameLine(0.0f, space - gap); UI::ShiftCursorY(-2); if (ImGui::Button("Save")) { if (m_ThemeNames[m_ThemeIdx] != m_DefaultThemeName) { savedVar = themeVar; UpdateTheme(m_SavedTheme); } }
+								  	ImGui::SameLine(0.0f, theme.Style.ItemInnerSpacing.x); UI::ShiftCursorY(-2);  if (ImGui::Button("Revert")) { themeVar = savedVar; }
+								  	ImGui::SameLine(0.0f, theme.Style.ItemInnerSpacing.x); UI::ShiftCursorY(-2);
+								  }
+								  else
+								  {
+								  	float gap = hint + title + theme.Style.FramePadding.x * 2;
+								  	ImGui::SameLine(0.0f, space - gap); UI::ShiftCursorY(-2);
+								  }
+								  ImGui::PushID(label);
+								  if (ImGui::Button("?"))
+								  {
+									  DebugFlashColorEditor(themeVar);
+								  }
+								  ImGui::PopID();
+								  ImGui::SetItemTooltip("Flash given color to identify places where it is used.");
+								  ImGui::SameLine();
+							  });
 	}
+
+	void Theme::ColorEdit_GUIPalette(const char* label, ImVec4& themeVar, ImVec4& savedVar)
+	{
+		if (!m_ColorFilter.PassFilter(label))
+			return;
+		Theme& theme = Get();
+		UI::ParameterColor4(label, themeVar, 0, [&]()
+							{
+								float space = ImGui::GetContentRegionAvail().x;
+								float title = ImGui::CalcTextSize(label).x;
+								float hint = ImGui::CalcTextSize("?").x;
+								if (memcmp(&themeVar, &savedVar, sizeof(themeVar)) != 0)
+								{
+									float saveB = ImGui::CalcTextSize("Save").x;
+									float revertB = ImGui::CalcTextSize("Revert").x;
+									float gap = saveB + revertB + title + hint + theme.Style.ItemInnerSpacing.x * 2 + theme.Style.FramePadding.x * 6;
+
+									// TODO: Check docs/FONTS.md  to use icons				
+									ImGui::SameLine(0.0f, space - gap); UI::ShiftCursorY(-2); if (ImGui::Button("Save")) { if (m_ThemeNames[m_ThemeIdx] != m_DefaultThemeName) { savedVar = themeVar; UpdateTheme(m_SavedTheme); } }
+									ImGui::SameLine(0.0f, theme.Style.ItemInnerSpacing.x); UI::ShiftCursorY(-2);  if (ImGui::Button("Revert")) { themeVar = savedVar; }
+									ImGui::SameLine(0.0f, theme.Style.ItemInnerSpacing.x); UI::ShiftCursorY(-2);
+								}
+								else
+								{
+									float gap = hint + title + theme.Style.FramePadding.x * 2;
+									ImGui::SameLine(0.0f, space - gap); UI::ShiftCursorY(-2);
+								}
+								ImGui::PushID(label);
+								if (ImGui::Button("?"))
+								{
+									DebugFlashColorGUI(themeVar);
+								}
+								ImGui::PopID();
+								ImGui::SetItemTooltip("Flash given color to identify places where it is used.");
+								ImGui::SameLine();
+							});
+	}
+
+	void Theme::DebugFlashColorEditor(ImU32& color)
+	{
+		GUIContext* gcontext = Application::Get().GetGUIContext();
+		GUIDebug& gdebug = gcontext->GetDebug();
+		DebugFlashColorStopEditor();
+		gdebug.FlashColorTime = 1.0f;
+		gdebug.FlashColorU32 = &color;
+		gdebug.FlashColorU32Backup = color;
+	}
+
+	void Theme::DebugFlashColorGUI(ImVec4& color)
+	{
+		GUIContext* gcontext = Application::Get().GetGUIContext();
+		GUIDebug& gdebug = gcontext->GetDebug();
+		DebugFlashColorStopGUI();
+		gdebug.FlashColorTime = 1.0f;
+		gdebug.FlashColor4 = &color;
+		gdebug.FlashColor4Backup = color;
+
+	}
+
+	void Theme::DebugFlashColorStopGUI()
+	{
+		GUIContext* gcontext = Application::Get().GetGUIContext();
+		GUIDebug& gdebug = gcontext->GetDebug();
+		if (!gdebug.FlashColor4)
+			return;
+		*gdebug.FlashColor4 = gdebug.FlashColor4Backup;
+		gdebug.FlashColor4 = nullptr;
+	}
+
+	void Theme::DebugFlashColorStopEditor()
+	{
+		GUIContext* gcontext = Application::Get().GetGUIContext();
+		GUIDebug& gdebug = gcontext->GetDebug();
+		if (!gdebug.FlashColorU32)
+			return;
+		*gdebug.FlashColorU32 = gdebug.FlashColorU32Backup;
+		gdebug.FlashColorU32 = nullptr;
+
+	}
+
+
 
 }
