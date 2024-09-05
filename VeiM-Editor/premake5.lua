@@ -1,19 +1,24 @@
+local target_name = "VeiMEditor"
+local target_prefix = ""
+local extension = "exe"
+local app_name = "VeiMEditor"
+local resource_defines = {}
+
 project "VeiMEditor"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++20"
 	staticruntime "off"
 
-	targetdir ("%{wks.location}/Build/bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("%{wks.location}/Build/bin-int/" .. outputdir .. "/%{prj.name}")
+    targetdir (engine_bin_out)
+	objdir (engine_int_out)
+    targetname (target_name)
+    targetprefix (target_prefix)
 
     files
     {
         "Source/**.h",
         "Source/**.cpp",
-
-		-- resources
-		"%{wks.location}/VeiM/Resources/Icons/VeiM.rc"
     }
 
     includedirs
@@ -25,10 +30,7 @@ project "VeiMEditor"
 		"%{wks.location}/VeiM/ThirdParty/GLFW/include",
 		"%{wks.location}/VeiM/ThirdParty/spdlog/include",
 		"%{wks.location}/VeiM/ThirdParty/yaml-cpp/include",
-		"%{wks.location}/VeiM/ThirdParty/src",
-
-		-- resources
-		"%{wks.location}/VeiM/Resources/Icons/VeiM"
+		"%{wks.location}/VeiM/ThirdParty/src"   
     }
 
 	links 
@@ -37,11 +39,27 @@ project "VeiMEditor"
 	}
 	defines 
 	{
-		"YAML_CPP_STATIC_DEFINE"
+		"YAML_CPP_STATIC_DEFINE",
+        "VM_APP_NAME=\"" .. app_name .. "\""
 	}
+    ------------------ resources ------------------------
+    table.insert(resource_defines, "BUILD_ICON_FILE_NAME=\\\"Default.ico\\\"")
+    table.insert(resource_defines, "VM_APP_NAME=\\\"".. app_name .. "\\\"")
+    table.insert(resource_defines, "ORIGINAL_FILE_NAME=\\\"".. target_prefix ..target_name .. ".".. extension .."\\\"")
+
 	filter "system:windows"
 		systemversion "latest"
-		
+        local resource_build_options = constructResourceDefineFlags(resource_defines)  
+        prebuildcommands {
+            "rc /fo " .. engine_int_out .. "/VeiM.rc.res %{wks.location}/VeiM/Source/VeiM/Resources/VeiM.rc",
+            "rc /fo " .. engine_int_out .."/Default.rc2.res" .. resource_build_options .. " %{wks.location}/Build/Resources/Default.rc2"
+        }
+
+        linkoptions{
+            engine_int_out .. "/VeiM.rc.res",
+            engine_int_out .. "/Default.rc2.res"
+        }
+	-----------------------------------------------------	
 	filter "configurations:Debug"
 		defines "VM_DEBUG"
 		runtime "Debug"

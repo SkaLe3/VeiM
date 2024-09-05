@@ -1,0 +1,45 @@
+﻿cl : command line  warning D9025: overriding '/W3' with '/w'
+cl : command line  warning D9025: overriding '/W3' with '/w'
+cl : command line  warning D9025: overriding '/W3' with '/w'
+  binary.cpp
+cl : command line  warning D9025: overriding '/W3' with '/w'
+  graphbuilder.cpp
+cl : command line  warning D9025: overriding '/W3' with '/w'
+cl : command line  warning D9025: overriding '/W3' with '/w'
+cl : command line  warning D9025: overriding '/W3' with '/w'
+  graphbuilderadapter.cpp
+cl : command line  warning D9025: overriding '/W3' with '/w'
+  convert.cpp
+  depthguard.cpp
+cl : command line  warning D9025: overriding '/W3' with '/w'
+cl : command line  warning D9025: overriding '/W3' with '/w'
+  directives.cpp
+cl : command line  warning D9025: overriding '/W3' with '/w'
+cl : command line  warning D9025: overriding '/W3' with '/w'
+  emit.cpp
+  emitfromevents.cpp
+  emitter.cpp
+  emitterstate.cpp
+  emitterutils.cpp
+cl : command line  warning D9025: overriding '/W3' with '/w'
+  exceptions.cpp
+  exp.cpp
+  memory.cpp
+  node.cpp
+  node_data.cpp
+  nodebuilder.cpp
+  nodeevents.cpp
+  null.cpp
+  ostream_wrapper.cpp
+  parse.cpp
+  parser.cpp
+  regex_yaml.cpp
+  scanner.cpp
+  scanscalar.cpp
+  scantag.cpp
+  scantoken.cpp
+  simplekey.cpp
+  singledocparser.cpp
+  stream.cpp
+  tag.cpp
+  yaml-cpp.vcxproj -> C:\Dev\Projects\VeiM\Binaries\ThirdParty\Debug_Editor-windows-x86_64\yaml-cpp\yaml-cpp.lib

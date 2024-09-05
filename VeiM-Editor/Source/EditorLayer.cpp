@@ -3,6 +3,7 @@
 #include "VeiM/UI/UI.h"
 #include "VeiM/UI/Theme.h" 
 
+#include <iostream> // TODO: remove
 
 namespace VeiM
 {
@@ -181,6 +182,7 @@ namespace VeiM
 			}
 		}
 		ImGui::End();
+
 	}
 
 	void EditorLayer::ImGuiWindowMenu()

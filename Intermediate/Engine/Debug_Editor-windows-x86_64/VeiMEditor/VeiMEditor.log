@@ -1,0 +1,43 @@
+﻿  Microsoft (R) Windows (R) Resource Compiler Version 10.0.10011.16384
+  
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  
+  
+  Microsoft (R) Windows (R) Resource Compiler Version 10.0.10011.16384
+  
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  
+  
+  EditorApp.cpp
+  EditorLayer.cpp
+  EditorWindows.cpp
+  Titlebar.cpp
+C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(80,1): warning C4005: 'IMGUI_VERSION': macro redefinition (compiling source file Source\EditorWindows.cpp)
+C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(30,1): message : see previous definition of 'IMGUI_VERSION' (compiling source file Source\EditorWindows.cpp)
+C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(81,1): warning C4005: 'IMGUI_VERSION_NUM': macro redefinition (compiling source file Source\EditorWindows.cpp)
+C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(31,1): message : see previous definition of 'IMGUI_VERSION_NUM' (compiling source file Source\EditorWindows.cpp)
+C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(80,1): warning C4005: 'IMGUI_VERSION': macro redefinition (compiling source file Source\Titlebar.cpp)
+C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(30,1): message : see previous definition of 'IMGUI_VERSION' (compiling source file Source\Titlebar.cpp)
+C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(81,1): warning C4005: 'IMGUI_VERSION_NUM': macro redefinition (compiling source file Source\Titlebar.cpp)
+C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(31,1): message : see previous definition of 'IMGUI_VERSION_NUM' (compiling source file Source\Titlebar.cpp)
+C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(80,1): warning C4005: 'IMGUI_VERSION': macro redefinition (compiling source file Source\EditorLayer.cpp)
+C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(30,1): message : see previous definition of 'IMGUI_VERSION' (compiling source file Source\EditorLayer.cpp)
+C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(81,1): warning C4005: 'IMGUI_VERSION_NUM': macro redefinition (compiling source file Source\EditorLayer.cpp)
+C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(31,1): message : see previous definition of 'IMGUI_VERSION_NUM' (compiling source file Source\EditorLayer.cpp)
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\um\winnt.h(620,1): warning C4005: 'TEXT': macro redefinition (compiling source file Source\EditorApp.cpp)
+C:\Dev\Projects\VeiM\VeiM\Source\VeiM\Core\CoreDefines.h(19,1): message : see previous definition of 'TEXT' (compiling source file Source\EditorApp.cpp)
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\um\winnt.h(620,1): warning C4005: 'TEXT': macro redefinition (compiling source file Source\Titlebar.cpp)
+C:\Dev\Projects\VeiM\VeiM\Source\VeiM\Core\CoreDefines.h(19,1): message : see previous definition of 'TEXT' (compiling source file Source\Titlebar.cpp)
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\um\winnt.h(620,1): warning C4005: 'TEXT': macro redefinition (compiling source file Source\EditorLayer.cpp)
+C:\Dev\Projects\VeiM\VeiM\Source\VeiM\Core\CoreDefines.h(19,1): message : see previous definition of 'TEXT' (compiling source file Source\EditorLayer.cpp)
+C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(80,1): warning C4005: 'IMGUI_VERSION': macro redefinition (compiling source file Source\EditorApp.cpp)
+C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(30,1): message : see previous definition of 'IMGUI_VERSION' (compiling source file Source\EditorApp.cpp)
+C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(81,1): warning C4005: 'IMGUI_VERSION_NUM': macro redefinition (compiling source file Source\EditorApp.cpp)
+C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(31,1): message : see previous definition of 'IMGUI_VERSION_NUM' (compiling source file Source\EditorApp.cpp)
+C:\Dev\Projects\VeiM\VeiM-Editor\Source\Titlebar.cpp(165,19): warning C4244: 'initializing': conversion from 'uint32_t' to 'float', possible loss of data
+C:\Dev\Projects\VeiM\VeiM-Editor\Source\Titlebar.cpp(166,20): warning C4244: 'initializing': conversion from 'uint32_t' to 'float', possible loss of data
+C:\Dev\Projects\VeiM\VeiM-Editor\Source\Titlebar.cpp(170,57): warning C4312: 'type cast': conversion from 'uint32_t' to 'void *' of greater size
+LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
+  VeiMEditor.vcxproj -> C:\Dev\Projects\VeiM\Binaries\Engine\Debug_Editor-windows-x86_64\VeiMEditor\VeiMEditor.exe
+  'pwsh.exe' is not recognized as an internal or external command,
+  operable program or batch file.
