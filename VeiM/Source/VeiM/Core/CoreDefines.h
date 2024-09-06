@@ -10,9 +10,6 @@
 #endif
 
 
-
-
-
 #define VM_EXPAND_MACRO(x) x
 #define VM_STRINGIFY_MACRO(x) #x
 #define BIT(x) (1 << x)

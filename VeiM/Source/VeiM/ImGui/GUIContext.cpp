@@ -12,9 +12,6 @@
 
 namespace VeiM
 {
-
-
-
 	GUIContext::GUIContext()
 		:Layer("ImGuiLayer")
 	{
@@ -35,25 +32,26 @@ namespace VeiM
 		//io.ConfigViewportsNoTaskBarIcon = true;
 
 		float fontSize = 16.0f;
-		io.Fonts->AddFontFromFileTTF("../VeiM/Resources/Fonts/Roboto/Roboto-Bold.ttf", fontSize);
-		io.Fonts->AddFontFromFileTTF("../VeiM/Resources/Fonts/Roboto/Roboto-Black.ttf", fontSize);
-		io.Fonts->AddFontFromFileTTF("../VeiM/Resources/Fonts/Roboto/Roboto-BlackItalic.ttf", fontSize);
-		io.Fonts->AddFontFromFileTTF("../VeiM/Resources/Fonts/Roboto/Roboto-BoldItalic.ttf", fontSize);
-		io.Fonts->AddFontFromFileTTF("../VeiM/Resources/Fonts/Roboto/Roboto-Italic.ttf", fontSize);
-		io.Fonts->AddFontFromFileTTF("../VeiM/Resources/Fonts/Roboto/Roboto-Light.ttf", fontSize);
-		io.Fonts->AddFontFromFileTTF("../VeiM/Resources/Fonts/Roboto/Roboto-LightItalic.ttf", fontSize);
-		io.Fonts->AddFontFromFileTTF("../VeiM/Resources/Fonts/Roboto/Roboto-Medium.ttf", fontSize);
-		io.Fonts->AddFontFromFileTTF("../VeiM/Resources/Fonts/Roboto/Roboto-MediumItalic.ttf", fontSize);
-		io.Fonts->AddFontFromFileTTF("../VeiM/Resources/Fonts/Roboto/Roboto-Thin.ttf", fontSize);
-		io.Fonts->AddFontFromFileTTF("../VeiM/Resources/Fonts/Roboto/Roboto-ThinItalic.ttf", fontSize);
-		io.Fonts->AddFontFromFileTTF("../VeiM/Resources/Fonts/Nunito-Sans/NunitoSans_10pt-Bold.ttf", fontSize);
-		io.Fonts->AddFontFromFileTTF("../VeiM/Resources/Fonts/Nunito-Sans/NunitoSans_10pt-BoldItalic.ttf", fontSize);
-		io.Fonts->AddFontFromFileTTF("../VeiM/Resources/Fonts/Nunito-Sans/NunitoSans_10pt-Italic.ttf", fontSize);
-		io.Fonts->AddFontFromFileTTF("../VeiM/Resources/Fonts/Nunito-Sans/NunitoSans_10pt-Light.ttf", fontSize);
-		io.Fonts->AddFontFromFileTTF("../VeiM/Resources/Fonts/Nunito-Sans/NunitoSans_10pt-LightItalic.ttf", fontSize);
-		io.Fonts->AddFontFromFileTTF("../VeiM/Resources/Fonts/Nunito-Sans/NunitoSans_10pt-Regular.ttf", fontSize);
-		io.Fonts->AddFontFromFileTTF("../VeiM/Resources/Fonts/Nunito-Sans/NunitoSans_10pt-SemiBold.ttf", fontSize);
-		io.FontDefault = io.Fonts->AddFontFromFileTTF("../VeiM/Resources/Fonts/Roboto/Roboto-Regular.ttf", fontSize);
+		String fontPath = Application::Get().GetEngineResourcePath().string() + "/UI/Fonts/";
+		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-Bold.ttf").c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-Black.ttf").c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-BlackItalic.ttf").c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-BoldItalic.ttf").c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-Italic.ttf").c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-Light.ttf").c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-LightItalic.ttf").c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-Medium.ttf").c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-MediumItalic.ttf").c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-Thin.ttf").c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-ThinItalic.ttf").c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath + "Nunito-Sans/NunitoSans_10pt-Bold.ttf").c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath + "Nunito-Sans/NunitoSans_10pt-BoldItalic.ttf").c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath + "Nunito-Sans/NunitoSans_10pt-Italic.ttf").c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath + "Nunito-Sans/NunitoSans_10pt-Light.ttf").c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath + "Nunito-Sans/NunitoSans_10pt-LightItalic.ttf").c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath + "Nunito-Sans/NunitoSans_10pt-Regular.ttf").c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath + "Nunito-Sans/NunitoSans_10pt-SemiBold.ttf").c_str(), fontSize);
+		io.FontDefault = io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-Regular.ttf").c_str(), fontSize);
 
 
 

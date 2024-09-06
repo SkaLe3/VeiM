@@ -23,10 +23,11 @@ group ""
 
 group "Engine"
 	include "VeiM"
+    include "VeiM-Editor"
 group ""
 
-group "Tools"
-	include "VeiM-Editor"
+group "Programs"
+    include "Programs/VeiMManagerTool"
 group ""
 
 group "Misc"

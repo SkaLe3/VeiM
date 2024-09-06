@@ -25,8 +25,8 @@ namespace VeiM
 
 		specs.AppConfig.Name = "VeiM Editor";
 		specs.AppConfig.EnableConsole = true; // TODO: Add option to enable console in game shipping build, or to choose it instead of editor console in debug and development editor build
-		specs.AppConfig.WorkingDirectory = "";
-		specs.AppConfig.EngineResourcesPath = "../VeiM/Resources";
+		specs.AppConfig.WorkingDirectory = std::filesystem::current_path().string() +  "/../";
+		specs.AppConfig.EngineResourcesPath = "Content/";
 
 		specs.WndConfig.Title = "VeiM Editor";
 		specs.WndConfig.Width = 800;
@@ -34,7 +34,7 @@ namespace VeiM
 		specs.WndConfig.VSync = true;
 		specs.WndConfig.CustomTitlebar = true;
 		specs.WndConfig.WindowResizeable = true;
-		specs.WndConfig.IconPath = "Resources/VeiM_Logo.png";
+		specs.WndConfig.IconPath = "VeiM-Editor/Resources/VeiM_Logo.png";
 		specs.WndConfig.Mode = EWindowMode::Windowed;
 
 

@@ -22,7 +22,7 @@ namespace VeiM
 	{
 		std::string Name = "VeiM Engine";
 		bool EnableConsole = true;
-		std::filesystem::path WorkingDirectory = std::filesystem::path();
+		std::filesystem::path WorkingDirectory;
 		std::filesystem::path EngineResourcesPath = std::filesystem::path();
 		// TODO: Add more
 	};
@@ -33,6 +33,7 @@ namespace VeiM
 		ApplicationConfig AppConfig;
 		WindowConfig WndConfig;
 	};
+
 	class Application
 	{
 	public:
@@ -48,6 +49,7 @@ namespace VeiM
 
 		void Close() { m_Running = false; }
 
+		inline std::filesystem::path GetEngineResourcePath() { return m_Config.EngineResourcesPath; }
 		inline float GetDeltaTime() { return m_DeltaTime; }
 		Window& GetWindow() const { return *m_Window; }
 #ifdef VM_WITH_EDITOR

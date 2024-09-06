@@ -20,7 +20,7 @@ namespace VeiM
 	}
 }
 
-#ifdef VM_DIST
+#ifdef VM_SHIPPING
 #include <Windows.h>
 
 int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmdshow)

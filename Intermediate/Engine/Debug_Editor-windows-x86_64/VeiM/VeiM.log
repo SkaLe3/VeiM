@@ -1,66 +1,10 @@
-﻿  Application.cpp
-  Image.cpp
-  LayerStack.cpp
-  Window.cpp
-  Log.cpp
-  GUIContext.cpp
-  ImGuiBuild.cpp
-  WindowsUtils.cpp
-  Theme.cpp
-  UI.cpp
-  stb_image.cpp
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\Platform\Windows\WindowsUtils.cpp(8,21): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(80,1): warning C4005: 'IMGUI_VERSION': macro redefinition (compiling source file Source\VeiM\UI\UI.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(30,1): message : see previous definition of 'IMGUI_VERSION' (compiling source file Source\VeiM\UI\UI.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(81,1): warning C4005: 'IMGUI_VERSION_NUM': macro redefinition (compiling source file Source\VeiM\UI\UI.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(31,1): message : see previous definition of 'IMGUI_VERSION_NUM' (compiling source file Source\VeiM\UI\UI.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(80,1): warning C4005: 'IMGUI_VERSION': macro redefinition (compiling source file Source\VeiM\ImGui\ImGuiBuild.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(30,1): message : see previous definition of 'IMGUI_VERSION' (compiling source file Source\VeiM\ImGui\ImGuiBuild.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(81,1): warning C4005: 'IMGUI_VERSION_NUM': macro redefinition (compiling source file Source\VeiM\ImGui\ImGuiBuild.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(31,1): message : see previous definition of 'IMGUI_VERSION_NUM' (compiling source file Source\VeiM\ImGui\ImGuiBuild.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(80,1): warning C4005: 'IMGUI_VERSION': macro redefinition (compiling source file Source\VeiM\UI\Theme.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(30,1): message : see previous definition of 'IMGUI_VERSION' (compiling source file Source\VeiM\UI\Theme.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(81,1): warning C4005: 'IMGUI_VERSION_NUM': macro redefinition (compiling source file Source\VeiM\UI\Theme.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(31,1): message : see previous definition of 'IMGUI_VERSION_NUM' (compiling source file Source\VeiM\UI\Theme.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(80,1): warning C4005: 'IMGUI_VERSION': macro redefinition (compiling source file Source\VeiM\Core\Image.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(30,1): message : see previous definition of 'IMGUI_VERSION' (compiling source file Source\VeiM\Core\Image.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(81,1): warning C4005: 'IMGUI_VERSION_NUM': macro redefinition (compiling source file Source\VeiM\Core\Image.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(31,1): message : see previous definition of 'IMGUI_VERSION_NUM' (compiling source file Source\VeiM\Core\Image.cpp)
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\um\winnt.h(620,1): warning C4005: 'TEXT': macro redefinition (compiling source file Source\VeiM\Core\Window.cpp)
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\Core\CoreDefines.h(19,1): message : see previous definition of 'TEXT' (compiling source file Source\VeiM\Core\Window.cpp)
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\um\winnt.h(620,1): warning C4005: 'TEXT': macro redefinition (compiling source file Source\VeiM\Core\Application.cpp)
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\Core\CoreDefines.h(19,1): message : see previous definition of 'TEXT' (compiling source file Source\VeiM\Core\Application.cpp)
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\um\winnt.h(620,1): warning C4005: 'TEXT': macro redefinition (compiling source file Source\VeiM\Core\LayerStack.cpp)
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\Core\CoreDefines.h(19,1): message : see previous definition of 'TEXT' (compiling source file Source\VeiM\Core\LayerStack.cpp)
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\shared\minwindef.h(130,1): warning C4005: 'APIENTRY': macro redefinition (compiling source file Source\VeiM\Core\Image.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\Glad\include\Glad\glad.h(32,1): message : see previous definition of 'APIENTRY' (compiling source file Source\VeiM\Core\Image.cpp)
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\um\winnt.h(620,1): warning C4005: 'TEXT': macro redefinition (compiling source file Source\VeiM\Core\Image.cpp)
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\Core\CoreDefines.h(19,1): message : see previous definition of 'TEXT' (compiling source file Source\VeiM\Core\Image.cpp)
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\um\winnt.h(620,1): warning C4005: 'TEXT': macro redefinition (compiling source file Source\VeiM\IO\Log.cpp)
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\Core\CoreDefines.h(19,1): message : see previous definition of 'TEXT' (compiling source file Source\VeiM\IO\Log.cpp)
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\um\winnt.h(620,1): warning C4005: 'TEXT': macro redefinition (compiling source file Source\VeiM\ImGui\GUIContext.cpp)
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\Core\CoreDefines.h(19,1): message : see previous definition of 'TEXT' (compiling source file Source\VeiM\ImGui\GUIContext.cpp)
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\um\winnt.h(620,1): warning C4005: 'TEXT': macro redefinition (compiling source file Source\VeiM\UI\Theme.cpp)
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\Core\CoreDefines.h(19,1): message : see previous definition of 'TEXT' (compiling source file Source\VeiM\UI\Theme.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(80,1): warning C4005: 'IMGUI_VERSION': macro redefinition (compiling source file Source\VeiM\Core\Window.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(30,1): message : see previous definition of 'IMGUI_VERSION' (compiling source file Source\VeiM\Core\Window.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(81,1): warning C4005: 'IMGUI_VERSION_NUM': macro redefinition (compiling source file Source\VeiM\Core\Window.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(31,1): message : see previous definition of 'IMGUI_VERSION_NUM' (compiling source file Source\VeiM\Core\Window.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(80,1): warning C4005: 'IMGUI_VERSION': macro redefinition (compiling source file Source\VeiM\Core\Application.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(30,1): message : see previous definition of 'IMGUI_VERSION' (compiling source file Source\VeiM\Core\Application.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(81,1): warning C4005: 'IMGUI_VERSION_NUM': macro redefinition (compiling source file Source\VeiM\Core\Application.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(31,1): message : see previous definition of 'IMGUI_VERSION_NUM' (compiling source file Source\VeiM\Core\Application.cpp)
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\um\winnt.h(620,1): warning C4005: 'TEXT': macro redefinition (compiling source file Source\VeiM\UI\UI.cpp)
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\Core\CoreDefines.h(19,1): message : see previous definition of 'TEXT' (compiling source file Source\VeiM\UI\UI.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(80,1): warning C4005: 'IMGUI_VERSION': macro redefinition (compiling source file Source\VeiM\ImGui\GUIContext.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(30,1): message : see previous definition of 'IMGUI_VERSION' (compiling source file Source\VeiM\ImGui\GUIContext.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(81,1): warning C4005: 'IMGUI_VERSION_NUM': macro redefinition (compiling source file Source\VeiM\ImGui\GUIContext.cpp)
-C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(31,1): message : see previous definition of 'IMGUI_VERSION_NUM' (compiling source file Source\VeiM\ImGui\GUIContext.cpp)
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\Core\Image.cpp(97,56): warning C4244: 'argument': conversion from 'uint64_t' to 'int', possible loss of data
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\Core\Application.cpp(95,35): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\UI\UI.cpp(57,53): warning C4312: 'type cast': conversion from 'uint32_t' to 'void *' of greater size
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\UI\UI.cpp(59,53): warning C4312: 'type cast': conversion from 'uint32_t' to 'void *' of greater size
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\UI\UI.cpp(61,53): warning C4312: 'type cast': conversion from 'uint32_t' to 'void *' of greater size
+﻿  Theme.cpp
+C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(80,1): warning C4005: 'IMGUI_VERSION': macro redefinition
+C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(30,1): message : see previous definition of 'IMGUI_VERSION'
+C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(81,1): warning C4005: 'IMGUI_VERSION_NUM': macro redefinition
+C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(31,1): message : see previous definition of 'IMGUI_VERSION_NUM'
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\um\winnt.h(620,1): warning C4005: 'TEXT': macro redefinition
+C:\Dev\Projects\VeiM\VeiM\Source\VeiM\Core\CoreDefines.h(16,1): message : see previous definition of 'TEXT'
 C:\Dev\Projects\VeiM\VeiM\Source\VeiM\UI\Theme.cpp(370,67): warning C4305: 'argument': truncation from 'double' to 'float'
 C:\Dev\Projects\VeiM\VeiM\Source\VeiM\UI\Theme.cpp(398,69): warning C4305: 'argument': truncation from 'double' to 'float'
 C:\Dev\Projects\VeiM\VeiM\Source\VeiM\UI\Theme.cpp(399,76): warning C4305: 'argument': truncation from 'double' to 'float'
