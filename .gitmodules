@@ -1,16 +1,16 @@
-[submodule "VeiM/vendor/GLFW"]
-	path = VeiM/ThirdParty/GLFW
+[submodule "ThirdParty/GLFW"]
+	path = ThirdParty/GLFW
 	url = https://github.com/SkaLe3/glfw
-[submodule "VeiM/ThirdParty/imgui"]
-	path = VeiM/ThirdParty/imgui
+[submodule "ThirdParty/imgui"]
+	path = ThirdParty/imgui
 	url = https://github.com/SkaLe3/imgui
 	branch = docking
-[submodule "/VeiM/ThirdParty/yaml-cpp"]
+[submodule "ThirdParty/yaml-cpp"]
 	path = VeiM/ThirdParty/yaml-cpp
 	url = https://github.com/SkaLe3/yaml-cpp
-[submodule "VeiM/ThirdParty/glm"]
+[submodule "ThirdParty/glm"]
 	path = VeiM/ThirdParty/glm
 	url = https://github.com/g-truc/glm
-[submodule "VeiM/ThirdParty/spdlog"]
+[submodule "ThirdParty/spdlog"]
 	path = VeiM/ThirdParty/spdlog
 	url = https://github.com/gabime/spdlog
