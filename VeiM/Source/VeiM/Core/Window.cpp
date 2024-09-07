@@ -231,7 +231,7 @@ namespace VeiM
 		if (!iconPath.empty())
 		{
 			String iconPathStr = iconPath.string();
-			icon.pixels = stbi_load(iconPathStr.c_str(), &icon.width, &icon.height, &channels, 4);
+			icon.pixels = stbi_load((Application::Get().GetEngineResourcePath() / iconPathStr).string().c_str(), &icon.width, &icon.height, &channels, 4);
 			glfwSetWindowIcon(m_Window, 1, &icon);
 			stbi_image_free(icon.pixels);
 		}

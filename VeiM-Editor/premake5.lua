@@ -15,6 +15,8 @@ project "VeiMEditor"
     targetname (target_name)
     targetprefix (target_prefix)
 
+    location "%{wks.location}/Build/ProjectFiles"
+
     files
     {
         "Source/**.h",

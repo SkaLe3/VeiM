@@ -1,19 +1,8 @@
-﻿  Theme.cpp
+﻿  Window.cpp
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\um\winnt.h(620,1): warning C4005: 'TEXT': macro redefinition
+C:\Dev\Projects\VeiM\VeiM\Source\VeiM\Core\CoreDefines.h(16,1): message : see previous definition of 'TEXT'
 C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(80,1): warning C4005: 'IMGUI_VERSION': macro redefinition
 C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(30,1): message : see previous definition of 'IMGUI_VERSION'
 C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(81,1): warning C4005: 'IMGUI_VERSION_NUM': macro redefinition
 C:\Dev\Projects\VeiM\VeiM\ThirdParty\imgui\imgui.h(31,1): message : see previous definition of 'IMGUI_VERSION_NUM'
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\um\winnt.h(620,1): warning C4005: 'TEXT': macro redefinition
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\Core\CoreDefines.h(16,1): message : see previous definition of 'TEXT'
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\UI\Theme.cpp(370,67): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\UI\Theme.cpp(398,69): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\UI\Theme.cpp(399,76): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\UI\Theme.cpp(400,75): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\UI\Theme.cpp(412,69): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\UI\Theme.cpp(413,76): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\UI\Theme.cpp(414,75): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\UI\Theme.cpp(714,83): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\UI\Theme.cpp(832,30): warning C4244: '=': conversion from '__int64' to 'VeiM::int32', possible loss of data
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\UI\Theme.cpp(1001,6): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Dev\Projects\VeiM\VeiM\Source\VeiM\UI\Theme.cpp(1001,78): warning C4390: ';': empty controlled statement found; is this the intent?
   VeiM.vcxproj -> C:\Dev\Projects\VeiM\Binaries\Engine\Debug_Editor-windows-x86_64\VeiM\VeiM.lib

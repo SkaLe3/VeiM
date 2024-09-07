@@ -7,6 +7,8 @@ project "VeiM"
     targetdir (engine_bin_out)
     objdir (engine_int_out)
 
+    location "%{wks.location}/Build/ProjectFiles"
+
     files
     {
         "Source/**.h",
