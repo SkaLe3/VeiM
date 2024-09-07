@@ -1,6 +1,7 @@
 # Binaries
 Binaries/
 Intermediate/
+Build/ProjectFiles/
 !Binaries/Engine/**/VeiMManagerTool/
 
 # Visual Studio files and folders
