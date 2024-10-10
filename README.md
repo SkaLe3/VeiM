@@ -26,8 +26,6 @@ Below are the major dependencies for VeiM:
 
 - **OpenGL**: For rendering graphics in both 2D and 3D.
 - **[GLFW](https://github.com/glfw/glfw)**: A multi-platform library for creating windows with OpenGL contexts and managing input.
-- **Currently unknown**: A physics engine for collision detection and dynamics.
-- **Currently unknown**: For audio playback and management.
 - **[ImGui](https://github.com/ocornut/imgui)**: A graphical user interface library for implementing in-engine tools and editors.
 - The list will be expanded
 
@@ -61,6 +59,7 @@ Here are some of the key resources I am using for this project:
 
 - *Game Engine Architecture, Third Edition*, by Jason Gregory
 - *Real-Time Rendering, Fourth Edition*, by Tomas Akenine-Möller, Eric Haines, Naty Hoffman, Angelo Pesce, Michał Iwanicki, and Sébastien Hillaire
+- *GPU Gems*, by Randima Fernando (NVIDIA)
 
 **YouTube Channels:**
 
