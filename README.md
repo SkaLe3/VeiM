@@ -65,8 +65,14 @@ Here are some of the key resources I am using for this project:
 **YouTube Channels:**
 
 - (Links to specific YouTube tutorials or channels will be added here)
+- [The Cherno](https://www.youtube.com/@TheCherno)
+- [ThinMatrix - Skeletal animations](https://www.youtube.com/@ThinMatrix)
+  
+**Web sites:**
 
-I will continue to update this section with additional resources that are helpful for the development of VeiM.
+- [learnopengl.com](https://learnopengl.com/)
+  
+I will update this section with additional resources that help develop VeiM.
 
 ***
 
