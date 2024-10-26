@@ -19,20 +19,21 @@ project "VeiMEditor"
 
     files
     {
-        "Source/**.h",
-        "Source/**.cpp",
+        "%{wks.location}/Source/VeiM-Editor/**.h",
+        "%{wks.location}/Source/VeiM-Editor/**.cpp"
     }
 
     includedirs
     {
-        "%{wks.location}/VeiM/Source",
-		"%{wks.location}/VeiM/ThirdParty", 
-		"%{wks.location}/VeiM/ThirdParty/glm",
-		"%{wks.location}/VeiM/ThirdParty/imgui",
-		"%{wks.location}/VeiM/ThirdParty/GLFW/include",
-		"%{wks.location}/VeiM/ThirdParty/spdlog/include",
-		"%{wks.location}/VeiM/ThirdParty/yaml-cpp/include",
-		"%{wks.location}/VeiM/ThirdParty/src"   
+        "%{wks.location}/Source/VeiM-Editor",
+        "%{wks.location}/Source/VeiM",
+		"%{wks.location}/ThirdParty", 
+		"%{wks.location}/ThirdParty/glm",
+		"%{wks.location}/ThirdParty/imgui",
+		"%{wks.location}/ThirdParty/GLFW/include",
+		"%{wks.location}/ThirdParty/spdlog/include",
+		"%{wks.location}/ThirdParty/yaml-cpp/include",
+		"%{wks.location}/ThirdParty/src"   
     }
 
 	links 
@@ -53,7 +54,7 @@ project "VeiMEditor"
 		systemversion "latest"
         local resource_build_options = constructResourceDefineFlags(resource_defines)  
         prebuildcommands {
-            "rc /fo " .. engine_int_out .. "/VeiM.rc.res %{wks.location}/VeiM/Source/VeiM/Resources/VeiM.rc",
+            "rc /fo " .. engine_int_out .. "/VeiM.rc.res %{wks.location}/Source/VeiM/VeiM/Resources/VeiM.rc",
             "rc /fo " .. engine_int_out .."/Default.rc2.res" .. resource_build_options .. " %{wks.location}/Build/Resources/Default.rc2"
         }
 

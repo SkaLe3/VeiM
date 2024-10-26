@@ -200,7 +200,7 @@ namespace VeiM::UI
 		static Theme LoadTheme(const String& themeName);
 		static void SetTheme(const String& themeName);
 		// Should only be called by the engine itself, when Themes.ini does not exist
-		static void InitConfig();
+		static bool InitConfig();
 
 		static YAML::Node FillNodeWith(Theme& theme);
 

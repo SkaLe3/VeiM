@@ -18,19 +18,20 @@ project "VeiMManagerTool"
 
     includedirs
     {
-        "%{wks.location}/VeiM/Source",
-        "%{wks.location}/VeiM/ThirdParty", 
-		"%{wks.location}/VeiM/ThirdParty/glm",
-		"%{wks.location}/VeiM/ThirdParty/imgui",
-		"%{wks.location}/VeiM/ThirdParty/GLFW/include",
-		"%{wks.location}/VeiM/ThirdParty/spdlog/include",
-		"%{wks.location}/VeiM/ThirdParty/yaml-cpp/include",
-		"%{wks.location}/VeiM/ThirdParty/src"
+        "%{wks.location}/Source/VeiM",
+        "%{wks.location}/Source/Developer",
+        "%{wks.location}/ThirdParty", 
+		"%{wks.location}/ThirdParty/glm",
+		"%{wks.location}/ThirdParty/imgui",
+		"%{wks.location}/ThirdParty/GLFW/include",
+		"%{wks.location}/ThirdParty/spdlog/include",
+		"%{wks.location}/ThirdParty/yaml-cpp/include",
+		"%{wks.location}/ThirdParty/src"
     }
 
     links
     {
-
+        "DesktopPlatform"
     }
 
     filter "configurations:Debug"

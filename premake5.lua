@@ -9,21 +9,25 @@ workspace "VeiM"
 	buildoptions { "/MP" }
 	
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
-engine_bin_out = "%{wks.location}/Binaries/Engine/" .. outputdir .. "/%{prj.name}"
-engine_int_out = "%{wks.location}/Intermediate/Engine/" .. outputdir .. "/%{prj.name}"
+engine_bin_out = "%{wks.location}/Binaries/Engine/" .. outputdir .. "/Engine"
+engine_int_out = "%{wks.location}/Intermediate/Engine/" .. outputdir .. "/Engine"
 tp_bin_out = "%{wks.location}/Binaries/ThirdParty/" .. outputdir .. "/%{prj.name}"
 tp_int_out = "%{wks.location}/Intermediate/ThirdParty/" .. outputdir .. "/%{prj.name}"
 
 group "Dependencies"
-	include "VeiM/ThirdParty/GLFW"
-	include "VeiM/ThirdParty/Glad"
-	include "VeiM/ThirdParty/imgui"
-	include "VeiM/ThirdParty/yaml-cpp"
+	include "ThirdParty/GLFW"
+	include "ThirdParty/Glad"
+	include "ThirdParty/imgui"
+	include "ThirdParty/yaml-cpp"
 group ""
 
 group "Engine"
-	include "VeiM"
-    include "VeiM-Editor"
+	include "Source/VeiM"
+    include "Source/VeiM-Editor"
+group ""
+
+group "Developer"
+    include "Source/Developer/DekstopPlatform"
 group ""
 
 group "Programs"

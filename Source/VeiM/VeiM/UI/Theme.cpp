@@ -629,7 +629,7 @@ namespace VeiM::UI
 		return theme;
 	}
 
-	void Theme::InitConfig()
+	bool Theme::InitConfig()
 	{
 		Theme theme;
 		GUIStyle& gs = theme.Style;
@@ -791,13 +791,14 @@ namespace VeiM::UI
 		std::ofstream fout(m_ConfPath);
 		if (!fout.is_open())
 		{
-			VM_CORE_ERROR("[Editor] Failed to open file for writing: %s", m_ConfPath.string());
-			return;
+			VM_CORE_ERROR("[Editor] Failed to open file for writing: {}", m_ConfPath.string());
+			return false;
 		}
 		fout << out.c_str();
 		fout.close();
 
 		Application::Get().GetGUIContext()->SetTheme(theme);
+		return true;
 	}
 
 	bool Theme::FileExists(const String& filename)
@@ -812,8 +813,15 @@ namespace VeiM::UI
 		if (!confExists)
 		{
 			VM_CORE_ERROR("[Editor] {} does not exist. Cannot load themes", m_ConfPath.string());
-			InitConfig();
-			VM_CORE_INFO("[Editor] {} was created with default configuration", m_ConfPath.string());
+			bool initialized = InitConfig();
+			if (initialized)
+			{
+				VM_CORE_INFO("[Editor] {} was created with default configuration", m_ConfPath.string());
+			}
+			else
+			{
+				VM_CORE_ERROR("[Editor] Failed to create {} with default configuration. Config directory may not exist", m_ConfPath.string());
+			}
 		}
 		LoadThemes();
 		if (m_Themes.empty())
@@ -1059,7 +1067,7 @@ namespace VeiM::UI
 		std::ofstream fout(m_ConfPath);
 		if (!fout.is_open())
 		{
-			VM_CORE_ERROR("[Editor] Failed to open file for writing: %s", m_ConfPath.string());
+			VM_CORE_ERROR("[Editor] Failed to open file for writing: {}", m_ConfPath.string());
 			return;
 		}
 		fout << out.c_str();

@@ -1,4 +1,6 @@
 #include "VeimManagerTool.h"
+#include "DekstopPlatform/DesktopPlatformModule.h"
+
 
 #include <windows.h>
 #include <shellapi.h>
@@ -14,6 +16,11 @@ using namespace VeiM;
 
 bool RegisterCurrentEngineDirectory(bool bAskFileAssociation)
 {
+	std::string str1;
+	std::string str2;
+	DesktopPlatformModule::Get()->GetEngineIdentifierFromRootDir(str1, str2);
+
+
 	std::filesystem::path baseDir = std::filesystem::current_path();
 	std::cout << "Base Directory: " << baseDir << std::endl;
 	system("pause");
