@@ -15,9 +15,9 @@ workspace "VeiM"
 
 	location "..\\"
 	
-outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
-engine_bin_out = "%{wks.location}/Engine/Binaries/Engine/" .. outputdir .. "/Engine"
-engine_int_out = "%{wks.location}/Engine/Intermediate/Engine/" .. outputdir .. "/Engine"
+outputdir = "%{cfg.platform}/%{cfg.buildcfg}"
+engine_bin_out = "%{wks.location}/Engine/Binaries/Engine/" .. outputdir .. ""
+engine_int_out = "%{wks.location}/Engine/Intermediate/Engine/" .. outputdir .. ""
 tp_bin_out = "%{wks.location}/Engine/Binaries/ThirdParty/" .. outputdir .. "/%{prj.name}"
 tp_int_out = "%{wks.location}/Engine/Intermediate/ThirdParty/" .. outputdir .. "/%{prj.name}"
 
