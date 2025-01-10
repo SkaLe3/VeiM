@@ -1,8 +1,0 @@
-[11:34:39] [info] VEIM: Creating Window VeiM Editor (800, 600)
-[11:34:39] [info] VEIM: [GLFW] GLFW Init
-[11:34:39] [info] VEIM: OpenGL Info:
-[11:34:39] [info] VEIM:     Vendor: ATI Technologies Inc.
-[11:34:39] [info] VEIM:     Renderer: AMD Radeon(TM) Graphics
-[11:34:39] [info] VEIM:     Version: 4.6.0 Compatibility Profile Context 23.7.2.230718
-[11:34:39] [trace] VEIM: [GLFW] VSync enabled
-[11:34:40] [trace] VEIM: [GLFW] Raw mouse motion enabled
