@@ -4,6 +4,9 @@ Intermediate/
 Build/ProjectFiles/
 !Binaries/Engine/**/VeiMManagerTool/
 
+# Logs
+**.log
+
 # Visual Studio files and folders
 .vs/
 **.sln
