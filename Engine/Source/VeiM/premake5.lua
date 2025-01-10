@@ -7,22 +7,22 @@ project "VeiM"
     targetdir (engine_bin_out)
     objdir (engine_int_out)
 
-    location "%{wks.location}/Build/ProjectFiles"
+    location "%{wks.location}/Engine/Build/ProjectFiles"
 
     files
     {
-        "%{wks.location}/Source/VeiM/**.h",
-        "%{wks.location}/Source/VeiM/**.cpp",
-		"%{wks.location}/ThirdParty/stb_image/**.h",
-		"%{wks.location}/ThirdParty/stb_image/**cpp",
-		"%{wks.location}/ThirdParty/glm/glm/**.hpp",
-		"%{wks.location}/ThirdParty/glm/glm/**.inl"
+        "%{wks.location}/Engine/Source/VeiM/**.h",
+        "%{wks.location}/Engine/Source/VeiM/**.cpp",
+		"%{wks.location}/Engine/ThirdParty/stb_image/**.h",
+		"%{wks.location}/Engine/ThirdParty/stb_image/**cpp",
+		"%{wks.location}/Engine/ThirdParty/glm/glm/**.hpp",
+		"%{wks.location}/Engine/ThirdParty/glm/glm/**.inl"
     }
 
     includedirs
     {
-        "%{wks.location}/Source/VeiM",
-		"%{wks.location}/ThirdParty",
+        "%{wks.location}/Engine/Source/VeiM",
+		"%{wks.location}/Engine/ThirdParty",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.GLFW}",
@@ -54,7 +54,7 @@ project "VeiM"
 
 	filter "configurations:Debug"
 		--removefiles { "Source/VeiM/ImGui/**.cpp", "Source/VeiM/ImGui/**.h","Source/VeiM/UI/**.cpp", "Source/VeiM/UI/**.h" }
-		--temporary remove
+		--temporary removed
 		defines "VM_DEBUG"
 		runtime "Debug"
 		symbols "on"
@@ -68,7 +68,7 @@ project "VeiM"
 		
 	filter "configurations:Development"
 		--removefiles { "Source/VeiM/ImGui/**.cpp", "Source/VeiM/ImGui/**.h","Source/VeiM/UI/**.cpp", "Source/VeiM/UI/**.h" }
-				--temporary remove
+				--temporary removed
 		defines "VM_DEVELOPMENT"
 		runtime "Release"
 		optimize "on"
@@ -84,7 +84,7 @@ project "VeiM"
 
 	filter "configurations:Shipping"
 		--removefiles { "Source/VeiM/ImGui/**.cpp", "Source/VeiM/ImGui/**.h","Source/VeiM/UI/**.cpp", "Source/VeiM/UI/**.h" }
-				--temporary remove
+				--temporary removed
 		defines "VM_SHIPPING"
 		runtime "Release"
 		optimize "on"

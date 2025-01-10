@@ -4,8 +4,10 @@ project "Sandbox"
 	cppdialect "C++20"
 	staticruntime "off"
 
-	targetdir ("%{wks.location}/Build/bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("%{wks.location}/Build/bin-int/" .. outputdir .. "/%{prj.name}")
+	targetdir ("%{wks.location}/Engine/Build/bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("%{wks.location}/Engine/Build/bin-int/" .. outputdir .. "/%{prj.name}")
+
+	location "%{wks.location}/Engine/Build/ProjectFiles"
 
     files
     {
@@ -15,11 +17,11 @@ project "Sandbox"
 
     includedirs
     {
-        "%{wks.location}/VeiM/Source",
-		"%{wks.location}/VeiM/ThirdParty",
+        "%{wks.location}/Engine/Source",
+		"%{wks.location}/Engine/ThirdParty",
 		"Source",
-		"%{wks.location}/VeiM/ThirdParty/glm",
-		"%{wks.location}/VeiM/ThirdParty/imgui",	
+		"%{wks.location}/Engine/ThirdParty/glm",
+		"%{wks.location}/Engine/ThirdParty/imgui",	
     }
 
 	links 

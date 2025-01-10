@@ -9,18 +9,18 @@ project "DesktopPlatform"
     targetdir (engine_bin_out)
     objdir (engine_int_out)
 
-    location "%{wks.location}/Build/ProjectFiles"
+    location "%{wks.location}/Engine/Build/ProjectFiles"
 
     files
     {
-        "%{wks.location}/Source/Developer/**.h",
-        "%{wks.location}/Source/Developer/**.cpp"
+        "%{wks.location}/Engine/Source/Developer/**.h",
+        "%{wks.location}/Engine/Source/Developer/**.cpp"
     }
 
     includedirs
     {
-        "%{wks.location}/Source/VeiM",
-        "%{wks.location}/Source/Developer"
+        "%{wks.location}/Engine/Source/VeiM",
+        "%{wks.location}/Engine/Source/Developer"
     }
 
     defines { "DESKTOPPLATFORM_EXPORTS"}

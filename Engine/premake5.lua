@@ -6,13 +6,20 @@ workspace "VeiM"
 	architecture "x64"
 	startproject "VeiMEditor"
 	configurations { "Debug","Debug_Editor", "Development", "Development_Editor", "Shipping" }
-	buildoptions { "/MP" }
+	platforms {"Win64"}
+	buildoptions { "/utf-8" }
+
+	filter "action:vs*"
+        buildoptions { "/MP" }
+    filter {}
+
+	location "..\\"
 	
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
-engine_bin_out = "%{wks.location}/Binaries/Engine/" .. outputdir .. "/Engine"
-engine_int_out = "%{wks.location}/Intermediate/Engine/" .. outputdir .. "/Engine"
-tp_bin_out = "%{wks.location}/Binaries/ThirdParty/" .. outputdir .. "/%{prj.name}"
-tp_int_out = "%{wks.location}/Intermediate/ThirdParty/" .. outputdir .. "/%{prj.name}"
+engine_bin_out = "%{wks.location}/Engine/Binaries/Engine/" .. outputdir .. "/Engine"
+engine_int_out = "%{wks.location}/Engine/Intermediate/Engine/" .. outputdir .. "/Engine"
+tp_bin_out = "%{wks.location}/Engine/Binaries/ThirdParty/" .. outputdir .. "/%{prj.name}"
+tp_int_out = "%{wks.location}/Engine/Intermediate/ThirdParty/" .. outputdir .. "/%{prj.name}"
 
 group "Dependencies"
 	include "ThirdParty/GLFW"
@@ -34,9 +41,9 @@ group "Programs"
     include "Programs/VeiMManagerTool"
 group ""
 
-group "Misc"
-	include "Sandbox"
-group ""
+--group "Misc"
+	--include "Sandbox"
+--group ""
 
 
 
