@@ -9,12 +9,14 @@ project "VeiMEditor"
 	language "C++"
 	cppdialect "C++20"
 	staticruntime "off"
-
+	
     targetdir (engine_bin_out)
 	objdir (engine_int_out)
     targetname (target_name)
     targetprefix (target_prefix)
-
+	
+	debugdir "%{cfg.targetdir}"
+	
     location "%{wks.location}/Engine/Build/ProjectFiles"
 
     files
