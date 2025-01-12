@@ -15,7 +15,7 @@ workspace "VeiM"
 
 	location "..\\"
 	
-outputdir = "%{cfg.platform}/%{cfg.buildcfg}"
+outputdir = "%{cfg.platform}"
 engine_bin_out = "%{wks.location}/Engine/Binaries/Engine/" .. outputdir .. ""
 engine_int_out = "%{wks.location}/Engine/Intermediate/Engine/" .. outputdir .. ""
 tp_bin_out = "%{wks.location}/Engine/Binaries/ThirdParty/" .. outputdir .. "/%{prj.name}"
@@ -38,7 +38,7 @@ group "Developer"
 group ""
 
 group "Programs"
-    include "Programs/VeiMManagerTool"
+    include "Source/Programs/VeiMManagerTool"
 group ""
 
 --group "Misc"

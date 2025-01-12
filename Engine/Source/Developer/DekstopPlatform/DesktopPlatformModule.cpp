@@ -3,6 +3,11 @@
 
 DesktopPlatformModule DesktopPlatformModule::m_Instance;
 
+DesktopPlatformModule::DesktopPlatformModule()
+{
+   StartupModule();
+}
+
 void DesktopPlatformModule::StartupModule()
 {
 	m_DesktopPlatform = new DesktopPlatform();

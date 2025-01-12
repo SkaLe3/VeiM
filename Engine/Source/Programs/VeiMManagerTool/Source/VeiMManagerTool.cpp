@@ -16,39 +16,66 @@ using namespace VeiM;
 
 bool RegisterCurrentEngineDirectory(bool bAskFileAssociation)
 {
-	std::string str1;
-	std::string str2;
-	DesktopPlatformModule::Get()->GetEngineIdentifierFromRootDir(str1, str2);
+	std::wstring baseDir = std::filesystem::current_path().wstring();
+	if (!DesktopPlatformModule::Get()->NormalizeEngineRootDir(baseDir))
+	{
+		MessageBoxW(NULL, TEXT("The current folder does not contain an engine installation."), TEXT("Error"), MB_OK);
+		return false;
+	}
 
+	std::wstring identifier;
+	if (!DesktopPlatformModule::Get()->GetEngineIdentifierFromRootDir(baseDir, identifier))
+	{
+		MessageBoxW(NULL, TEXT("Couldn't add engine installation."), TEXT("Error"), MB_OK);
+		return false;
+	}
 
-	std::filesystem::path baseDir = std::filesystem::current_path();
-	std::cout << "Base Directory: " << baseDir << std::endl;
-	system("pause");
+	if (!DesktopPlatformModule::Get()->VerifyFileAssociations())
+	{
+		if (!bAskFileAssociation || MessageBoxW(NULL, TEXT("Register VeiM Engine file types?"), TEXT("File Types"), MB_YESNO | MB_ICONQUESTION) == IDYES)
+		{
+			std::wstring executableFileName = std::wstring(std::filesystem::current_path() / std::wstring(DesktopPlatformModule::Get()->ExecutableName(false)));
+
+			VeiM::int32 exitCode;
+			if (!DesktopPlatformModule::Get()->ExecElevatedProcess(executableFileName.c_str(), TEXT("/fileassociations"), &exitCode) || exitCode != 0)
+			{
+				return false;
+			}
+		}
+	}
+
 	return true;
 }
 
 bool RegisterCurrentEngineDirectoryWithDialog()
 {
-	// TODO: Use PlatformMisc for Dialog for confirmation
-	// 
-	// Register after confirmation
+	if (MessageBoxW(NULL, TEXT("Register this directory as an VeiM Engine installation?"), TEXT("Question"), MB_YESNO | MB_ICONQUESTION) != IDYES)
+	{
+		return false;
+	}
+
 	if (!RegisterCurrentEngineDirectory(false))
 	{
 		return false;
 	}
 
-	// TODO: Use PlatformMics for notify
+	MessageBoxW(NULL, TEXT("Registration successful."), TEXT("Success"), MB_OK);
 	return true;
 }
 
 bool UpdateFileAssosiations()
 {
-	// Update
+	if (!DesktopPlatformModule::Get()->UpdateFileAssociations())
+	{
+		MessageBoxW(NULL, TEXT("Couldn't update file associations."), TEXT("Error"), MB_OK);
+		return false;
+	}
 	return true;
 }
 
 bool LaunchEditor()
 {
+	MessageBoxW(NULL, TEXT("Launching Editor project selection"), TEXT("Launching Editor"), MB_OK);
 	String identifier;
 	// Select editor to launch
 	String rootDir;
@@ -59,6 +86,8 @@ bool LaunchEditor()
 
 bool LaunchEditor(const std::wstring& projectFileName, const std::wstring& arguments)
 {
+	std::wstring msg = std::wstring(L"Launching ") + projectFileName + L" in Editor";
+	MessageBoxW(NULL, msg.c_str(), TEXT("Launching Game"), MB_OK);
 	String rootDit;
 
 	String editorFileName;
@@ -69,6 +98,10 @@ bool LaunchEditor(const std::wstring& projectFileName, const std::wstring& argum
 
 bool GenerateProjectFiles(const std::wstring& projectFileName)
 {
+	MessageBoxW(NULL, TEXT("Generating project files"), TEXT("Project Files"), MB_OK);
+
+	
+
 	return true;
 }
 
@@ -110,12 +143,12 @@ int Main(const std::vector<std::wstring>& arguments)
 	}
 	else
 	{
-		// TODO: Dialog
+		MessageBoxW(NULL, TEXT("Invalid command line"), TEXT("Error"), MB_OK);
 	}
 	return bResult ? 0 : 1;
 }
 
-#if 0 
+#if 1
 
 int WINAPI WinMain(HINSTANCE hCurrInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int SHowCmd)
 {

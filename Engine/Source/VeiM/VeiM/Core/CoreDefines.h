@@ -70,4 +70,6 @@ namespace VeiM
 	   return std::make_shared<T>(std::forward<Args>(args)...);
    }
 }
-#include "VeiM/IO/Log.h"
+#ifndef DESKTOPPLATFORM_EXPORTS
+	#include "VeiM/IO/Log.h"
+#endif

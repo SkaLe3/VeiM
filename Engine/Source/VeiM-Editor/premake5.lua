@@ -47,6 +47,13 @@ project "VeiMEditor"
 		"YAML_CPP_STATIC_DEFINE",
         "VM_APP_NAME=\"" .. app_name .. "\""
 	}
+
+	filter { "configurations:Debug or Debug_Editor or Development or Development_Editor"}
+		kind "ConsoleApp"
+
+	filter { "configurations:Shipping"}
+		kind "WindowedApp"
+
     ------------------ resources ------------------------
     table.insert(resource_defines, "BUILD_ICON_FILE_NAME=\\\"Default.ico\\\"")
     table.insert(resource_defines, "VM_APP_NAME=\\\"".. app_name .. "\\\"")

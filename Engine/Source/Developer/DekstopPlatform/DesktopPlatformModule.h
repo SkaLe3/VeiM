@@ -17,15 +17,18 @@ class IDesktopPlatform;
 class DESKTOPPLATFORM_API DesktopPlatformModule
 {
 public:
+	DesktopPlatformModule();
+
 	virtual void StartupModule();
 	virtual void ShutdownModule();
 
 	static IDesktopPlatform* Get()
 	{
+		
 		return m_Instance.GetSingleton();
 	}
 private:
-	virtual IDesktopPlatform* GetSingleton() const { return m_DesktopPlatform; }
+	virtual IDesktopPlatform* GetSingleton() const {  return m_DesktopPlatform; }
 
 	IDesktopPlatform* m_DesktopPlatform;
 

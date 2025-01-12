@@ -19,6 +19,7 @@ namespace VeiM
 		static Ref<spdlog::logger> s_ClientLogger;
 
 	};
+}
 
 // Core
 #define VM_CORE_TRACE(...)		::VeiM::Log::GetCoreLogger()->trace(__VA_ARGS__) 
@@ -33,4 +34,3 @@ namespace VeiM
 #define VM_WARN(...)			::VeiM::Log::GetClientLogger()->warn(__VA_ARGS__)
 #define VM_ERROR(...)			::VeiM::Log::GetClientLogger()->error(__VA_ARGS__)
 #define VM_CRITICAL(...)		::VeiM::Log::GetClientLogger()->critical(__VA_ARGS__)
-}

@@ -8,7 +8,7 @@ project "DesktopPlatform"
 
     targetdir (engine_bin_out)
     objdir (engine_int_out)
-
+    
     location "%{wks.location}/Engine/Build/ProjectFiles"
 
     files
