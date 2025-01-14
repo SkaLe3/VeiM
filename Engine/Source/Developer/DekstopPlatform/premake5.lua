@@ -6,6 +6,7 @@ project "DesktopPlatform"
     cppdialect "C++20"
     staticruntime "off"
 
+
     targetdir (engine_bin_out)
     objdir (engine_int_out)
     
@@ -26,24 +27,31 @@ project "DesktopPlatform"
     defines { "DESKTOPPLATFORM_EXPORTS"}
 
     filter "configurations:Debug"
+        defines "VM_DEBUG"
         runtime "Debug"
         symbols "on"
 
     filter "configurations:Debug_Editor"
+        defines "VM_DEBUG"
         runtime "Debug"
         symbols "on"
-    
+        defines {"VM_WITH_EDITOR"}
+
     filter "configurations:Development"
+        defines "VM_DEVELOPMENT"
         runtime "Release"
         optimize "on"
         symbols "on"
 
     filter "configurations:Development_Editor"
+        defines "VM_DEVELOPMENT"
         runtime "Release"
         optimize "on"
         symbols "on"
-
+        defines {"VM_WITH_EDITOR"}
+        
     filter "configurations:Shipping"
+        defines "VM_SHIPPING"
         runtime "Release"
         optimize "on"
         symbols "off"

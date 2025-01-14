@@ -1,4 +1,4 @@
-local target_name = "VeiMEditor"
+local target_name = "VeiMEditor-%{cfg.platform}-%{cfg.buildcfg}"
 local target_prefix = ""
 local extension = "exe"
 local app_name = "VeiMEditor"
@@ -42,6 +42,7 @@ project "VeiMEditor"
 	{ 
 		"VeiM"
 	}
+	
 	defines 
 	{
 		"YAML_CPP_STATIC_DEFINE",

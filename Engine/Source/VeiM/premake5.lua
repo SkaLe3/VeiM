@@ -17,7 +17,7 @@ project "VeiM"
 		"%{wks.location}/Engine/ThirdParty/stb_image/**cpp",
 		"%{wks.location}/Engine/ThirdParty/glm/glm/**.hpp",
 		"%{wks.location}/Engine/ThirdParty/glm/glm/**.inl"
-    }
+    }	
 
     includedirs
     {

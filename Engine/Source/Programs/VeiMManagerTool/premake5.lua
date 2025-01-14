@@ -1,6 +1,6 @@
 -- premake5.lua
 
-local target_name = "VeiMManagerTool%{cfg.buildcfg}"
+local target_name = "VeiMManagerTool-%{cfg.platform}-%{cfg.buildcfg}"
 local target_prefix = ""
 local extension = "exe"
 local app_name = "VeiMManagerTool"
@@ -59,29 +59,29 @@ project "VeiMManagerTool"
         }
 
     filter "configurations:Debug"
-    defines "VM_DEBUG"
+        defines "VM_DEBUG"
 		runtime "Debug"
 		symbols "on"
 	
 	filter "configurations:Debug_Editor"
-    defines "VM_DEBUG"
+        defines "VM_DEBUG"
 		runtime "Debug"
 		symbols "on"
 		
 	filter "configurations:Development"
-    defines "VM_DEVELOPMENT"
+        defines "VM_DEVELOPMENT"
 		runtime "Release"
 		optimize "on"
         symbols "on"
 
 	filter "configurations:Development_Editor"
-    defines "VM_DEVELOPMENT"
+        defines "VM_DEVELOPMENT"
 		runtime "Release"
 		optimize "on"
         symbols "on"
 
 	filter "configurations:Shipping"
-    defines "VM_SHIPPING"
+        defines "VM_SHIPPING"
 		runtime "Release"
 		optimize "on"
         symbols "off"

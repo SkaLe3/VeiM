@@ -8,6 +8,8 @@
 #include <iostream>
 #include <cstdlib>
 
+#include <fstream> // TODO: Delete it, and add YAML (YAML wrapper in VeiM)
+
 #define UNLIKELY(x)	(!!(x))
 
 #define verify(expr) {if(UNLIKELY(!(expr))) {do {std::abort();}	while (0); } }
@@ -46,9 +48,10 @@ bool DesktopPlatformWindows::NormalizeEngineRootDir(std::wstring& rootDir)
 
 	if (!RemoveFromEnd(normalizedRootDir, TEXT("/Engine")))
 	{
-		if (!RemoveFromEnd(normalizedRootDir, TEXT("/Engine/Binaries/Engine")))
+		if (!RemoveFromEnd(normalizedRootDir, TEXT("/Engine/Binaries")))
 		{
-			RemoveFromEnd(normalizedRootDir, TEXT("/Engine/Binaries/Engine/Win64"));
+			std::wstring binaryPath = std::wstring(TEXT("/Engine/Binaries/Win64/")) + GetConfigurationDir();
+			RemoveFromEnd(normalizedRootDir, binaryPath);
 		}
 	}
 
@@ -101,6 +104,59 @@ bool DesktopPlatformWindows::GetEngineIdentifierFromRootDir(const std::wstring& 
 	}
 
 	return RegisterEngineInstallation(normalizedRootDir, outIdentifier);
+}
+
+bool DesktopPlatformWindows::GetEngineIdentifierForProject(const std::wstring& projectFileName, std::wstring& outIdentifier)
+{
+	outIdentifier.clear();
+
+	// TODO: Change to reading YAML
+	std::wifstream projectFileHandle(projectFileName);
+	if (!projectFileHandle.is_open())
+	{
+		return false;
+	}
+
+	std::wstring result;
+	std::wstring line;
+	while (std::getline(projectFileHandle, line))
+	{
+		std::size_t start = line.find(L"EngineAssociation:");
+		if (start == std::wstring::npos) continue;
+
+		start = line.find(L"{", start);
+		if (start == std::wstring::npos) continue;
+
+		std::size_t end = line.find(L"}", start);
+		if (end == std::wstring::npos) continue;
+
+		result = line.substr(start, end - start + 1);
+		break;
+	}
+	projectFileHandle.close();
+	outIdentifier = result;
+	if (!result.empty())
+	{
+		return true;
+	}
+
+	return false;
+}
+
+bool DesktopPlatformWindows::GetEngineRootDirFromIdentifier(const std::wstring& identifier, std::wstring& outRootDir)
+{
+	std::unordered_map<std::wstring, std::wstring> installations;
+	EnumerateEngineInstallations(installations);
+
+	for (const auto& installation : installations)
+	{
+		if (installation.first == identifier)
+		{
+			outRootDir = installation.second;
+			return true;
+		}
+	}
+	return false;
 }
 
 bool DesktopPlatformWindows::RegisterEngineInstallation(const std::wstring& rootDir, std::wstring& outIdentifier)
@@ -232,7 +288,7 @@ void DesktopPlatformWindows::GetRequiredRegistrySetting(std::vector<RegistryRoot
 	{
 		defaultVersionSelectorName = TEXT("VeiMManagerTool.exe");
 	}
-	std::wstring executableFileName = std::filesystem::path(Paths::Absolute(Paths::EngineDir())) / TEXT("Binaries/Engine/Win64") / defaultVersionSelectorName;
+	std::wstring executableFileName = std::filesystem::path(Paths::Absolute(Paths::EngineDir())) / TEXT("Binaries/Win64") / GetConfigurationDir() / defaultVersionSelectorName;
 
 	Paths::NormalizeDirectoryName(executableFileName);
 	Paths::MakeWindowsFileName(executableFileName);
@@ -331,4 +387,30 @@ bool DesktopPlatformWindows::ExecElevatedProcess(const TCHAR* URL, const TCHAR* 
 		bSuccess = true;
 	}
 	return bSuccess;
+}
+
+const TCHAR* DesktopPlatformWindows::GetConfigurationDir()
+{
+#ifdef VM_DEBUG
+#ifdef VM_WITH_EDITOR
+	return TEXT("Debug_Editor");
+#else
+	return TEXT("Debug");
+#endif
+#endif
+#ifdef VM_DEVELOPMENT
+#ifdef VM_WITH_EDITOR
+	return TEXT("Development_Editor");
+#else
+	return TEXT("Development");
+#endif
+#endif
+	return TEXT("Shipping");
+}
+
+const TCHAR* DesktopPlatformWindows::BaseDir()
+{
+	static TCHAR exePath[MAX_PATH] = TEXT("");
+	GetModuleFileName(NULL, exePath, MAX_PATH);
+	return exePath;
 }
