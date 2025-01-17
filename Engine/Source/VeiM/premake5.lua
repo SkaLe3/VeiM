@@ -9,15 +9,35 @@ project "VeiM"
 
     location "%{wks.location}/Engine/Build/ProjectFiles"
 
-    files
-    {
-        "%{wks.location}/Engine/Source/VeiM/**.h",
-        "%{wks.location}/Engine/Source/VeiM/**.cpp",
-		"%{wks.location}/Engine/ThirdParty/stb_image/**.h",
-		"%{wks.location}/Engine/ThirdParty/stb_image/**cpp",
-		"%{wks.location}/Engine/ThirdParty/glm/glm/**.hpp",
-		"%{wks.location}/Engine/ThirdParty/glm/glm/**.inl"
-    }	
+	
+	filter "configurations:Debug_Editor or Development_Editor"
+    	files
+    	{
+        	"%{wks.location}/Engine/Source/VeiM/**.h",
+        	"%{wks.location}/Engine/Source/VeiM/**.cpp",
+			"%{wks.location}/Engine/ThirdParty/stb_image/**.h",
+			"%{wks.location}/Engine/ThirdParty/stb_image/**cpp",
+			"%{wks.location}/Engine/ThirdParty/glm/glm/**.hpp",
+			"%{wks.location}/Engine/ThirdParty/glm/glm/**.inl"
+    	}	
+	filter "configurations:Debug or Development or Shipping"
+		files
+		{
+			"%{wks.location}/Engine/Source/VeiM/**.h",
+			"%{wks.location}/Engine/Source/VeiM/**.cpp",
+			"%{wks.location}/Engine/ThirdParty/stb_image/**.h",
+			"%{wks.location}/Engine/ThirdParty/stb_image/**cpp",
+			"%{wks.location}/Engine/ThirdParty/glm/glm/**.hpp",
+			"%{wks.location}/Engine/ThirdParty/glm/glm/**.inl"
+		}	
+		removefiles 
+		{ 
+			"VeiM/ImGui/**.h",
+			"VeiM/ImGui/**.cpp",
+			"VeiM/UI/**.h",
+			"VeiM/UI/**.cpp" 
+		}
+	filter {}
 
     includedirs
     {
@@ -53,12 +73,9 @@ project "VeiM"
 		systemversion "latest"
 
 	filter "configurations:Debug"
-		--removefiles { "Source/VeiM/ImGui/**.cpp", "Source/VeiM/ImGui/**.h","Source/VeiM/UI/**.cpp", "Source/VeiM/UI/**.h" }
-		--temporary removed
 		defines "VM_DEBUG"
 		runtime "Debug"
 		symbols "on"
-		defines {"VM_WITH_EDITOR"} --temporary define
 	
 	filter "configurations:Debug_Editor"
 		defines "VM_DEBUG"
@@ -67,13 +84,10 @@ project "VeiM"
 		defines {"VM_WITH_EDITOR"}
 		
 	filter "configurations:Development"
-		--removefiles { "Source/VeiM/ImGui/**.cpp", "Source/VeiM/ImGui/**.h","Source/VeiM/UI/**.cpp", "Source/VeiM/UI/**.h" }
-				--temporary removed
 		defines "VM_DEVELOPMENT"
 		runtime "Release"
 		optimize "on"
         symbols "on"
-		defines {"VM_WITH_EDITOR"} --temporary define
 
 	filter "configurations:Development_Editor"
 		defines "VM_DEVELOPMENT"
@@ -83,11 +97,8 @@ project "VeiM"
 		defines {"VM_WITH_EDITOR"}
 
 	filter "configurations:Shipping"
-		--removefiles { "Source/VeiM/ImGui/**.cpp", "Source/VeiM/ImGui/**.h","Source/VeiM/UI/**.cpp", "Source/VeiM/UI/**.h" }
-				--temporary removed
 		defines "VM_SHIPPING"
 		runtime "Release"
 		optimize "on"
         symbols "off"
-		defines {"VM_WITH_EDITOR"} --temporary define
 

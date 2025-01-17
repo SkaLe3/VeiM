@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <algorithm>
 
 #include <fstream> // TODO: Delete it, and add YAML (YAML wrapper in VeiM)
 
@@ -16,6 +17,7 @@
 
 
 using namespace VeiM;
+
 
 static const TCHAR* InstallationSubKey = TEXT("SOFTWARE\\SkaLe Studio\\VeiM Engine\\Builds");
 
@@ -249,6 +251,8 @@ void DesktopPlatformWindows::EnumerateEngineInstallations(std::unordered_map<std
 	}
 }
 
+
+
 bool DesktopPlatformWindows::VerifyFileAssociations()
 {
 	std::vector<RegistryRootedKey*> keys;
@@ -286,7 +290,7 @@ void DesktopPlatformWindows::GetRequiredRegistrySetting(std::vector<RegistryRoot
 	std::wstring defaultVersionSelectorName = ExecutableName(false);
 	if (!defaultVersionSelectorName.starts_with(TEXT("VeiMManagerTool")))
 	{
-		defaultVersionSelectorName = TEXT("VeiMManagerTool.exe");
+		defaultVersionSelectorName = TEXT("VeiMManagerTool-Win64-Shipping.exe");
 	}
 	std::wstring executableFileName = std::filesystem::path(Paths::Absolute(Paths::EngineDir())) / TEXT("Binaries/Win64") / GetConfigurationDir() / defaultVersionSelectorName;
 

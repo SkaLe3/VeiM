@@ -17,7 +17,7 @@ workspace "VeiM"
 	
 outputdir = "%{cfg.platform}"
 engine_bin_out = "%{wks.location}/Engine/Binaries/" .. outputdir .. "/%{cfg.buildcfg}"
-engine_int_out = "%{wks.location}/Engine/Intermediate/" .. outputdir .. "/%{cfg.buildcfg}"
+engine_int_out = "%{wks.location}/Engine/Intermediate/" .. outputdir .. "/%{prj.name}/%{cfg.buildcfg}"
 tp_bin_out = "%{wks.location}/Engine/Binaries/ThirdParty/" .. outputdir .. "/%{prj.name}/%{cfg.buildcfg}"
 tp_int_out = "%{wks.location}/Engine/Intermediate/ThirdParty/" .. outputdir .. "/%{prj.name}/%{cfg.buildcfg}"
 
@@ -34,7 +34,7 @@ group "Engine"
 group ""
 
 group "Developer"
-    include "Source/Developer/DekstopPlatform"
+    include "Source/Developer/DesktopPlatform"
 group ""
 
 group "Programs"

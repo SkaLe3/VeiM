@@ -1,16 +1,14 @@
 #include "VeimManagerTool.h"
-#include "DekstopPlatform/DesktopPlatformModule.h"
-#include "DekstopPlatform/Paths.h"
+#include "DesktopPlatform/DesktopPlatformModule.h"
+#include "DesktopPlatform/Paths.h"
+#include "PlatformInstallation.h"
 
 
 #include <windows.h>
 #include <shellapi.h>
 #include <vector>
 #include <filesystem>
-#include <locale>
-#include <codecvt>
 
-#include <iostream>
 #include <cstdio>
 
 #include <cstdlib> // For running premake
@@ -18,7 +16,23 @@
 #include <locale> // For conversion to run premake
 #include <codecvt>
 
+#include <yaml-cpp/yaml.h>
+
 using namespace VeiM;
+
+
+std::string WStringToString(const std::wstring& wstr)
+{
+	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+	return converter.to_bytes(wstr);
+}
+
+
+std::wstring StringToWString(const std::string& str)
+{
+	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+	return converter.from_bytes(str);
+}
 
 bool GetEngineRootDirForProject(const std::wstring& projectFileName, std::wstring& outRootDir)
 {
@@ -85,25 +99,113 @@ bool UpdateFileAssosiations()
 	return true;
 }
 
+bool ReadLaunchPathFromTargetFile(const std::wstring& targetFileName, std::wstring& outLaunchPath)
+{
+	std::string targetFileNameAnsi = WStringToString(targetFileName);
+
+	YAML::Node config = YAML::LoadFile(targetFileNameAnsi);
+	if (!config["TargetType"] || StringToWString(config["TargetType"].as<std::string>()) != TEXT("Editor"))
+	{
+		return false;
+	}
+
+	if (!config["Configuration"] || StringToWString(config["Configuration"].as<std::string>()) != TEXT("Development"))
+	{
+		return false;
+	}
+
+	if (!config["Launch"])
+	{
+		return false;
+	}
+	outLaunchPath.clear();
+	outLaunchPath = StringToWString(config["Launch"].as<std::string>());
+	return 	true;
+}
+
+void ReplaceSubstring(std::wstring& originString, const std::wstring& oldSubstring, const std::wstring& newSubstring)
+{
+	size_t pos = originString.find(oldSubstring);
+	while (pos != std::wstring::npos)
+	{
+		originString.replace(pos, oldSubstring.length(), newSubstring);
+		pos = originString.find(oldSubstring, pos + newSubstring.length());
+	}
+}
+
+bool TryGetEditorFileName(const std::wstring& engineDir, const std::wstring& projectFileName, std::wstring& outEditorFileName)
+{
+	std::wstring projectDir = Paths::GetPath(projectFileName);
+	std::wstring binariesDir = (std::filesystem::path(projectDir) / TEXT("Binaries") / TEXT("Win64")).wstring();
+	if (std::filesystem::exists(binariesDir) && std::filesystem::is_directory(binariesDir))
+	{
+		std::vector<std::pair<std::wstring, std::filesystem::file_time_type>> files;
+
+		for (const auto& entry : std::filesystem::recursive_directory_iterator(binariesDir))
+		{
+			if (entry.is_regular_file() && entry.path().extension() == ".target")
+			{
+				files.push_back({ entry.path().wstring(), std::filesystem::last_write_time(entry) });
+			}
+		}
+
+		std::sort(files.begin(), files.end(),
+				  [](const std::pair<std::wstring, std::filesystem::file_time_type>& a,
+					 const std::pair<std::wstring, std::filesystem::file_time_type>& b)
+				  {
+					  return a.second > b.second;
+				  });
+		for (const std::pair<std::wstring, std::filesystem::file_time_type>& record : files)
+		{
+			std::wstring launchPath;
+			if (ReadLaunchPathFromTargetFile(record.first, launchPath))
+			{
+				outEditorFileName = std::move(launchPath);
+				ReplaceSubstring(outEditorFileName, TEXT("$(EngineDir)"), engineDir.c_str());
+				ReplaceSubstring(outEditorFileName, TEXT("$(ProjectDir)"), projectDir.c_str());
+				return true;
+			}
+		}
+	}
+	return true;
+}
+
 bool LaunchEditor()
 {
-	MessageBoxW(NULL, TEXT("Launching Editor project selection"), TEXT("Launching Editor"), MB_OK);
-	String identifier;
-	// Select editor to launch
-	String rootDir;
-	// Get engine root dir from identifier
-	// Launch editor
+	std::wstring identifier;
+
+	if (!PlatformInstallation::SelectEngineInstallation(identifier))
+	{
+		return false;
+	}
+
+	std::wstring rootDir;
+	DesktopPlatformModule::Get()->GetEngineRootDirFromIdentifier(identifier, rootDir);
+
+	if (!PlatformInstallation::LaunchEditor(rootDir, std::wstring(), std::wstring()))
+	{
+		MessageBoxW(NULL, TEXT("Failed to launch editor. Probably Editor Development build doesn't exist"), TEXT("Error"), MB_OK | MB_ICONERROR);
+		return false;
+	}
 	return true;
 }
 
 bool LaunchEditor(const std::wstring& projectFileName, const std::wstring& arguments)
 {
-	std::wstring msg = std::wstring(L"Launching ") + projectFileName + L" in Editor";
-	MessageBoxW(NULL, msg.c_str(), TEXT("Launching Game"), MB_OK);
-	String rootDit;
+	std::wstring rootDir;
+	if (!GetEngineRootDirForProject(projectFileName, rootDir))
+	{
+		return false;
+	}
 
-	String editorFileName;
-	// Launch editor
+	std::wstring editorFileName;
+	TryGetEditorFileName((std::filesystem::path(rootDir) / TEXT("Engine")).wstring(), projectFileName, editorFileName);
+
+	if (!PlatformInstallation::LaunchEditor(rootDir, editorFileName, std::wstring(TEXT("\"")) + projectFileName + TEXT("\" ") + arguments))
+	{
+		MessageBoxW(NULL, TEXT("Failed to launch editor. Probably the corresponding editor configuration build does not exist"), TEXT("Error"), MB_OK | MB_ICONERROR);
+		return false;
+	}
 
 	return true;
 }

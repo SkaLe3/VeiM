@@ -1,3 +1,7 @@
+//{{NO_DEPENDENCIES}}
+// Microsoft Visual C++ generated include file.
+// Used by Resource.rc
+//
 #define IDD_SELECTBUILD                 201
 #define IDD_ERRORDIALOG                 205
 #define IDC_BROWSE                      2001
@@ -5,6 +9,8 @@
 #define IDC_ERRORLOGTEXT                2005
 #define IDC_ERRORMESSAGE                2006
 
+// Next default values for new objects
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        206

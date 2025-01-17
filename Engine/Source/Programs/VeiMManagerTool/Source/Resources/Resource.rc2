@@ -1,8 +1,13 @@
-#ifndef APSUDIO_INVOKED
+#ifndef APSTUDIO_INVOKED
 
 #include <windows.h>
 #include "../../../../VeiM/VeiM/Resources/VeiM.rc"
 #include "../../../../VeiM/VeiM/Resources/Version.h"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
 
 VS_VERSION_INFO VERSIONINFO	
 FILEVERSION ENGINE_MAJOR_VERSION, ENGINE_MINOR_VERSION, ENGINE_PATCH_VERSION, 0

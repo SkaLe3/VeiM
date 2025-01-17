@@ -13,6 +13,8 @@
 #include "VeiM/Platform/Windows/WindowsUtils.h"
 #include "VeiM/IO/Log.h"
 
+#include "VeiM/Core/PlatformService.h"
+
 extern bool g_ApplicationRunning;
 
 namespace VeiM
@@ -24,10 +26,9 @@ namespace VeiM
 		VM_CORE_ASSERT(!s_Instance, "Application already exists!");
 		s_Instance = this;
 		
-		if (!m_Config.WorkingDirectory.empty())
-			std::filesystem::current_path(m_Config.WorkingDirectory);
-
-
+		
+		PlatformService::SetCurrentWorkingDirectoryToBaseDir();
+		std::filesystem::current_path( std::filesystem::current_path().string() + "/../../../../");
 
 		m_Window = std::make_unique<Window>(applicationSpecification.WndConfig);  // TODO: Make static function Create() or another
 		m_Window->SetEventCallback([this](const std::string& inf) { Application::OnEvent(inf); });

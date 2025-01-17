@@ -41,6 +41,9 @@ std::wstring Paths::EngineDir()
 	return dir;
 }
 
+/*
+*	Returns Path to the given file (Removes filename)
+*/
 std::wstring Paths::GetPath(const std::wstring& inPath)
 {
 	size_t found = inPath.find_last_of(L"/\\");

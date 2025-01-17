@@ -1,30 +1,47 @@
-local target_name = "VeiMEditor-%{cfg.platform}-%{cfg.buildcfg}"
-local target_prefix = ""
-local extension = "exe"
-local app_name = "VeiMEditor"
-local resource_defines = {}
+-- premake5.lua Editor module config
 
+-- It contains build setting for the VeiM Editor module
+
+-- Editor target parameters
+local target_name = "VeiMEditor"		-- Name of the target file
+local target_prefix = ""				-- Prefix for the target file
+local target_suffix = ""				-- Suffix for the target file
+local extension = "exe"					-- Extenstion for the target file
+local app_name = "VeiMEditor"			-- Application name for details
+local resource_defines = {}				-- List of resource-related defines
+
+-- Editor Module Definition
 project "VeiMEditor"
+	-- General Project Settings
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++20"
 	staticruntime "off"
 	
+	-- Output Directories
     targetdir (engine_bin_out)
 	objdir (engine_int_out)
     targetname (target_name)
     targetprefix (target_prefix)
-	
 	debugdir "%{cfg.targetdir}"
 	
+	-- Project Files Location
     location "%{wks.location}/Engine/Build/ProjectFiles"
 
-    files
-    {
-        "%{wks.location}/Engine/Source/VeiM-Editor/**.h",
-        "%{wks.location}/Engine/Source/VeiM-Editor/**.cpp"
-    }
+	-- Filters for Configuration with Editor-Specific Source files
+	filter "configurations:Debug_Editor or Development_Editor"
+    	files
+    	{
+    	    "%{wks.location}/Engine/Source/VeiM-Editor/**.h",
+    	    "%{wks.location}/Engine/Source/VeiM-Editor/**.cpp",
+			"%{wks.location}/Engine/Build/Resources/**.rc",
+			"%{wks.location}/Engine/Build/Resources/**.ico",
+			"%{wks.location}/Engine/Source/VeiM/VeiM/Resources/**.h",
+			"%{wks.location}/Engine/Source/VeiM/VeiM/Resources/**.rc"
+    	}
+	filter {}
 
+	-- Include Directories
     includedirs
     {
         "%{wks.location}/Engine/Source/VeiM-Editor",
@@ -38,28 +55,27 @@ project "VeiMEditor"
 		"%{wks.location}/Engine/ThirdParty/src"   
     }
 
+	-- Editor Dependencies
 	links 
 	{ 
-		"VeiM"
+		"VeiM"									-- Link against the VeiM Engine
 	}
 	
+	-- Define Macros
 	defines 
 	{
-		"YAML_CPP_STATIC_DEFINE",
-        "VM_APP_NAME=\"" .. app_name .. "\""
+		"YAML_CPP_STATIC_DEFINE",				-- Use static YAML-CPP
+        "VM_APP_NAME=\"" .. app_name .. "\""	-- Define application name
 	}
 
-	filter { "configurations:Debug or Debug_Editor or Development or Development_Editor"}
-		kind "ConsoleApp"
+    ------------------ Resources ------------------------
 
-	filter { "configurations:Shipping"}
-		kind "WindowedApp"
-
-    ------------------ resources ------------------------
-    table.insert(resource_defines, "BUILD_ICON_FILE_NAME=\\\"Default.ico\\\"")
+    -- Resource Defines
+	table.insert(resource_defines, "BUILD_ICON_FILE_NAME=\\\"Default.ico\\\"")
     table.insert(resource_defines, "VM_APP_NAME=\\\"".. app_name .. "\\\"")
-    table.insert(resource_defines, "ORIGINAL_FILE_NAME=\\\"".. target_prefix ..target_name .. ".".. extension .."\\\"")
+    table.insert(resource_defines, "ORIGINAL_FILE_NAME=\\\"".. target_prefix ..target_name .. target_suffix .. ".".. extension .."\\\"")
 
+	-- Resource Compilation and Linking
 	filter "system:windows"
 		systemversion "latest"
         local resource_build_options = constructResourceDefineFlags(resource_defines)  
@@ -72,37 +88,48 @@ project "VeiMEditor"
             engine_int_out .. "/VeiM.rc.res",
             engine_int_out .. "/Default.rc2.res"
         }
+
 	-----------------------------------------------------	
+
+	-- Debug Command for Non-Editor Configurations
+	filter "configurations:Debug or Development or Shipping"
+		debugcommand "C:\\Windows\\System32\\cmd.exe"
+
+	------------------ Configuration Filters ------------------
+
+	-- Debug Configuration
 	filter "configurations:Debug"
-		defines "VM_DEBUG"
+		kind "None"
 		runtime "Debug"
 		symbols "on"
-		defines {"VM_WITH_EDITOR"} --temporary define
+		targetsuffix "-%{cfg.platform}-Debug"
 	
+	-- Debug Editor Configuration
 	filter "configurations:Debug_Editor"
-		defines "VM_DEBUG"
-		runtime "Debug"
-		symbols "on"
-		defines {"VM_WITH_EDITOR"} --temporary define
-		
+		defines 		{"VM_WITH_EDITOR"}
+		runtime 		"Debug"
+		symbols 		"on"
+		targetsuffix "-%{cfg.platform}-Debug"
+
+	-- Development Configuration
 	filter "configurations:Development"
-		defines "VM_DEVELOPMENT"
-		runtime "Release"
-		optimize "on"
-        symbols "on"
-		defines {"VM_WITH_EDITOR"} --temporary define
+		kind 			"None"
+		runtime 		"Release"
+		optimize 		"on"
+        symbols 		"on"
 
+	-- Development Editor Configuration
 	filter "configurations:Development_Editor"
-		defines "VM_DEVELOPMENT"
-		runtime "Release"
-		optimize "on"
-        symbols "on"
-		defines {"VM_WITH_EDITOR"} --temporary define
+		defines 		{"VM_WITH_EDITOR"}
+		runtime 		"Release"
+		optimize 		"on"
+        symbols 		"on"
 
+	-- Shipping Configuration
 	filter "configurations:Shipping"
-		defines "VM_SHIPPING"
-		runtime "Release"
-		optimize "on"
-        symbols "off"
-		defines {"VM_WITH_EDITOR"} --temporary define
-
+		kind 			"None"
+		runtime 		"Release"
+		optimize 		"on"
+        symbols 		"off"
+	
+	-----------------------------------------------------------

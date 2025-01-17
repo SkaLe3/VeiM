@@ -1,7 +1,8 @@
 -- premake5.lua
 
-local target_name = "VeiMManagerTool-%{cfg.platform}-%{cfg.buildcfg}"
+local target_name = "VeiMManagerTool"
 local target_prefix = ""
+local target_suffix = ""
 local extension = "exe"
 local app_name = "VeiMManagerTool"
 local resource_defines = {}
@@ -23,9 +24,11 @@ project "VeiMManagerTool"
 
     files 
     {
-        "Source/**.h",
-        "Source/**.cpp",
-        "Source/Resources/Resource.rc"
+        "%{wks.location}/Engine/Source/Programs/VeiMManagerTool/Source/**.h",
+        "%{wks.location}/Engine/Source/Programs/VeiMManagerTool/Source/**.cpp",
+        "%{wks.location}/Engine/Source/Programs/VeiMManagerTool/Source/**.rc",
+        "%{wks.location}/Engine/Source/Programs/VeiMManagerTool/Source/**.rc2",
+        "%{wks.location}/Engine/Source/Programs/VeiMManagerTool/Source/**.ico"
     }
 
     includedirs
@@ -41,9 +44,15 @@ project "VeiMManagerTool"
 		"%{wks.location}/Engine/ThirdParty/src"
     }
 
+    defines 
+    {
+        "YAML_CPP_STATIC_DEFINE"
+    }
+
     links
     {
-        "DesktopPlatform"
+        "DesktopPlatform",
+        "yaml-cpp"
     }
 
     filter "system:windows"
@@ -53,37 +62,37 @@ project "VeiMManagerTool"
             "rc /fo " .. engine_int_out .. "/Resource.rc2.res %{wks.location}/Engine/Source/Programs/VeiMManagerTool/Source/Resources/Resource.rc2"
         }
 
-        linkoptions{
-            engine_int_out .. "/Resource.rc.res",
-            engine_int_out .. "/Resource.rc2.res"
-        }
-
     filter "configurations:Debug"
         defines "VM_DEBUG"
 		runtime "Debug"
 		symbols "on"
+        targetsuffix "%{cfg.platform}-Debug"
 	
 	filter "configurations:Debug_Editor"
         defines "VM_DEBUG"
 		runtime "Debug"
 		symbols "on"
+        targetsuffix "%{cfg.platform}-Debug"
 		
 	filter "configurations:Development"
         defines "VM_DEVELOPMENT"
 		runtime "Release"
 		optimize "on"
         symbols "on"
+        targetsuffix"%{cfg.platform}-Development"
 
 	filter "configurations:Development_Editor"
         defines "VM_DEVELOPMENT"
 		runtime "Release"
 		optimize "on"
         symbols "on"
+        targetsuffix "%{cfg.platform}-Development"
 
 	filter "configurations:Shipping"
         defines "VM_SHIPPING"
 		runtime "Release"
 		optimize "on"
         symbols "off"
+        targetsuffix "%{cfg.platform}-Shipping"
 
     
