@@ -1,7 +1,10 @@
 #pragma once
+#include "VeiM/Core/CoreDefines.h"
 #include "VeiM/Core/Layer.h"
 #include "Titlebar.h"
 #include "EditorWindows.h"
+
+#include "VeiM/Test/FrameBuffer.h"
 
 namespace VeiM
 {
@@ -10,6 +13,7 @@ namespace VeiM
 	public: 
 		EditorLayer();
 		void OnAttach() override;
+		void OnUpdate(float deltaTime) override;
 		void OnGUI() override;
 
 		void ImGuiWindowMenu();
@@ -17,6 +21,7 @@ namespace VeiM
 
 	public:
 		void ThemeEditorRender(); // TODO: Move somewhere
+		void CreateTitleBar();
 
 
 	private:
@@ -27,5 +32,15 @@ namespace VeiM
 		bool show_another_window = false;
 		bool m_ThemeEditor = false;
 		ImGuiWindows m_ImGuiWindows;
+
+
+		// Temp
+		FrameBuffer m_Framebuffer;
+		int display_w, display_h;
+		uint32 triangleShader;
+		uint32 quadShader;
+		uint32 triangleVAO, triangleVBO;
+		uint32 quadVAO, quadVBO;
+
 	};
 }

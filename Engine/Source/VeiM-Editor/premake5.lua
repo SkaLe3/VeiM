@@ -46,13 +46,12 @@ project "VeiMEditor"
     {
         "%{wks.location}/Engine/Source/VeiM-Editor",
         "%{wks.location}/Engine/Source/VeiM",
-		"%{wks.location}/Engine/ThirdParty", 
-		"%{wks.location}/Engine/ThirdParty/glm",
-		"%{wks.location}/Engine/ThirdParty/imgui",
-		"%{wks.location}/Engine/ThirdParty/GLFW/include",
-		"%{wks.location}/Engine/ThirdParty/spdlog/include",
-		"%{wks.location}/Engine/ThirdParty/yaml-cpp/include",
-		"%{wks.location}/Engine/ThirdParty/src"   
+		"%{IncludeDir.Glad}",
+		"%{IncludeDir.glm}",
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.spdlog}",
+		"%{IncludeDir.yaml_cpp}" 
     }
 
 	-- Editor Dependencies

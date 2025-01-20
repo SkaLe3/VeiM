@@ -30,7 +30,12 @@ project "TestVeiMGame"
 	-- Include Directories
     includedirs
     {
-        "%{wks.location}/Source/TestVeiMGame"		-- Include game source directory
+        "%{wks.location}/Source/TestVeiMGame",		-- Include game source directory
+		engine_root_dir .. "/Engine/Source/VeiM",
+		engine_root_dir .. "/Engine/ThirdParty/Glad/include",
+		engine_root_dir .. "/Engine/ThirdParty/spdlog/include",
+		engine_root_dir .. "/Engine/ThirdParty/GLFW/include"
+
     }
 
 	-- Game Dependencies

@@ -15,6 +15,7 @@
 
 #include "VeiM/Core/PlatformService.h"
 
+
 extern bool g_ApplicationRunning;
 
 namespace VeiM
@@ -92,13 +93,10 @@ namespace VeiM
 			m_DeltaTime = time - m_LastFrameTime;
 			m_LastFrameTime = time;
 
+			for (Layer* layer : m_LayerStack)
+				layer->OnUpdate(m_DeltaTime);
 
-			// TODO: Put in RHI
-			int display_w, display_h;
-			glfwGetFramebufferSize(m_Window->GetNativeWindow(), &display_w, &display_h);
-			glViewport(0, 0, display_w, display_h);
-			glClearColor(0.8, 0.8, 0.8, 1.0);
-			glClear(GL_COLOR_BUFFER_BIT);
+
 
 #ifdef VM_WITH_EDITOR
 			RenderGUI();

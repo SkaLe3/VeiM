@@ -1,6 +1,6 @@
 #include "EditorWindows.h"
 
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 
 void ImGuiWindows::ShowFpsWindow(bool* p_open)

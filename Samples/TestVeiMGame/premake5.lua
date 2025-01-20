@@ -7,6 +7,7 @@
 -- Include core engine configuration files
 include "EngineRoot.lua"							-- Define the root directory of the engine
 include (engine_root_dir .. "/Engine/Common.lua")	-- Include shared scripts
+include (engine_root_dir .. "/Engine/Dependencies.lua")	-- Include dependencies paths
 
 -- Workspace Definition
 workspace "TestVeiMGame"
