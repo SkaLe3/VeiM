@@ -41,11 +41,5 @@ group "Programs"
     include "Source/Programs/VeiMManagerTool"
 group ""
 
---group "Misc"
-	--include "Sandbox"
---group ""
-
-
-
 
 
