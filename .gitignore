@@ -1,8 +1,8 @@
 # Binaries
-Binaries/
-Intermediate/
-Build/ProjectFiles/
-!Binaries/Engine/**/VeiMManagerTool/
+Engine/Intermediate/
+Engine/Build/ProjectFiles/
+Engine/Binaries/
+!Engine/Binaries/Win64/Shipping/VeiMManagerTool-Win64-Shipping.exe
 
 # Logs
 **.log
