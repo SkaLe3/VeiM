@@ -1,18 +1,24 @@
 #pragma once
 #include "Application.h"
-#include "VeiM/IO/Log.h"
+#include "VeiM/IO/Log.h" 
+#include "VeiM/Core/CoreDefines.h"
 
-extern VeiM::Application* VeiM::CreateApplication(int argc, char** argv);
+#include <vector>
+#include <string>
+#include <locale>
+#include <codecvt>
+
+extern VeiM::Application* VeiM::CreateApplication(const std::vector<VeiM::String>& arguments);
 bool g_ApplicationRunning = true;
 
 namespace VeiM
 {
-	int Main(int argc, char** argv)
+	int Main(const std::vector<String>& arguments)
 	{
 		Log::Init();
 		while (g_ApplicationRunning)
 		{
-			VeiM::Application* app = VeiM::CreateApplication(argc, argv);
+			VeiM::Application* app = VeiM::CreateApplication(arguments);
 			app->Run();
 			delete app;
 		}
@@ -25,14 +31,28 @@ namespace VeiM
 
 int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmdshow)
 {
-	return VeiM::Main(__argc, __argv);
+	extern int __argc;
+	extern char** __argv;
+
+	std::vector<VeiM::String> arguments;
+	for (int idx = 1; idx < __argc; idx++)
+	{
+		arguments.push_back(__argv[idx]);
+	}
+
+	return VeiM::Main(arguments);
 }
 
 #else
 
-int main(int argc, char** argv)
+int main(int argC, char** argV)
 {
-	return VeiM::Main(argc, argv);
+	std::vector<VeiM::String> arguments;
+	for (int idx = 1; idx < argC; idx++)
+	{
+		arguments.emplace_back(argV[idx]);
+	}
+	return VeiM::Main(arguments);
 }
 
-#endif // VM_DIST
+#endif 

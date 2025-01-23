@@ -161,6 +161,9 @@ namespace VeiM
 
 		ImGui::Image(reinterpret_cast<void*>(m_Framebuffer.GetTexture()), viewportPanelSize, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 		ImGui::End();
+
+
+		m_ProjectBrowser.Render();
 	}
 
 	void EditorLayer::ImGuiWindowMenu()
@@ -223,16 +226,34 @@ namespace VeiM
 										   if (ImGui::BeginMenu("File"))
 										   {
 											   ImGui::PopStyleVar();
-											   if (ImGui::MenuItem("New", "Ctrl+N", false))
+											   ImGui::Spacing();
+											   ImGui::SeparatorText("Level");
+											   ImGui::Spacing();
+
+											   ImGui::Indent(10.f);
+											   if (ImGui::MenuItem("New Level", "Ctrl+N", false))
 											   {
 												   int32_t dummy = 2;
 											   }
-											   if (ImGui::MenuItem("Open...", "Ctrl+O", false))
+											   if (ImGui::MenuItem("Open Level", "Ctrl+O", false))
 											   {
-
+												   int32_t dummy = 2;
 											   }
+											   ImGui::Unindent(10.f);
+
 											   ImGui::Spacing();
-											   ImGui::Separator();
+											   ImGui::SeparatorText("Project");
+											   ImGui::Spacing();
+
+											   ImGui::Indent(10.f);
+											   if (ImGui::MenuItem("Open Project..."))
+											   {
+												   m_ProjectBrowser.Show();
+											   }
+											   ImGui::Unindent(10.f);
+
+											   ImGui::Spacing();
+											   ImGui::SeparatorText("Exit");
 											   ImGui::Spacing();
 											   if (ImGui::MenuItem("Exit", NULL, false))
 											   {
@@ -312,5 +333,10 @@ namespace VeiM
 									   });
 	}
 
+
+	void EditorLayer::OpenProject()
+	{
+	   //VeiM::String filepath = 
+	}
 
 }

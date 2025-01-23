@@ -4,7 +4,12 @@
 #include "Titlebar.h"
 #include "EditorWindows.h"
 
+
+// TEMPORARY
 #include "VeiM/Test/FrameBuffer.h"
+
+#include "ProjectBrowser.h"
+
 
 namespace VeiM
 {
@@ -23,6 +28,9 @@ namespace VeiM
 		void ThemeEditorRender(); // TODO: Move somewhere
 		void CreateTitleBar();
 
+	private:
+		void OpenProject(); // Temporary while engine-project ineraction isn't done
+
 
 	private:
 		std::shared_ptr<UI::TitleBar> m_TitleBar;
@@ -32,6 +40,10 @@ namespace VeiM
 		bool show_another_window = false;
 		bool m_ThemeEditor = false;
 		ImGuiWindows m_ImGuiWindows;
+
+
+		// Temp
+		ProjectBrowserWindow m_ProjectBrowser;
 
 
 		// Temp

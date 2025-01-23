@@ -119,7 +119,7 @@ bool WindowsPlatformInstallation::LaunchEditor(const std::wstring& rootDirName, 
 		fileName = explicitFileName;
 	}
 
-	std::wstring commandLine = std::wstring(TEXT("\"")) + fileName + TEXT("\"") + arguments;
+	std::wstring commandLine = std::wstring(TEXT("\"")) + fileName + TEXT("\" ") + arguments;
 	STARTUPINFO startupInfo;
 	ZeroMemory(&startupInfo, sizeof(startupInfo));
 	startupInfo.cb = sizeof(startupInfo);

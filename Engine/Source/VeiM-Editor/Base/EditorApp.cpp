@@ -20,7 +20,7 @@ namespace VeiM
 		}
 	};
 
-	Application* CreateApplication(int argc, char** argv)
+	Application* CreateApplication(const std::vector<String>& arguments)
 	{
 		ApplicationSpecification specs;
 
@@ -28,6 +28,7 @@ namespace VeiM
 		specs.AppConfig.EnableConsole = true; // TODO: Add option to enable console in game shipping build, or to choose it instead of editor console in debug and development editor build
 		specs.AppConfig.WorkingDirectory = PlatformService::BaseDir();
 		specs.AppConfig.EngineContentPath = "Engine/Content/";
+		specs.AppConfig.CommandLineArgs = arguments;
 
 		specs.WndConfig.Title = "VeiM Editor";
 		specs.WndConfig.Width = 800;
@@ -39,10 +40,11 @@ namespace VeiM
 		specs.WndConfig.Mode = EWindowMode::Windowed;
 
 		// TEMP
-		for (int idx = 0; idx < argc; idx++)
+		for (int idx = 0; idx < arguments.size(); idx++)
 		{
-			VM_TRACE("{0}: {1}", idx, argv[idx]);
+			VM_TRACE("{0}: {1}", idx, arguments[idx]);
 		}
+		VM_CORE_INFO("args number: {0}", arguments.size());
 
 		Application* app = new VeiMEditor(specs);
 		app->PushLayer(new EditorLayer());

@@ -18,13 +18,15 @@ struct GLFWwindow;
 namespace VeiM
 {
 
+	
+
 	struct ApplicationConfig
 	{
 		std::string Name = "VeiM Engine";
 		bool EnableConsole = true;
 		std::filesystem::path WorkingDirectory;
 		std::filesystem::path EngineContentPath;
-		// TODO: Add more
+		std::vector<String> CommandLineArgs;
 	};
 
 
@@ -83,6 +85,6 @@ namespace VeiM
 		static Application* s_Instance;
 	};
 
-	Application* CreateApplication(int argc, char** argv);
+	Application* CreateApplication(const std::vector<String>& arguments);
 }
 
