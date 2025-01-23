@@ -2,9 +2,14 @@
 
 #include "VeiM/IO/Log.h"
 
+
+#include <glm/glm.hpp>
+
 #include <string>
 #include <functional>
 #include <filesystem>
+
+
 
 struct GLFWwindow;
 
@@ -66,9 +71,12 @@ namespace VeiM
 
 		uint32_t GetWidth() const { return m_Data.Width; }
 		uint32_t GetHeight() const { return m_Data.Height; }
+		glm::vec2 GetScreenSize() const;
 
 		void SetVSync(bool enabled);
 		bool IsVSyncEnabled() const;
+		void Hide();
+		void Show();
 
 		void SetRawInput(bool enabled);	// TODO: Always enable for editor, make as option for games
 		bool IsRawInputEnabled() const;

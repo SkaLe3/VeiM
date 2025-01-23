@@ -67,6 +67,7 @@ namespace VeiM
 		{
 			style.WindowRounding = 0.0f;
 			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+			style.WindowTitleAlign = ImVec2(0.5f, 0.5f); // TODO: This doesnt work. Find out why
 		}
 
 		UI::Theme::TryLoadThemes();

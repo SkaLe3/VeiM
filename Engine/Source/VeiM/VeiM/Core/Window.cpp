@@ -43,6 +43,12 @@ namespace VeiM
 		glfwPollEvents();
 	}
 
+	glm::vec2 Window::GetScreenSize() const
+	{
+		const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+		return { mode->width, mode->height };
+	}
+
 	void Window::SetVSync(bool enabled)
 	{
 		if (enabled)
@@ -61,6 +67,16 @@ namespace VeiM
 	bool Window::IsVSyncEnabled() const
 	{
 		return m_Data.VSync;
+	}
+
+	void Window::Hide()
+	{
+		glfwSetWindowOpacity(m_Window, 0.0f);
+	}
+
+	void Window::Show()
+	{
+		glfwSetWindowOpacity(m_Window, 1.0f);
 	}
 
 	void Window::SetRawInput(bool enabled)
