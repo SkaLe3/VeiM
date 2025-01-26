@@ -3,6 +3,7 @@
 #include "VeiM/Core/Layer.h"
 #include "Titlebar.h"
 #include "EditorWindows.h"
+#include <glm/glm.hpp>
 
 
 // TEMPORARY
@@ -28,9 +29,6 @@ namespace VeiM
 		void ThemeEditorRender(); // TODO: Move somewhere
 		void CreateTitleBar();
 
-	private:
-		void OpenProject(); // Temporary while engine-project ineraction isn't done
-
 
 	private:
 		std::shared_ptr<UI::TitleBar> m_TitleBar;
@@ -44,6 +42,8 @@ namespace VeiM
 
 		// Temp
 		ProjectBrowserWindow m_ProjectBrowser;
+		glm::vec2 m_ViewportBounds[2];
+		glm::vec2 m_ViewportSize;
 
 
 		// Temp

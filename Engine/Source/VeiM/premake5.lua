@@ -64,7 +64,6 @@ project "VeiM"
 	{ 
 		"Glad",
 		"GLFW",
-		"ImGui",
 		"yaml-cpp",
 		"opengl32.lib"
 	}
@@ -82,6 +81,7 @@ project "VeiM"
 		runtime "Debug"
 		symbols "on"
 		defines {"VM_WITH_EDITOR"}
+		links {"ImGui"}
 		
 	filter "configurations:Development"
 		defines "VM_DEVELOPMENT"
@@ -95,6 +95,7 @@ project "VeiM"
 		optimize "on"
         symbols "on"
 		defines {"VM_WITH_EDITOR"}
+		links {"ImGui"}
 
 	filter "configurations:Shipping"
 		defines "VM_SHIPPING"

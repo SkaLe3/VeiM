@@ -25,7 +25,7 @@ namespace VeiM
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 
-		io.IniFilename = "Config/imgui.ini";
+		io.IniFilename = "Engine/Config/imgui.ini";
 
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
@@ -37,6 +37,7 @@ namespace VeiM
 		float fontSize = 16.0f;
 		String fontPath = Application::Get().GetEngineResourcePath().string() + "/UI/Fonts/";
 		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-Bold.ttf").c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-Bold.ttf").c_str(), fontSize * 1.5);
 		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-Black.ttf").c_str(), fontSize);
 		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-BlackItalic.ttf").c_str(), fontSize);
 		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-BoldItalic.ttf").c_str(), fontSize);

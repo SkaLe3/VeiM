@@ -21,6 +21,11 @@ engine_int_out = "%{wks.location}/Engine/Intermediate/" .. outputdir .. "/%{prj.
 tp_bin_out = "%{wks.location}/Engine/Binaries/ThirdParty/" .. outputdir .. "/%{prj.name}/%{cfg.buildcfg}"
 tp_int_out = "%{wks.location}/Engine/Intermediate/ThirdParty/" .. outputdir .. "/%{prj.name}/%{cfg.buildcfg}"
 
+imgui_mathlib_path = IncludeDir["glm"]
+imgui_config_path = "%{wks.location}/Engine/Source/VeiM/VeiM/ImGui"
+imgui_config_file = "VeimImGuiConfig.h"
+
+
 group "Dependencies"
 	include "ThirdParty/GLFW"
 	include "ThirdParty/Glad"

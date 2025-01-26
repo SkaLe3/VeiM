@@ -24,10 +24,11 @@ namespace VeiM
 	{
 		ApplicationSpecification specs;
 
+		// TODO: Add version and build configuration to name   
 		specs.AppConfig.Name = "VeiM Editor";
 		specs.AppConfig.EnableConsole = true; // TODO: Add option to enable console in game shipping build, or to choose it instead of editor console in debug and development editor build
 		specs.AppConfig.WorkingDirectory = PlatformService::BaseDir();
-		specs.AppConfig.EngineContentPath = "Engine/Content/";
+		specs.AppConfig.EngineContentPath = "Engine\\Content";
 		specs.AppConfig.CommandLineArgs = arguments;
 
 		specs.WndConfig.Title = "VeiM Editor";
@@ -38,6 +39,9 @@ namespace VeiM
 		specs.WndConfig.WindowResizeable = true;
 		specs.WndConfig.IconPath = "UI/Icons/VeiM_Logo.png";
 		specs.WndConfig.Mode = EWindowMode::Windowed;
+
+		// TODO: Add specs.RenderConfig.Something
+		// use for shader pack path, resource pak file, frames in flight, etc.
 
 		// TEMP
 		for (int idx = 0; idx < arguments.size(); idx++)

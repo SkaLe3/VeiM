@@ -64,6 +64,10 @@ namespace VeiM
 		triangleShader = ShaderStatics::CreateProgram(triangleVertexShaderSource, triangleFragmentShaderSource);
 
 		m_Framebuffer.Invalidate(1280, 720);
+// #ifdef VM_WITH_EDITOR
+// 		ImGui::GetStyle().WindowRounding = 6;
+// #endif // VM_WITH_EDITOR
+
 	}
 
 	void EditorLayer::OnUpdate(float deltaTime)
@@ -155,12 +159,18 @@ namespace VeiM
 
 
 		// Render
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 		ImGui::Begin("Viewport");
-
+		auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
+		auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
+		auto viewportOffset = ImGui::GetWindowPos();
+		m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
+		m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
 		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-
-		ImGui::Image(reinterpret_cast<void*>(m_Framebuffer.GetTexture()), viewportPanelSize, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+		m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
+		ImGui::Image(reinterpret_cast<void*>(m_Framebuffer.GetTexture()), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 		ImGui::End();
+		ImGui::PopStyleVar();
 
 
 		m_ProjectBrowser.Render();
@@ -208,11 +218,17 @@ namespace VeiM
 	{
 		if (!m_ThemeEditor)
 			return;
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowTitleAlign, ImVec2(0.5f, 0.5f));
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.f, 6.f));
 		ImGui::Begin("Theme Editor", &m_ThemeEditor);
+		ImGui::PopStyleVar();
 		UI::Theme::Editor();
 		Application::Get().GetGUIContext()->UpdateTheme();
 
 		ImGui::End();
+		ImGui::PopStyleVar();
+
 	}
 
 	void EditorLayer::CreateTitleBar()
@@ -331,12 +347,6 @@ namespace VeiM
 											   ImGui::PopStyleVar();
 										   }
 									   });
-	}
-
-
-	void EditorLayer::OpenProject()
-	{
-	   //VeiM::String filepath = 
 	}
 
 }
