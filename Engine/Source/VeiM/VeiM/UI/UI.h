@@ -159,4 +159,6 @@ namespace VeiM::UI
 	bool ParameterColor4(const char* label, ImVec4& color, ImGuiColorEditFlags flags = 0, std::function<void()> buttons = nullptr);
 
 	void HelpMarker(const char* desc);
+
+	bool ButtonSelectableFramed(const char* label, bool selected = false, const ImVec2& size_arg = ImVec2(0, 0), ImVec4 frame_color = ImVec4{ 1.f, 1.f, 1.f, 1.f });
 }

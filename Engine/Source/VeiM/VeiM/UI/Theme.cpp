@@ -275,7 +275,7 @@ namespace VeiM::UI
 				}
 				UI::EndParameterTable();
 				ImGui::Spacing();
-				UI::TextCentered("Editor Palette");
+				UI::TextCentered("GUI Palette");
 				if (UI::BeginParameterTable("GUI Palette"))
 				{
 					ColorEdit_GUIPalette("Text", theme.GUIColors.Text, m_SavedTheme.GUIColors.Text);
@@ -302,6 +302,9 @@ namespace VeiM::UI
 					ColorEdit_GUIPalette("Button", theme.GUIColors.Button, m_SavedTheme.GUIColors.Button);
 					ColorEdit_GUIPalette("ButtonHovered", theme.GUIColors.ButtonHovered, m_SavedTheme.GUIColors.ButtonHovered);
 					ColorEdit_GUIPalette("ButtonActive", theme.GUIColors.ButtonActive, m_SavedTheme.GUIColors.ButtonActive);
+					ColorEdit_GUIPalette("Header", theme.GUIColors.Header, m_SavedTheme.GUIColors.Header);
+					ColorEdit_GUIPalette("HeaderHovered", theme.GUIColors.HeaderHovered, m_SavedTheme.GUIColors.HeaderHovered);
+					ColorEdit_GUIPalette("HeaderActive", theme.GUIColors.HeaderActive, m_SavedTheme.GUIColors.HeaderActive);
 					ColorEdit_GUIPalette("Separator", theme.GUIColors.Separator, m_SavedTheme.GUIColors.Separator);
 					ColorEdit_GUIPalette("SeparatorHovered", theme.GUIColors.SeparatorHovered, m_SavedTheme.GUIColors.SeparatorHovered);
 					ColorEdit_GUIPalette("SeparatorActive", theme.GUIColors.SeparatorActive, m_SavedTheme.GUIColors.SeparatorActive);

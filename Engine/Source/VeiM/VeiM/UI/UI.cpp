@@ -411,4 +411,54 @@ namespace VeiM::UI
 		return active;
 	}
 
+
+	bool ButtonSelectableFramed(const char* label, bool selected, const ImVec2& size_arg, ImVec4 frame_color)
+	{
+		ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+		ImVec2 pos = ImGui::GetCursorScreenPos();
+		ImVec2 item_size = ImGui::CalcItemSize(size_arg, ImGui::CalcTextSize(label, nullptr, true).x + ImGui::GetStyle().FramePadding.x * 2.0f, ImGui::GetTextLineHeight() + ImGui::GetStyle().FramePadding.y * 2.0f);
+
+		ImRect item_rect(pos, ImVec2(pos.x + item_size.x, pos.y + item_size.y));
+
+		ImGui::ItemSize(item_size); // Reserve space for the widget
+		if (!ImGui::ItemAdd(item_rect, ImGui::GetID(label))) // Register the item
+			return false;
+
+		bool hovered, held;
+		bool pressed = ImGui::ButtonBehavior(item_rect, ImGui::GetID(label), &hovered, &held);
+
+		ImU32 colorBg = ImGui::ColorConvertFloat4ToU32(ImGui::GetStyleColorVec4(ImGuiCol_Button));
+		ImU32 colorHover = ImGui::ColorConvertFloat4ToU32(ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
+		ImU32 colorActive = ImGui::ColorConvertFloat4ToU32(ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+		ImU32 colorText = ImGui::ColorConvertFloat4ToU32(ImGui::GetStyleColorVec4(ImGuiCol_Text));
+
+		ImU32 currentColor = colorBg;
+		ImU32 frameColor = ImGui::ColorConvertFloat4ToU32(frame_color);
+
+		if (hovered)
+			currentColor = colorHover;
+
+		if (held)
+			currentColor = colorActive;
+
+
+		draw_list->AddRectFilled(item_rect.Min, item_rect.Max, currentColor, ImGui::GetStyle().FrameRounding);
+		if (selected)
+			draw_list->AddRect(item_rect.Min, item_rect.Max, frameColor, ImGui::GetStyle().FrameRounding, ImDrawFlags_None, 2);
+
+
+		ImVec2 text_size = ImGui::CalcTextSize(label);
+		ImVec2 text_pos = ImVec2(
+			item_rect.Min.x + (item_size.x - text_size.x) * 0.5f,
+			item_rect.Min.y + (item_size.y - text_size.y) * 0.5f
+		);
+		draw_list->AddText(text_pos, colorText, label);
+
+
+		return pressed;
+
+
+	}
+
 }
