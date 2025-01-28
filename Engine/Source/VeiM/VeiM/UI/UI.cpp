@@ -49,8 +49,8 @@ namespace VeiM::UI
 	}
 
 	void DrawButtonImage(const std::shared_ptr<VeiM::Image>& imageNormal, const std::shared_ptr<VeiM::Image>& imageHovered, const std::shared_ptr<VeiM::Image>& imagePressed,
-						 ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
-						 ImVec2 rectMin, ImVec2 rectMax)
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
+		ImVec2 rectMin, ImVec2 rectMax)
 	{
 		auto* drawList = ImGui::GetForegroundDrawList();
 		if (ImGui::IsItemActive())
@@ -62,35 +62,35 @@ namespace VeiM::UI
 	};
 
 	void DrawButtonImage(const std::shared_ptr<VeiM::Image>& imageNormal, const std::shared_ptr<VeiM::Image>& imageHovered, const std::shared_ptr<VeiM::Image>& imagePressed,
-						 ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
-						 ImRect rectangle)
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
+		ImRect rectangle)
 	{
 		DrawButtonImage(imageNormal, imageHovered, imagePressed, tintNormal, tintHovered, tintPressed, rectangle.Min, rectangle.Max);
 	};
 
 	void DrawButtonImage(const std::shared_ptr<VeiM::Image>& image,
-						 ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
-						 ImVec2 rectMin, ImVec2 rectMax)
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
+		ImVec2 rectMin, ImVec2 rectMax)
 	{
 		DrawButtonImage(image, image, image, tintNormal, tintHovered, tintPressed, rectMin, rectMax);
 	};
 
 	void DrawButtonImage(const std::shared_ptr<VeiM::Image>& image,
-						 ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
-						 ImRect rectangle)
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
+		ImRect rectangle)
 	{
 		DrawButtonImage(image, image, image, tintNormal, tintHovered, tintPressed, rectangle.Min, rectangle.Max);
 	};
 
 
 	void DrawButtonImage(const std::shared_ptr<VeiM::Image>& imageNormal, const std::shared_ptr<VeiM::Image>& imageHovered, const std::shared_ptr<VeiM::Image>& imagePressed,
-						 ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed)
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed)
 	{
 		DrawButtonImage(imageNormal, imageHovered, imagePressed, tintNormal, tintHovered, tintPressed, ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
 	};
 
 	void DrawButtonImage(const std::shared_ptr<VeiM::Image>& image,
-						 ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed)
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed)
 	{
 		DrawButtonImage(image, image, image, tintNormal, tintHovered, tintPressed, ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
 	};
@@ -115,20 +115,20 @@ namespace VeiM::UI
 		};
 
 		auto GetResizeBorderRect = [](ImGuiWindow* window, int border_n, float perp_padding, float thickness)
-		{
-			ImRect rect = window->Rect();
-			if (thickness == 0.0f)
 			{
-				rect.Max.x -= 1;
-				rect.Max.y -= 1;
-			}
-			if (border_n == ImGuiDir_Left) { return ImRect(rect.Min.x - thickness, rect.Min.y + perp_padding, rect.Min.x + thickness, rect.Max.y - perp_padding); }
-			if (border_n == ImGuiDir_Right) { return ImRect(rect.Max.x - thickness, rect.Min.y + perp_padding, rect.Max.x + thickness, rect.Max.y - perp_padding); }
-			if (border_n == ImGuiDir_Up) { return ImRect(rect.Min.x + perp_padding, rect.Min.y - thickness, rect.Max.x - perp_padding, rect.Min.y + thickness); }
-			if (border_n == ImGuiDir_Down) { return ImRect(rect.Min.x + perp_padding, rect.Max.y - thickness, rect.Max.x - perp_padding, rect.Max.y + thickness); }
-			IM_ASSERT(0);
-			return ImRect();
-		};
+				ImRect rect = window->Rect();
+				if (thickness == 0.0f)
+				{
+					rect.Max.x -= 1;
+					rect.Max.y -= 1;
+				}
+				if (border_n == ImGuiDir_Left) { return ImRect(rect.Min.x - thickness, rect.Min.y + perp_padding, rect.Min.x + thickness, rect.Max.y - perp_padding); }
+				if (border_n == ImGuiDir_Right) { return ImRect(rect.Max.x - thickness, rect.Min.y + perp_padding, rect.Max.x + thickness, rect.Max.y - perp_padding); }
+				if (border_n == ImGuiDir_Up) { return ImRect(rect.Min.x + perp_padding, rect.Min.y - thickness, rect.Max.x - perp_padding, rect.Min.y + thickness); }
+				if (border_n == ImGuiDir_Down) { return ImRect(rect.Min.x + perp_padding, rect.Max.y - thickness, rect.Max.x - perp_padding, rect.Max.y + thickness); }
+				IM_ASSERT(0);
+				return ImRect();
+			};
 
 
 		ImGuiContext& g = *GImGui;
@@ -185,7 +185,7 @@ namespace VeiM::UI
 		// We remove 1 worth of rounding to Max.x to that text in long menus and small windows don't tend to display over the lower-right rounded area, which looks particularly glitchy.
 		ImRect bar_rect = UI::RectOffset(barRectangle, 0.0f, padding.y);// window->MenuBarRect();
 		ImRect clip_rect(IM_ROUND(ImMax(window->Pos.x, bar_rect.Min.x + window->WindowBorderSize + window->Pos.x - 10.0f)), IM_ROUND(bar_rect.Min.y + window->WindowBorderSize + window->Pos.y),
-						 IM_ROUND(ImMax(bar_rect.Min.x + window->Pos.x, bar_rect.Max.x - ImMax(window->WindowRounding, window->WindowBorderSize))), IM_ROUND(bar_rect.Max.y + window->Pos.y));
+			IM_ROUND(ImMax(bar_rect.Min.x + window->Pos.x, bar_rect.Max.x - ImMax(window->WindowRounding, window->WindowBorderSize))), IM_ROUND(bar_rect.Max.y + window->Pos.y));
 
 		clip_rect.ClipWith(window->OuterRectClipped);
 		ImGui::PushClipRect(clip_rect.Min, clip_rect.Max, false);
@@ -310,7 +310,7 @@ namespace VeiM::UI
 
 	bool BeginParameterTable(const char* label)
 	{
-		const ImGuiTableFlags tableFlags = ImGuiTableFlags_SizingStretchSame |	ImGuiTableFlags_Resizable |
+		const ImGuiTableFlags tableFlags = ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Resizable |
 			ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_SizingFixedFit;
 		UI::ShiftCursorY(1.0f);
 		if (ImGui::BeginTable(label, 2, tableFlags))
@@ -412,7 +412,7 @@ namespace VeiM::UI
 	}
 
 
-	bool ButtonSelectableFramed(const char* label, bool selected, const ImVec2& size_arg, ImVec4 frame_color)
+	bool ButtonSelectableFramed(const char* label, bool selected, const ImVec2& size_arg, ImVec4 selection_color)
 	{
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
@@ -434,7 +434,7 @@ namespace VeiM::UI
 		ImU32 colorText = ImGui::ColorConvertFloat4ToU32(ImGui::GetStyleColorVec4(ImGuiCol_Text));
 
 		ImU32 currentColor = colorBg;
-		ImU32 frameColor = ImGui::ColorConvertFloat4ToU32(frame_color);
+		ImU32 frameColor = ImGui::ColorConvertFloat4ToU32(selection_color);
 
 		if (hovered)
 			currentColor = colorHover;
@@ -460,5 +460,66 @@ namespace VeiM::UI
 
 
 	}
+
+	bool SelectableTileImage(const char* label, ImTextureID textureID, bool selected /*= false*/, const ImVec2& size_arg /*= ImVec2(0, 0)*/, const ImVec2& size_image /*= ImVec2(0, 0)*/,
+		const ImVec4& uv/*= { 0, 0, 1, 1 }*/)
+	{
+		ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+		ImVec2 pos = ImGui::GetCursorScreenPos();
+		ImVec2 item_size = ImGui::CalcItemSize(size_arg, size_image.x, size_image.y * 1.2f);
+
+		ImRect item_rect(pos, ImVec2(pos.x + item_size.x, pos.y + item_size.y));
+
+		ImGui::ItemSize(item_size); // Reserve space for the widget
+		if (!ImGui::ItemAdd(item_rect, ImGui::GetID(label))) // Register the item
+			return false;
+
+		bool hovered, held;
+		bool pressed = ImGui::ButtonBehavior(item_rect, ImGui::GetID(label), &hovered, &held);
+
+		ImU32 colorBg = ImGui::ColorConvertFloat4ToU32(ImGui::GetStyleColorVec4(ImGuiCol_Button));
+		ImU32 colorHover = ImGui::ColorConvertFloat4ToU32(ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
+		ImU32 colorActive = ImGui::ColorConvertFloat4ToU32(ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+		ImU32 colorText = ImGui::ColorConvertFloat4ToU32(ImGui::GetStyleColorVec4(ImGuiCol_Text));
+
+		ImU32 currentColor = colorBg;
+
+		if (hovered)
+			currentColor = colorHover;
+
+		if (held || selected)
+			currentColor = colorActive;
+
+		draw_list->AddRectFilled(item_rect.Min, item_rect.Max, currentColor, ImGui::GetStyle().FrameRounding);
+
+
+		ImVec2 imageMin = item_rect.Min;
+		ImVec2 imageMax = ImVec2(item_rect.Min.x + size_image.x, item_rect.Min.y + size_image.y);
+
+		ImU32 colorImageBackground = IM_COL32(70, 70, 70, 255);
+		draw_list->AddRectFilled(imageMin, imageMax,colorImageBackground, ImGui::GetStyle().FrameRounding, ImDrawFlags_RoundCornersTop);
+
+		draw_list->AddImage(
+			textureID,
+			imageMin,
+			imageMax,
+			ImVec2(uv.x, uv.y),
+			ImVec2(uv.z, uv.w),
+			IM_COL32_WHITE);
+
+		if (hovered || held ||selected)
+			draw_list->AddRect(item_rect.Min, item_rect.Max, currentColor, ImGui::GetStyle().FrameRounding, ImDrawFlags_None, 2);
+
+		ImVec2 text_size = ImGui::CalcTextSize(label);
+		ImVec2 text_pos = ImVec2(
+			imageMin.x + 3, imageMax.y + 2
+		);
+		draw_list->AddText(text_pos, colorText, label);
+
+
+		return held;
+	}
+
 
 }

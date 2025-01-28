@@ -264,7 +264,7 @@ namespace VeiM
 											   ImGui::Indent(10.f);
 											   if (ImGui::MenuItem("Open Project..."))
 											   {
-												   m_ProjectBrowser.Show();
+												   m_ProjectBrowser.Open();
 											   }
 											   ImGui::Unindent(10.f);
 

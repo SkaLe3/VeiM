@@ -7,7 +7,11 @@ namespace VeiM
 	class Paths
 	{
 	public:
-		static std::wstring GetPath(std::wstring& inPath); // TODO: Change wstring to String
+		// TODO: Change return types to std::filesystem:path
+		// TODO: add using fs = std::filesystem;
+		static std::wstring GetPath(const std::wstring& inPath);
 		static std::wstring EngineContentDir();
+		static std::wstring UserDocumentsDir();
+		static std::wstring DefaultProjectsDir();
 	};
 }

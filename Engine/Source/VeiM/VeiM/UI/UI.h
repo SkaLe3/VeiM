@@ -42,17 +42,17 @@ namespace VeiM::UI
 		inline ImVec4 ConvertFromSRGB(ImVec4 colour)
 		{
 			return ImVec4(Convert_sRGB_FromLinear(colour.x),
-						  Convert_sRGB_FromLinear(colour.y),
-						  Convert_sRGB_FromLinear(colour.z),
-						  colour.w);
+				Convert_sRGB_FromLinear(colour.y),
+				Convert_sRGB_FromLinear(colour.z),
+				colour.w);
 		}
 
 		inline ImVec4 ConvertToSRGB(ImVec4 colour)
 		{
 			return ImVec4(std::pow(colour.x, 2.2f),
-						  glm::pow<float>(colour.y, 2.2f),
-						  glm::pow<float>(colour.z, 2.2f),
-						  colour.w);
+				glm::pow<float>(colour.y, 2.2f),
+				glm::pow<float>(colour.z, 2.2f),
+				colour.w);
 		}
 
 		inline ImU32 ColorWithValue(const ImColor& color, float value)
@@ -114,26 +114,26 @@ namespace VeiM::UI
 	ImRect RectOffset(const ImRect& rect, ImVec2 xy);
 
 	void DrawButtonImage(const std::shared_ptr<VeiM::Image>& imageNormal, const std::shared_ptr<VeiM::Image>& imageHovered, const std::shared_ptr<VeiM::Image>& imagePressed,
-						 ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
-						 ImVec2 rectMin, ImVec2 rectMax);
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
+		ImVec2 rectMin, ImVec2 rectMax);
 
 	void DrawButtonImage(const std::shared_ptr<VeiM::Image>& imageNormal, const std::shared_ptr<VeiM::Image>& imageHovered, const std::shared_ptr<VeiM::Image>& imagePressed,
-						 ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
-						 ImRect rectangle);
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
+		ImRect rectangle);
 
 	void DrawButtonImage(const std::shared_ptr<VeiM::Image>& image,
-						 ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
-						 ImVec2 rectMin, ImVec2 rectMax);
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
+		ImVec2 rectMin, ImVec2 rectMax);
 
 	void DrawButtonImage(const std::shared_ptr<VeiM::Image>& image,
-						 ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
-						 ImRect rectangle);
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
+		ImRect rectangle);
 
 	void DrawButtonImage(const std::shared_ptr<VeiM::Image>& imageNormal, const std::shared_ptr<VeiM::Image>& imageHovered, const std::shared_ptr<VeiM::Image>& imagePressed,
-						 ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed);
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed);
 
 	void DrawButtonImage(const std::shared_ptr<VeiM::Image>& image,
-						 ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed);
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed);
 
 	void RenderWindowOuterBorders(ImGuiWindow* window);
 
@@ -160,5 +160,8 @@ namespace VeiM::UI
 
 	void HelpMarker(const char* desc);
 
-	bool ButtonSelectableFramed(const char* label, bool selected = false, const ImVec2& size_arg = ImVec2(0, 0), ImVec4 frame_color = ImVec4{ 1.f, 1.f, 1.f, 1.f });
+	bool ButtonSelectableFramed(const char* label, bool selected = false, const ImVec2& size_arg = ImVec2(0, 0), ImVec4 selection_color = ImVec4{ 1.f, 1.f, 1.f, 1.f });
+	// TODO: Change uv to uv0 and uv1
+	bool SelectableTileImage(const char* label, ImTextureID textureID, bool selected = false, const ImVec2& size_arg = ImVec2(0, 0), const ImVec2& size_image = ImVec2(0, 0),
+		const ImVec4& uv = { 0, 0, 1, 1 });
 }

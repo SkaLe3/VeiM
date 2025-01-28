@@ -25,7 +25,7 @@ namespace VeiM
 		: m_Path(path)
 	{
 		int32_t width, height, channels;
-		stbi_set_flip_vertically_on_load(1);
+		stbi_set_flip_vertically_on_load(0);
 		uint8_t* data = nullptr;
 
 		if (stbi_is_hdr(m_Path.c_str()))
