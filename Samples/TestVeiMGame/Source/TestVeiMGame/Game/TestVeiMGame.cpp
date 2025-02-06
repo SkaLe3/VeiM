@@ -1,7 +1,8 @@
 #include "TestVeiMGame.h"
 
-#include <VeiM/Core/EntryPoint.h>
-#include <VeiM/Core/PlatformService.h>
+#ifdef IS_UNIFIED
+#include <Application/EntryPoint.h>
+#include <HAL/PlatformService.h>
 
 #include "GameLayer.h"
 
@@ -22,13 +23,14 @@ namespace VeiM
 		}
 	};
 
-	Application* CreateApplication(int argc, char** argv)
+	Application* CreateApplication(const std::vector<String>& arguments)
 	{
 		ApplicationSpecification specs;
 
 		specs.AppConfig.Name = "TestGame";
 		specs.AppConfig.EnableConsole = true;
 		specs.AppConfig.WorkingDirectory = PlatformService::BaseDir();
+		specs.AppConfig.CommandLineArgs = arguments;
 
 		specs.WndConfig.Title = "Test Game";
 		specs.WndConfig.Width = 800;
@@ -37,6 +39,7 @@ namespace VeiM
 		specs.WndConfig.CustomTitlebar = false;
 		specs.WndConfig.WindowResizeable = true;
 		specs.WndConfig.Mode = EWindowMode::Windowed;
+		// TODO: Make default icon
 
 
 		Application* app = new TestGame(specs);
@@ -44,3 +47,5 @@ namespace VeiM
 		return app;
 	}
 }
+
+#endif

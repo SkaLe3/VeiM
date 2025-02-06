@@ -10,9 +10,9 @@ include (engine_root_dir .. "/Engine/Common.lua")	-- Include shared scripts
 include (engine_root_dir .. "/Engine/Dependencies.lua")	-- Include dependencies paths
 
 -- Workspace Definition
-workspace "TestVeiMGame"
+workspace "TestVeimGame"
 	architecture "x64"								-- Set the architecture to 64-bit
-	startproject "TestVeiMGame"						-- Set the startup module for the workspace
+	startproject "TestVeimGame"						-- Set the startup module for the workspace
 	configurations { "Debug","Debug_Editor", "Development", "Development_Editor", "Shipping" }
 	platforms {"Win64"}								-- Target platform
 	buildoptions { "/utf-8" }						-- UTF-8 encoding for source files
@@ -21,6 +21,10 @@ workspace "TestVeiMGame"
 	filter "action:vs*"
         buildoptions { "/MP" } -- Enable multi-processor compilation
     filter {}
+
+	filter "configurations:Debug or Development or Shipping"
+		defines { "IS_UNIFIED" }
+	filter {}
 	
 	-- Output Directories
 	outputdir = "%{cfg.platform}"
@@ -31,11 +35,21 @@ workspace "TestVeiMGame"
 
 -- Include Engine module to the workspace
 group "Engine"
-	externalproject "VeiM"
+	externalproject "Core"
 		location (engine_root_dir .. "/Engine/Build/ProjectFiles")
 		--uuid (uuid())  -- Automatically generates a new UUID for the project
-   		kind "StaticLib"
-   		language "C++"
+		language "C++"
+   		 -- Default kind 
+		kind "StaticLib"
+
+		-- Conditional `kind` based on configurations
+		filter "configurations:Debug_Editor or Development_Editor"
+			kind "SharedLib"  -- For these configurations, use SharedLib
+	
+		filter "configurations:Debug or Development or Shipping"
+			kind "StaticLib"  -- For these configurations, use StaticLib
+	
+		filter {}
 group ""
 
 group "Engine Dependencies"
@@ -59,7 +73,7 @@ group ""
 
 -- Include Game modules to the workspace
 group "Game"
-	include "Source/TestVeiMGame"
+	include "Source/TestVeimGame"
 group ""
 
 

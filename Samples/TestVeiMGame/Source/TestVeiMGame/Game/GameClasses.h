@@ -1,7 +1,14 @@
 #pragma once
-#include "VeiM/Core/CoreDefines.h"
+#include "CoreDefines.h"
+#include "Test/TestRenderer.h"
 
 #include <string>
+#include <vector>
+
+extern "C"
+{
+	__declspec(dllexport) void gameLog();
+}
 
 class TriangleShader
 {
@@ -11,15 +18,13 @@ public:
 };
 
 
-class TriangleMesh
+class TriangleMesh : public VeiM::IMesh
 {
 public:
-	float* GetData();
-	VeiM::uint32 GetSize();
+	TriangleMesh();
+
+
 private:
-	float mesh[9] = {
--0.5f, -0.5f, 0.0f,
- 0.5f, -0.5f, 0.0f,
- 0.0f,  0.5f, 0.0f
-	};
+	static	std::vector<VeiM::Vertex> s_Vertices;
+	static	std::vector<VeiM::uint32> s_Indices;
 };

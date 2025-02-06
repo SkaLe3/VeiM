@@ -1,0 +1,5 @@
+TargetName: TestVeimGame
+Configuration: Debug
+TargetType: Game
+Project: ../../TestVeimGame.vmproject
+Launch: $(ProjectDir)/Binaries/Win64/TestVeimGame-Win64-Debug.exe

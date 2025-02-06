@@ -1,6 +1,6 @@
 #include "VeimManagerTool.h"
-#include "DesktopPlatform/DesktopPlatformModule.h"
-#include "DesktopPlatform/Paths.h"
+#include "DesktopPlatformModule.h"
+#include "Misc/Paths.h"
 #include "PlatformInstallation.h"
 
 
@@ -222,7 +222,7 @@ bool GenerateFile(const std::filesystem::path& filePath, const std::wstring& com
 	}
 
 	file << TEXT("--") << fileName << TEXT("\n\n");
-	file << TEXT("--GENERATED: VeiMManagerTool\n");
+	file << TEXT("--GENERATED: VeimManagerTool\n");
 	file << comment << TEXT("\n\n");
 
 	file << content << TEXT("\n");

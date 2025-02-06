@@ -1,13 +1,13 @@
 -- premake5.lua
 
-local target_name = "VeiMManagerTool"
+local target_name = "VeimManagerTool"
 local target_prefix = ""
 local target_suffix = ""
 local extension = "exe"
-local app_name = "VeiMManagerTool"
+local app_name = "VeimManagerTool"
 local resource_defines = {}
 
-project "VeiMManagerTool"
+project "VeimManagerTool"
     kind "WindowedApp"
     language "C++"
     cppdialect "C++20"
@@ -24,17 +24,18 @@ project "VeiMManagerTool"
 
     files 
     {
-        "%{wks.location}/Engine/Source/Programs/VeiMManagerTool/Source/**.h",
-        "%{wks.location}/Engine/Source/Programs/VeiMManagerTool/Source/**.cpp",
-        "%{wks.location}/Engine/Source/Programs/VeiMManagerTool/Source/**.rc",
-        "%{wks.location}/Engine/Source/Programs/VeiMManagerTool/Source/**.rc2",
-        "%{wks.location}/Engine/Source/Programs/VeiMManagerTool/Source/**.ico"
+        "%{wks.location}/Engine/Source/Programs/VeimManagerTool/Source/**.h",
+        "%{wks.location}/Engine/Source/Programs/VeimManagerTool/Source/**.cpp",
+        "%{wks.location}/Engine/Source/Programs/VeimManagerTool/Source/**.rc",
+        "%{wks.location}/Engine/Source/Programs/VeimManagerTool/Source/**.rc2",
+        "%{wks.location}/Engine/Source/Programs/VeimManagerTool/Source/**.ico"
     }
 
     includedirs
     {
-        "%{wks.location}/Engine/Source/VeiM",
-        "%{wks.location}/Engine/Source/Developer",
+        "%{wks.location}/Engine/Source/Programs/VeimManagerTool/Source",
+        "%{wks.location}/Engine/Source/VeiM/Core/Source",
+        "%{wks.location}/Engine/Source/Developer/DesktopPlatform/Source",
         "%{wks.location}/Engine/ThirdParty", 
 		"%{wks.location}/Engine/ThirdParty/glm",
 		"%{wks.location}/Engine/ThirdParty/imgui",
@@ -58,8 +59,8 @@ project "VeiMManagerTool"
     filter "system:windows"
         systemversion "latest"
         prebuildcommands {
-            "rc /fo " .. engine_int_out .. "/Resource.rc.res %{wks.location}/Engine/Source/Programs/VeiMManagerTool/Source/Resources/Resource.rc",
-            "rc /fo " .. engine_int_out .. "/Resource.rc2.res %{wks.location}/Engine/Source/Programs/VeiMManagerTool/Source/Resources/Resource.rc2"
+            "rc /fo " .. engine_int_out .. "/Resource.rc.res %{wks.location}/Engine/Source/Programs/VeimManagerTool/Source/Windows/Resources/Resource.rc",
+            "rc /fo " .. engine_int_out .. "/Resource.rc2.res %{wks.location}/Engine/Source/Programs/VeimManagerTool/Source/Windows/Resources/Resource.rc2"
         }
 
     filter "configurations:Debug"

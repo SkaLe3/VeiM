@@ -1,11 +1,11 @@
 -- premake5.lua
 
 project "DesktopPlatform"
-    kind "SharedLib"
+    kind "StaticLib"
     language "C++"
     cppdialect "C++20"
     staticruntime "off"
-
+	buildoptions { "/utf-8" }
 
     targetdir (engine_bin_out)
     objdir (engine_int_out)
@@ -14,17 +14,23 @@ project "DesktopPlatform"
 
     files
     {
-        "%{wks.location}/Engine/Source/Developer/**.h",
-        "%{wks.location}/Engine/Source/Developer/**.cpp"
+        "%{wks.location}/Engine/Source/Developer/DesktopPlatform/Source/**.h",
+        "%{wks.location}/Engine/Source/Developer/DesktopPlatform/Source/**.cpp"
     }
 
     includedirs
     {
-        "%{wks.location}/Engine/Source/VeiM",
-        "%{wks.location}/Engine/Source/Developer"
+        "%{wks.location}/Engine/Source/VeiM/Core/Source",
+        "%{wks.location}/Engine/Source/Developer/DesktopPlatform/Source",
+        "%{IncludeDir.spdlog}",
+        "%{IncludeDir.GLFW}"
     }
 
-    defines { "DESKTOPPLATFORM_EXPORTS"}
+    links 
+    {
+        "Core",
+        "GLFW"
+    }
 
     filter "configurations:Debug"
         defines "VM_DEBUG"

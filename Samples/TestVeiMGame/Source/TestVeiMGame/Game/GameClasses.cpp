@@ -1,6 +1,15 @@
 #include "GameClasses.h"
 
-	 using namespace VeiM;
+using namespace VeiM;
+
+
+
+__declspec(dllexport) void gameLog()
+{
+	VM_WARN("THIS IS LOGGED WITHIN DYNAMICALLY LOADED DLL. YEEEAHOOOO");
+}
+
+
 
 std::string TriangleShader::GetVertex()
 {
@@ -23,19 +32,23 @@ std::string TriangleShader::GetFragment()
 out vec4 FragColor;
 
 void main() {
-    FragColor = vec4(0.7, 0.0, 1.0, 1.0); // Red color
+    FragColor = vec4(0.0, 0.0, 1.0, 1.0); // Red color
 }
 )";
 	return triangleFragmentShaderSource;
 }
 
-float* TriangleMesh::GetData()
+TriangleMesh::TriangleMesh() : VeiM::IMesh(s_Vertices, s_Indices)
 {
-	return mesh;
+	gameLog();
 }
 
-uint32 TriangleMesh::GetSize()
-{
-	return 9 * sizeof(float);
-}
+std::vector<VeiM::Vertex> TriangleMesh::s_Vertices = {
+	{{-0.5f, -0.5f}, {0.0f, 0.0f}},
+	{{ 0.5f, -0.5f}, {1.0f, 0.0f}},
+	{{ 0.0f,  0.5f}, {0.5f, 1.0f}}
+};
+
+std::vector<VeiM::uint32> TriangleMesh::s_Indices = { 0, 1, 2 };
+
 

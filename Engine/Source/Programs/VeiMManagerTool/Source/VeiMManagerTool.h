@@ -1,5 +1,5 @@
 #pragma once
 
-#include <VeiM/Core/CoreDefines.h>
+#include "CoreDefines.h"
 
 

@@ -1,4 +1,4 @@
 #pragma once
 
-#include "WindowsPlatformInstallation.h"
+#include "Windows/WindowsPlatformInstallation.h"
 typedef WindowsPlatformInstallation PlatformInstallation;

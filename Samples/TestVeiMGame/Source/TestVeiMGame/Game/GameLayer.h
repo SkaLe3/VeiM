@@ -1,9 +1,12 @@
 #pragma once
- 
-#include "VeiM/Core/CoreDefines.h"
-#include "VeiM/Core/Layer.h"
 
-#include "VeiM/Test/FrameBuffer.h"
+#ifdef IS_UNIFIED
+
+#include "CoreDefines.h"
+#include "Application/Layer.h"
+#include "Test/TestRenderer.h"
+
+#include "Test/FrameBuffer.h"
 
 namespace VeiM
 {
@@ -19,10 +22,9 @@ namespace VeiM
 		// Temp
 		FrameBuffer m_Framebuffer;
 		int display_w, display_h;
-		uint32 triangleShader;
-		uint32 quadShader;
-		uint32 triangleVAO, triangleVBO;
-		uint32 quadVAO, quadVBO;
+		IMesh* m_Mesh;
 
 	};
 }
+
+#endif

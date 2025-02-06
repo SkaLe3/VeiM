@@ -1,4 +1,4 @@
 #include "PlatformInstallation.h"
 
-#include "DesktopPlatform/DesktopPlatformModule.h"
+#include "DesktopPlatformModule.h"
 

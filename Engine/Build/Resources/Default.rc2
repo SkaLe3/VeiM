@@ -1,6 +1,6 @@
-#include "../../Source/VeiM/VeiM/Resources/resource.h"
-#include "../../Source/VeiM/VeiM/Resources/Version.h"
-#include "../../Source/VeiM/VeiM/Core/PreprocessorHelpers.h"
+#include "../../Source/VeiM/Core/Resources/resource.h"
+#include "../../Source/VeiM/Core/Resources/Version.h"
+#include "../../Source/VeiM/Core/Source/PreprocessorHelpers.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
 #include <windows.h>

@@ -6,7 +6,7 @@
 
 
 -- Game Module Definition
-project "TestVeiMGame"
+project "TestVeimGame"
 	-- General Project Settings
     language 		"C++"							-- Specify the programming language
     cppdialect 		"C++20"							-- Use the C++20 standard
@@ -23,98 +23,99 @@ project "TestVeiMGame"
 	-- Source Files
     files
     {
-        "%{wks.location}/Source/TestVeiMGame/**.h",
-        "%{wks.location}/Source/TestVeiMGame/**.cpp"
+        "%{wks.location}/Source/TestVeimGame/**.h",
+        "%{wks.location}/Source/TestVeimGame/**.cpp"
     }
 
 	-- Include Directories
     includedirs
     {
-        "%{wks.location}/Source/TestVeiMGame",		-- Include game source directory
-		engine_root_dir .. "/Engine/Source/VeiM",
+        "%{wks.location}/Source/TestVeimGame",		-- Include game source directory
+		engine_root_dir .. "/Engine/Source/VeiM/Core/Source",
 		engine_root_dir .. "/Engine/ThirdParty/Glad/include",
 		engine_root_dir .. "/Engine/ThirdParty/spdlog/include",
-		engine_root_dir .. "/Engine/ThirdParty/GLFW/include"
+		engine_root_dir .. "/Engine/ThirdParty/GLFW/include",
+		engine_root_dir .. "/Engine/ThirdParty/glm"
 
     }
 
 	-- Game Dependencies
-    links {"VeiM"}									-- Link against the VeiM Engine
+    links {"Core"}									-- Link against the VeiM Engine
 
 	------------------ Target ----------------------
-	local game_standalone_target = dofile("TestVeiMGame.Target.lua")
-	local game_editor_target = dofile("TestVeiMGameEditor.Target.lua")
+	local game_standalone_target = dofile("TestVeimGame.target.lua")
+	local game_editor_target = dofile("TestVeimGameEditor.target.lua")
 
 	filter "configurations:Debug"
-		local launch_dir = "(ProjectDir)/Binaries/%{cfg.platform}/TestVeiMGame"
+		local launch_dir = "(ProjectDir)/Binaries/%{cfg.platform}/TestVeimGame"
 		local exe_cfg = "-%{cfg.platform}-Debug"
-		local command = "python" .. " "
-						.. engine_root_dir .. "/Engine/Programs/vmtarget/vmtarget.py".. " "
+		local command = ""
+						.. engine_root_dir .. "/Engine/Programs/vmtarget/vmtarget.exe".. " "
 						.. "%{cfg.targetdir}/" .. game_standalone_target.name .. exe_cfg ..".target" .. " "
 						.. game_standalone_target.name .. " "
 						.. "Debug" .. " "
 						.. game_standalone_target.type .. " "
-						.. "../../TestVeiMGame.vmproject" .. " "
+						.. "../../TestVeimGame.vmproject" .. " "
 						.. launch_dir .. exe_cfg .. ".exe"
 		postbuildcommands{
 			command
 		}
 
 	filter "configurations:Debug_Editor"
-		local launch_dir = "(EngineDir)/Binaries/%{cfg.platform}/%{cfg.buildcfg}/VeiMEditor"
+		local launch_dir = "(EngineDir)/Binaries/%{cfg.platform}/%{cfg.buildcfg}/VeimEditor"
 		local exe_cfg = "-%{cfg.platform}-Debug"
-		local command = "python" .. " "
-						.. engine_root_dir .. "/Engine/Programs/vmtarget/vmtarget.py".. " "
+		local command = ""
+						.. engine_root_dir .. "/Engine/Programs/vmtarget/vmtarget.exe".. " "
 						.. "%{cfg.targetdir}/" .. game_editor_target.name .. exe_cfg ..".target" .. " "
 						.. game_editor_target.name .. " "
 						.. "Debug" .. " "
 						.. game_editor_target.type .. " "
-						.. "../../TestVeiMGame.vmproject" .. " "
+						.. "../../TestVeimGame.vmproject" .. " "
 						.. "\"" .. launch_dir .. exe_cfg .. ".exe\""
 		postbuildcommands{
 			command
 		}
 
 	filter "configurations:Development"
-		local launch_dir = "(ProjectDir)/Binaries/%{cfg.platform}/TestVeiMGame"
+		local launch_dir = "(ProjectDir)/Binaries/%{cfg.platform}/TestVeimGame"
 		local exe_cfg = ""
-		local command = "python" .. " "
-						.. engine_root_dir .. "/Engine/Programs/vmtarget/vmtarget.py".. " "
+		local command = ""
+						.. engine_root_dir .. "/Engine/Programs/vmtarget/vmtarget.exe".. " "
 						.. "%{cfg.targetdir}/" .. game_standalone_target.name .. exe_cfg ..".target" .. " "
 						.. game_standalone_target.name .. " "
 						.. "Development" .. " "
 						.. game_standalone_target.type .. " "
-						.. "../../TestVeiMGame.vmproject" .. " "
+						.. "../../TestVeimGame.vmproject" .. " "
 						.. launch_dir .. exe_cfg .. ".exe"
 		postbuildcommands{
 			command
 		}
 			
 	filter "configurations:Development_Editor"
-		local launch_dir = "(EngineDir)/Binaries/%{cfg.platform}/%{cfg.buildcfg}/VeiMEditor"
+		local launch_dir = "(EngineDir)/Binaries/%{cfg.platform}/%{cfg.buildcfg}/VeimEditor"
 		local exe_cfg = ""
-		local command = "python" .. " "
-						.. engine_root_dir .. "/Engine/Programs/vmtarget/vmtarget.py".. " "
+		local command = ""
+						.. engine_root_dir .. "/Engine/Programs/vmtarget/vmtarget.exe".. " "
 						.. "%{cfg.targetdir}/" .. game_editor_target.name .. exe_cfg ..".target" .. " "
 						.. game_editor_target.name .. " "
 						.. "Development" .. " "
 						.. game_editor_target.type .. " "
-						.. "../../TestVeiMGame.vmproject" .. " "
+						.. "../../TestVeimGame.vmproject" .. " "
 						.. launch_dir .. exe_cfg .. ".exe"
 		postbuildcommands{
 			command
 		}
 	
 	filter "configurations:Shipping"
-		local launch_dir = "(ProjectDir)/Binaries/%{cfg.platform}/TestVeiMGame"
+		local launch_dir = "(ProjectDir)/Binaries/%{cfg.platform}/TestVeimGame"
 		local exe_cfg = "-%{cfg.platform}-Shipping"
-		local command = "python" .. " "
-						.. engine_root_dir .. "/Engine/Programs/vmtarget/vmtarget.py".. " "
+		local command = ""
+						.. engine_root_dir .. "/Engine/Programs/vmtarget/vmtarget.exe".. " "
 						.. "%{cfg.targetdir}/" .. game_standalone_target.name .. exe_cfg ..".target" .. " "
 						.. game_standalone_target.name .. " "
 						.. "Shipping" .. " "
 						.. game_standalone_target.type .. " "
-						.. "../../TestVeiMGame.vmproject" .. " "
+						.. "../../TestVeimGame.vmproject" .. " "
 						.. launch_dir .. exe_cfg .. ".exe"
 		postbuildcommands{
 			command
@@ -138,7 +139,7 @@ project "TestVeiMGame"
 		symbols  "on"
 		defines  "VM_DEBUG"
 		targetsuffix "-%{cfg.platform}-Debug"
-		debugcommand (engine_root_dir .. "/Engine/Binaries/Win64/Debug_Editor/VeiMEditor-Win64-Debug.exe")
+		debugcommand (engine_root_dir .. "/Engine/Binaries/Win64/Debug_Editor/VeimEditor-Win64-Debug.exe")
 
 	-- Development Configuration
 	filter "configurations:Development"
@@ -155,7 +156,7 @@ project "TestVeiMGame"
 		optimize "on"
         symbols  "on"
 		defines  "VM_DEVELOPMENT"
-		debugcommand (engine_root_dir .. "/Engine/Binaries/Win64/Development_Editor/VeiMEditor.exe")
+		debugcommand (engine_root_dir .. "/Engine/Binaries/Win64/Development_Editor/VeimEditor.exe")
 
 	-- Shipping Configuration
 	filter "configurations:Shipping"
