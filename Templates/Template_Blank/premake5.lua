@@ -5,22 +5,26 @@
 -- It contains build settings for the game project and configuration details.
 
 -- Include core engine configuration files
-include "EngineRoot.lua"							-- Define the root directory of the engine
-include (engine_root_dir .. "/Engine/Common.lua")	-- Include shared scripts
+include "EngineRoot.lua"								-- Define the root directory of the engine
+include (engine_root_dir .. "/Engine/Common.lua")		-- Include shared scripts
 include (engine_root_dir .. "/Engine/Dependencies.lua")	-- Include dependencies paths
 
 -- Workspace Definition
 workspace "Template_Blank"
-	architecture "x64"								-- Set the architecture to 64-bit
-	startproject "Template_Blank"					-- Set the startup module for the workspace
+	architecture "x64"									-- Set the architecture to 64-bit
+	startproject "Template_Blank"						-- Set the startup module for the workspace
 	configurations { "Debug","Debug_Editor", "Development", "Development_Editor", "Shipping" }
-	platforms {"Win64"}								-- Target platform
-	buildoptions { "/utf-8" }						-- UTF-8 encoding for source files
+	platforms {"Win64"}									-- Target platform
+	buildoptions { "/utf-8" }							-- UTF-8 encoding for source files
 
 	-- Additional build options for Visual Studio
 	filter "action:vs*"
         buildoptions { "/MP" } -- Enable multi-processor compilation
     filter {}
+
+	filter "configurations:Debug or Development or Shipping"
+		defines { "IS_UNIFIED" }
+	filter {}
 	
 	-- Output Directories
 	outputdir = "%{cfg.platform}"
@@ -29,12 +33,20 @@ workspace "Template_Blank"
 	engine_bin_out = engine_root_dir .."/Engine/Binaries/Engine/" .. outputdir .. ""
 	engine_int_out = engine_root_dir .."/Engine/Intermediate/Engine/" .. outputdir .. ""
 
--- Include Engine module to the workspace
+-- Include Engine modules to the workspace
 group "Engine"
-	externalproject "VeiM"
+	externalproject "Core"
 		location (engine_root_dir .. "/Engine/Build/ProjectFiles")
-   		kind "StaticLib"
-   		language "C++"
+		language "C++"
+		kind "StaticLib" 						-- Default kind 
+
+		filter "configurations:Debug_Editor or Development_Editor" -- Conditional `kind` based on configurations
+			kind "SharedLib"  					-- For these configurations, use SharedLib
+
+		filter "configurations:Debug or Development or Shipping"
+			kind "StaticLib"  					-- For these configurations, use StaticLib
+
+		filter {}
 group ""
 
 group "Engine Dependencies"

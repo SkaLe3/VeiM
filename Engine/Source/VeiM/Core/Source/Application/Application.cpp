@@ -9,10 +9,13 @@
 #include "HAL/PlatformService.h"
 #include "Windows/WindowsUtils.h"
 #include "Logging/Log.h"
+#include "Project/ModuleManager.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>		 
 
+
+#include "Test/Base.h" // TEmporary
 
 
 namespace VeiM
@@ -23,14 +26,26 @@ namespace VeiM
 	{
 		VM_CORE_ASSERT(!s_Instance, "Application already exists!");
 		s_Instance = this;
-		
-		
+
+
 		PlatformService::SetCurrentWorkingDirectoryToBaseDir();
-		std::filesystem::current_path( std::filesystem::current_path().string() + "/../../../../");
+		std::filesystem::current_path(std::filesystem::current_path().string() + "/../../../../");
 
 		m_Window = std::make_unique<Window>(applicationSpecification.WndConfig);  // TODO: Make static function Create() or another
 		m_Window->SetEventCallback([this](const std::string& inf) { Application::OnEvent(inf); });
+
+
 #ifdef VM_WITH_EDITOR
+
+		std::vector<String> cmdArgs = m_Config.CommandLineArgs;
+		if (!cmdArgs.empty())
+		{
+			fs::path projectPath = fs::path(cmdArgs[0]);
+			ModuleManager::Get().SetGameBianariesDir(projectPath.parent_path() / "Binaries" / "Win64");
+			ModuleManager::Get().LoadModule(projectPath.stem().wstring()); // TODO: Make function to get binaries path from projectfile (in module manager)
+			ModuleManager::Get().LoadModule(projectPath.stem().wstring());
+		}
+
 		InitGUI();
 #endif
 	}
@@ -40,8 +55,20 @@ namespace VeiM
 		Shutdown();
 		s_Instance = nullptr;
 	}
-
+	std::wstring Application::GetConfiguration()
+	{
+#if defined(VM_DEBUG)
+		return TEXT("Debug");
+#elif defined(VM_DEVELOPMENT)
+		return TEXT("Development");
+#elif defined(VM_SHIPPING)
+		return TEXT("Shipping");
+#endif
+	}
 #ifdef VM_WITH_EDITOR
+
+
+
 	void Application::InitGUI()
 	{
 		m_GUIContext = new GUIContext();
@@ -81,6 +108,13 @@ namespace VeiM
 
 	void Application::Run()
 	{
+
+		UniquePtr<Base> character = Base::Instantiate("GameCharacter");
+		if (character)
+		{
+			character->Start();
+		}
+
 		while (!glfwWindowShouldClose(m_Window->GetNativeWindow()) && m_Running)
 		{
 			m_Window->PollEvents();
@@ -91,8 +125,10 @@ namespace VeiM
 
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate(m_DeltaTime);
-
-
+			if (character)
+			{
+				character->Update(m_DeltaTime);
+			}
 
 #ifdef VM_WITH_EDITOR
 			RenderGUI();

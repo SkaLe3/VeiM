@@ -30,7 +30,9 @@ namespace VeiM
 	public:
 		void ThemeEditorRender(); // TODO: Move somewhere
 		void CreateTitleBar();
-
+		
+	private:
+		void TestClassMetadataDisplay();
 
 	private:
 		std::shared_ptr<UI::TitleBar> m_TitleBar;

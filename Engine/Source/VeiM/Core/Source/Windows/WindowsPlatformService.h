@@ -15,6 +15,7 @@ namespace VeiM
 		static TCHAR* ExecutablePath();
 		static bool CreateProc(const TCHAR* URL, const TCHAR* params, uint32* outProcessID, const TCHAR* optionalWorkingDirectory);
 		static void ExploreFolder(const TCHAR* filePath);
+		static void AddDllDirPath(const TCHAR* dir);
 	};
 
 	typedef WindowsPlatformService PlatformService;

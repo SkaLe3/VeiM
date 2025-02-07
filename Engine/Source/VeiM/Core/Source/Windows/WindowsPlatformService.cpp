@@ -118,5 +118,11 @@ namespace VeiM
 			}
 		}
 	}
+
+	void WindowsPlatformService::AddDllDirPath(const TCHAR* dir)
+	{
+		::SetDllDirectory(dir);
+	}
+
 }
 

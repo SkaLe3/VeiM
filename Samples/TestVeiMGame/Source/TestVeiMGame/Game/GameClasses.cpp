@@ -6,7 +6,8 @@ using namespace VeiM;
 
 __declspec(dllexport) void gameLog()
 {
-	VM_WARN("THIS IS LOGGED WITHIN DYNAMICALLY LOADED DLL. YEEEAHOOOO");
+	VM_WARN("gameLog called");
+
 }
 
 
@@ -52,3 +53,12 @@ std::vector<VeiM::Vertex> TriangleMesh::s_Vertices = {
 std::vector<VeiM::uint32> TriangleMesh::s_Indices = { 0, 1, 2 };
 
 
+namespace
+{
+	ClassInfo gameCharacterInfo = {
+		"GameCharacter",
+		{"Name"},
+		{"SetName", "GetName", "Attack", "Start", "Update"}
+	};
+	Base::Registrar<GameCharacter> registrar("GameCharacter", gameCharacterInfo);
+}

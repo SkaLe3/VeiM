@@ -53,8 +53,9 @@ namespace VeiM
 		inline float GetDeltaTime() { return m_DeltaTime; }
 		Window& GetWindow() const { return *m_Window; }
 		ApplicationConfig GetConfig() { return m_Config; }
+		std::wstring GetConfiguration(); // TODO: Create enum class and put EnumToString in some file like PlatformMisc
 #ifdef VM_WITH_EDITOR
-		VeiM::GUIContext* GetGUIContext() { return m_GUIContext; }
+		GUIContext* GetGUIContext() { return m_GUIContext; }
 	private:
 		void InitGUI();
 		void RenderGUI();
@@ -65,7 +66,7 @@ namespace VeiM
 		void OnEvent(const std::string& inf);
 	private:
 #ifdef VM_WITH_EDITOR
-		VeiM::GUIContext* m_GUIContext;
+		GUIContext* m_GUIContext;
 #endif
 	private:
 		ApplicationConfig m_Config;

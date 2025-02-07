@@ -3,6 +3,8 @@ Engine/Intermediate/
 Engine/Build/ProjectFiles/
 Engine/Binaries/
 !Engine/Binaries/Win64/Shipping/VeiMManagerTool-Win64-Shipping.exe
+Samples/Binaries/
+Templates/Binaries/
 
 # Logs
 **.log

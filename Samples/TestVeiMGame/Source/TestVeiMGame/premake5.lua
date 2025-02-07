@@ -140,6 +140,7 @@ project "TestVeimGame"
 		defines  "VM_DEBUG"
 		targetsuffix "-%{cfg.platform}-Debug"
 		debugcommand (engine_root_dir .. "/Engine/Binaries/Win64/Debug_Editor/VeimEditor-Win64-Debug.exe")
+		debugargs { "%{wks.location}/TestVeimGame.vmproject" }
 
 	-- Development Configuration
 	filter "configurations:Development"
@@ -157,6 +158,7 @@ project "TestVeimGame"
         symbols  "on"
 		defines  "VM_DEVELOPMENT"
 		debugcommand (engine_root_dir .. "/Engine/Binaries/Win64/Development_Editor/VeimEditor.exe")
+		debugargs { "%{wks.location}/TestVeimGame.vmproject" }
 
 	-- Shipping Configuration
 	filter "configurations:Shipping"

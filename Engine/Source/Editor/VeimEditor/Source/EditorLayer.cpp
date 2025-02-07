@@ -8,8 +8,7 @@
 
 #include <iostream> // TODO: remove
 
-
-#include <Module/ModuleManager.h>
+#include "Test/Base.h"
 
 
 const char* vertexShaderSource = R"(
@@ -70,12 +69,6 @@ namespace VeiM
 
 		if (!bOpenProject)
 			m_ProjectBrowser.Open();
-		if (!cmdArgs.empty())
-		{
-			fs::path projectPath = fs::path(cmdArgs[0]);
-			ModuleManager::Get().LoadModule(projectPath.stem().wstring(), projectPath.parent_path());
-		}
-		ModuleManager::Get().LoadedModule->moduleFunction();
 	}
 
 	void EditorLayer::OnDetach()
@@ -180,6 +173,7 @@ namespace VeiM
 
 
 		m_ProjectBrowser.OnGUI();
+		TestClassMetadataDisplay();
 	}
 
 	void EditorLayer::ImGuiWindowMenu()
@@ -355,5 +349,39 @@ namespace VeiM
 			});
 	}
 
+
+	void EditorLayer::TestClassMetadataDisplay()
+	{
+		const auto& classRegistry = ReflectionSystem::Get().GetClassRegistry();
+		ImGui::Begin("Registered Classes");
+		ImGui::Text("%d", classRegistry.size());
+
+		for (const auto& [className, classInfo] : classRegistry)
+		{
+			if (ImGui::TreeNode(className.c_str()))
+			{
+				if (ImGui::TreeNode("Properties"))
+				{
+					for (const auto& prop : classInfo.properties)
+					{
+						ImGui::Text(prop.c_str());
+					}
+					ImGui::TreePop();
+				}
+				if (ImGui::TreeNode("Methods"))
+				{
+					for (const auto& method : classInfo.methods)
+					{
+						ImGui::Text(method.c_str());
+					}
+					ImGui::TreePop();
+				}
+				ImGui::TreePop();
+			}
+		}
+
+
+		ImGui::End();
+	}
 
 }
