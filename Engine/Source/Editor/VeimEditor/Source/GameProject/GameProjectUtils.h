@@ -5,12 +5,19 @@
 
 namespace VeiM
 {
+	struct ProjectCreateInfo
+	{
+		fs::path ProjectFilename;
+		fs::path TemplateFilename;
+	};
+
 	class GameProjectUtils
 	{
 	public:
-		static bool IsProjectFileValid(const std::filesystem::path& projectFile, String& outErrorMessage);
-		static bool ProjecFileExists(const std::filesystem::path& projectFile);
+		static bool IsProjectFileValid(const fs::path& projectFile, String& outErrorMessage);
+		static bool ProjecFileExists(const fs::path& projectFile);
 
-		static bool OpenProject(const std::filesystem::path& projectFile, String& outErrorMessage);
+		static bool OpenProject(const fs::path& projectFile, String& outErrorMessage);
+		static bool CreateProject(const ProjectCreateInfo& projectInfo, String& outErrorMessage);
 	};
 }

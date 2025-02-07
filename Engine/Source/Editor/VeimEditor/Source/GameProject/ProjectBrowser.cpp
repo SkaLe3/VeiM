@@ -22,6 +22,7 @@ namespace VeiM
 		String Description;
 		SharedPtr<Image> Thumbnail;
 		SharedPtr<Image> PreviewImage;
+		fs::path projectFilename;
 	};
 
 	bool TemplateTileWidget(SharedPtr<TemplateItem> item, bool selected = false)
@@ -204,7 +205,8 @@ namespace VeiM
 					SharedPtr<TemplateItem> templateProject = MakeShared<TemplateItem>(templateName,
 						"Description placeholder. Desctiption should be retrieved from some info file in template",
 						thumbnailImage,
-						previewImage);
+						previewImage,
+						projectFile);
 
 					templates.emplace_back(templateProject);
 				}
@@ -484,13 +486,23 @@ namespace VeiM
 
 		if (!CreateProject(projectFile))
 			return;
+
+
 		// TODO: Generate project files, build project and open IDE
 	}
 
-	bool ProjectBrowser::CreateProject(const std::filesystem::path& projectFile)
+	bool ProjectBrowser::CreateProject(const fs::path& projectFile)
 	{
 		if (!m_SelectedTempalteItem)
 		{
+			return false;
+		}
+		String errorMessage;
+		ProjectCreateInfo createInfo{ projectFile, m_SelectedTempalteItem->projectFilename};
+		if (!GameProjectUtils::CreateProject(createInfo, errorMessage))
+		{
+			// TODO: Change to popup
+			m_CreationErrorMessage = errorMessage;
 			return false;
 		}
 		// TODO: Use GameProjectUtils

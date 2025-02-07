@@ -105,4 +105,33 @@ namespace VeiM
 		return true;
 	}
 
+	bool GameProjectUtils::CreateProject(const ProjectCreateInfo& projectInfo, String& outErrorMessage)
+	{
+		// TODO: Make progressbar
+
+		if (!IsProjectFileValid(projectInfo.ProjectFilename, outErrorMessage))
+		{
+			return false;
+		}
+		if (projectInfo.TemplateFilename.empty())
+		{
+			outErrorMessage = "Invalid template filename selected";
+			return false;
+		}
+		
+		std::wstring projectName = projectInfo.ProjectFilename.stem().wstring();
+		std::wstring templateName = projectInfo.TemplateFilename.stem().wstring();
+		fs::path sourceFolder = projectInfo.TemplateFilename.parent_path();
+		fs::path destinationFolder = projectInfo.ProjectFilename.parent_path();
+
+		if (!fs::exists(projectInfo.TemplateFilename) || !fs::is_regular_file(projectInfo.TemplateFilename))
+		{
+			outErrorMessage = "Template project does not exist";
+			return false;
+		}
+		// Check if project created
+		// If not, delete all created files
+
+	}
+
 }
