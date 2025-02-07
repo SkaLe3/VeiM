@@ -1,5 +1,0 @@
-TargetName: TestVeimGameEditor
-Configuration: Debug
-TargetType: Editor
-Project: ../../TestVeimGame.vmproject
-Launch: $(EngineDir)/Binaries/Win64/Debug_Editor/VeimEditor-Win64-Debug.exe
