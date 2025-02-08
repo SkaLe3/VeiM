@@ -6,7 +6,7 @@
 
 
 -- Game Module Definition
-project "Template_Blank"
+project "Template_Example"
 	-- General Project Settings
     language 		"C++"							-- Specify the programming language
     cppdialect 		"C++20"							-- Use the C++20 standard
@@ -23,14 +23,14 @@ project "Template_Blank"
 	-- Source Files
     files
     {
-        "%{wks.location}/Source/Template_Blank/**.h",
-        "%{wks.location}/Source/Template_Blank/**.cpp"
+        "%{wks.location}/Source/Template_Example/**.h",
+        "%{wks.location}/Source/Template_Example/**.cpp"
     }
 
 	-- Include Directories
     includedirs
     {
-        "%{wks.location}/Source/Template_Blank",		-- Include game source directory
+        "%{wks.location}/Source/Template_Example",		-- Include game source directory
 		engine_root_dir .. "/Engine/Source/VeiM/Core/Source",
 		engine_root_dir .. "/Engine/ThirdParty/Glad/include",
 		engine_root_dir .. "/Engine/ThirdParty/spdlog/include",
@@ -43,11 +43,11 @@ project "Template_Blank"
     links {"Core"}										-- Link against the VeiM Engine
 
 	------------------ Target ----------------------
-	local game_standalone_target = dofile("Template_Blank_target.lua")
-	local game_editor_target = dofile("Template_BlankEditor_target.lua")
+	local game_standalone_target = dofile("Template_Example_target.lua")
+	local game_editor_target = dofile("Template_Example_target.lua")
 
 	filter "configurations:Debug"
-		local launch_dir = "(ProjectDir)/Binaries/%{cfg.platform}/Template_Blank"
+		local launch_dir = "(ProjectDir)/Binaries/%{cfg.platform}/Template_Example"
 		local exe_cfg = "-%{cfg.platform}-Debug"
 		local command = ""
 						.. engine_root_dir .. "/Engine/Programs/vmtarget/vmtarget.exe".. " "
@@ -55,7 +55,7 @@ project "Template_Blank"
 						.. game_standalone_target.name .. " "
 						.. "Debug" .. " "
 						.. game_standalone_target.type .. " "
-						.. "../../Template_Blank.vmproject" .. " "
+						.. "../../Template_Example.vmproject" .. " "
 						.. launch_dir .. exe_cfg .. ".exe"
 		postbuildcommands{
 			command
@@ -70,14 +70,14 @@ project "Template_Blank"
 						.. game_editor_target.name .. " "
 						.. "Debug" .. " "
 						.. game_editor_target.type .. " "
-						.. "../../Template_Blank.vmproject" .. " "
+						.. "../../Template_Example.vmproject" .. " "
 						.. "\"" .. launch_dir .. exe_cfg .. ".exe\""
 		postbuildcommands{
 			command
 		}
 
 	filter "configurations:Development"
-		local launch_dir = "(ProjectDir)/Binaries/%{cfg.platform}/Template_Blank"
+		local launch_dir = "(ProjectDir)/Binaries/%{cfg.platform}/Template_Example"
 		local exe_cfg = ""
 		local command = ""
 						.. engine_root_dir .. "/Engine/Programs/vmtarget/vmtarget.exe".. " "
@@ -85,7 +85,7 @@ project "Template_Blank"
 						.. game_standalone_target.name .. " "
 						.. "Development" .. " "
 						.. game_standalone_target.type .. " "
-						.. "../../Template_Blank.vmproject" .. " "
+						.. "../../Template_Example.vmproject" .. " "
 						.. launch_dir .. exe_cfg .. ".exe"
 		postbuildcommands{
 			command
@@ -100,14 +100,14 @@ project "Template_Blank"
 						.. game_editor_target.name .. " "
 						.. "Development" .. " "
 						.. game_editor_target.type .. " "
-						.. "../../Template_Blank.vmproject" .. " "
+						.. "../../Template_Example.vmproject" .. " "
 						.. launch_dir .. exe_cfg .. ".exe"
 		postbuildcommands{
 			command
 		}
 	
 	filter "configurations:Shipping"
-		local launch_dir = "(ProjectDir)/Binaries/%{cfg.platform}/Template_Blank"
+		local launch_dir = "(ProjectDir)/Binaries/%{cfg.platform}/Template_Example"
 		local exe_cfg = "-%{cfg.platform}-Shipping"
 		local command = ""
 						.. engine_root_dir .. "/Engine/Programs/vmtarget/vmtarget.exe".. " "
@@ -115,7 +115,7 @@ project "Template_Blank"
 						.. game_standalone_target.name .. " "
 						.. "Shipping" .. " "
 						.. game_standalone_target.type .. " "
-						.. "../../Template_Blank.vmproject" .. " "
+						.. "../../Template_Example.vmproject" .. " "
 						.. launch_dir .. exe_cfg .. ".exe"
 		postbuildcommands{
 			command
@@ -140,7 +140,7 @@ project "Template_Blank"
 		defines  "VM_DEBUG"
 		targetsuffix "-%{cfg.platform}-Debug"
 		debugcommand (engine_root_dir .. "/Engine/Binaries/Win64/Debug_Editor/VeimEditor-Win64-Debug.exe")
-		debugargs { "\"%{wks.location}Template_Blank.vmproject\"" }
+		debugargs { "\"%{wks.location}Template_Example.vmproject\"" }
 
 	-- Development Configuration
 	filter "configurations:Development"
@@ -158,7 +158,7 @@ project "Template_Blank"
         symbols  "on"
 		defines  "VM_DEVELOPMENT"
 		debugcommand (engine_root_dir .. "/Engine/Binaries/Win64/Development_Editor/VeimEditor.exe")
-		debugargs { "\"%{wks.location}Template_Blank.vmproject\"" }
+		debugargs { "\"%{wks.location}Template_Example.vmproject\"" }
 
 	-- Shipping Configuration
 	filter "configurations:Shipping"

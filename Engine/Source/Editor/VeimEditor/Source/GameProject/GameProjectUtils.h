@@ -19,5 +19,10 @@ namespace VeiM
 
 		static bool OpenProject(const fs::path& projectFile, String& outErrorMessage);
 		static bool CreateProject(const ProjectCreateInfo& projectInfo, String& outErrorMessage);
+
+		static bool AssociateProjectWithEngine(const fs::path& projectFile, String& outErrorMessage);
+		static bool CompileGameProject(const fs::path& projectFile);
+	private:
+		static bool GenerateProject(const ProjectCreateInfo& projectInfo, String& outErrorMessage);
 	};
 }

@@ -43,8 +43,8 @@ project "TestVeimGame"
     links {"Core"}									-- Link against the VeiM Engine
 
 	------------------ Target ----------------------
-	local game_standalone_target = dofile("TestVeimGame.target.lua")
-	local game_editor_target = dofile("TestVeimGameEditor.target.lua")
+	local game_standalone_target = dofile("TestVeimGame_target.lua")
+	local game_editor_target = dofile("TestVeimGameEditor_target.lua")
 
 	filter "configurations:Debug"
 		local launch_dir = "(ProjectDir)/Binaries/%{cfg.platform}/TestVeimGame"

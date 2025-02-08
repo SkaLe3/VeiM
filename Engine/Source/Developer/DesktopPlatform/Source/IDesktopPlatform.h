@@ -18,12 +18,15 @@ public:
 	virtual bool NormalizeEngineRootDir(std::wstring& rootDir) = 0;
 	virtual bool IsValidRootDirectory(const std::wstring& rootDir) = 0;
 
+	virtual std::wstring GetCurrentEngineIdentifier() = 0;
 	virtual bool GetEngineIdentifierFromRootDir(const std::wstring& rootDir, std::wstring& outIdentifier) = 0;
 	virtual bool GetEngineIdentifierForProject(const std::wstring& projectFileName, std::wstring& outIdentifier) = 0;
 	virtual bool GetEngineRootDirFromIdentifier(const std::wstring& identifier, std::wstring& outRootDir) = 0;
+	virtual bool SetEngineIdentifierForProject(const std::wstring& projectFileName, const std::wstring& inIdentifier) = 0;
 
 	virtual bool RegisterEngineInstallation(const std::wstring& rootDir, std::wstring& outIdentifier) = 0;
 	virtual void EnumerateEngineInstallations(std::unordered_map<std::wstring, std::wstring>& outInstallations) = 0;
+	virtual bool CompileGameProject(const std::wstring& projectFileName) = 0;
 
 	virtual bool VerifyFileAssociations() = 0;
 	virtual bool UpdateFileAssociations() = 0;

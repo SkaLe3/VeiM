@@ -14,6 +14,11 @@
 #include <functional>
 #include <memory>
 
+
+// TEMPORARY
+#include "Test/FrameBuffer.h"
+#include "Test/TestRenderer.h"
+
 struct GLFWwindow;
 
 namespace VeiM
@@ -36,6 +41,8 @@ namespace VeiM
 	// TODO: Refactor Application class. Use Application only for Editor build
 	class CORE_API Application
 	{
+	public:
+		FrameBuffer* DebugGetFramebuffer() { return &m_Framebuffer; }
 	public:
 		Application(const ApplicationSpecification& applicationSpecification);
 		~Application();
@@ -80,6 +87,12 @@ namespace VeiM
 		float m_DeltaTime = 0.0f;
 		float m_FrameTime = 0.0f;
 		float m_LastFrameTime = 0.0f;
+
+
+		//Temp 
+		FrameBuffer m_Framebuffer;
+		int display_w, display_h;
+		IMesh* m_Mesh;
 
 	private:
 		static Application* s_Instance;

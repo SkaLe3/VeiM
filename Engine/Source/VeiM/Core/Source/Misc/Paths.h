@@ -22,7 +22,8 @@ namespace VeiM
 		static std::wstring EngineDir();
 
 		static bool DirectoryExists(const std::wstring& inPath);
-
+		static bool StartsWith(const std::wstring& inPath, const std::wstring& inSubPath);
+		static std::wstring Replace(const std::wstring& inName, const std::wstring& inFrom, const std::wstring& inTo);
 	private:
 		struct StaticData;
 	};

@@ -269,7 +269,7 @@ bool GenerateProjectFiles(const std::wstring& projectFileName)
 	std::wstring action = TEXT("vs2022");
 	std::wstring commandStart = TEXT("echo Generating project files... && echo.");
 	std::wstring commandEnd = TEXT("@echo. && pause");
-	std::wstring changeDir = std::wstring(L"cd ") + std::filesystem::path(Paths::GetPath(projectFileName)).wstring() + TEXT("\\");
+	std::wstring changeDir = std::wstring(L"cd ") + fs::absolute(Paths::GetPath(projectFileName)).wstring() + TEXT("\\");
 
 	std::wstring command = commandStart + TEXT(" && ") + changeDir + TEXT(" && ") + TEXT("call ") + premakeDir + TEXT(" ") + action + TEXT(" && ") + commandEnd;
 	std::wstring cmdCommand = TEXT("cmd.exe /C \"") + command + TEXT("\"");

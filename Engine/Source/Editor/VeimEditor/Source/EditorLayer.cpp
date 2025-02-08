@@ -10,27 +10,6 @@
 
 #include "Test/Base.h"
 
-
-const char* vertexShaderSource = R"(
-#version 460 core
-layout (location = 0) in vec3 aPos;
-
-void main() {
-    gl_Position = vec4(aPos, 1.0);
-}
-)";
-
-const char* fragmentShaderSource = R"(
-#version 460 core
-out vec4 FragColor;
-
-void main() {
-    FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Red color
-}
-)";
-
-
-
 namespace VeiM
 {
 	EditorLayer::EditorLayer() : Layer("EditorLayer")
@@ -44,15 +23,6 @@ namespace VeiM
 		CreateTitleBar();
 		Application::Get().GetWindow().SetTitlebarHitTestCallback([this]() { return m_TitleBar->IsHovered(); });
 
-
-		TestRenderer::Init();
-		// Compile shaders
-		uint32 myshader = ShaderStatics::CreateProgram(vertexShaderSource, fragmentShaderSource);
-
-		m_Mesh = new QuadMesh();
-
-		m_Mesh->SetShader(myshader);
-		m_Framebuffer.Invalidate(1280, 720);
 
 
 
@@ -68,7 +38,10 @@ namespace VeiM
 
 
 		if (!bOpenProject)
-			m_ProjectBrowser.Open();
+		{
+			m_ProjectBrowser = MakeUnique<ProjectBrowser>();
+			m_ProjectBrowser->Open();
+		}
 	}
 
 	void EditorLayer::OnDetach()
@@ -79,13 +52,7 @@ namespace VeiM
 
 	void EditorLayer::OnUpdate(float deltaTime)
 	{
-		GetFramebufferSize(Application::Get().GetWindow().GetNativeWindow(), display_w, display_h);
-		m_Framebuffer.Invalidate(display_w, display_h);
-		m_Framebuffer.Bind();
-		TestRenderer::Clear();
 
-		TestRenderer::RenderMesh(m_Mesh);
-		m_Framebuffer.UnBind();
 	}
 
 	void EditorLayer::OnGUI()
@@ -167,12 +134,12 @@ namespace VeiM
 		m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
 		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 		m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
-		ImGui::Image(reinterpret_cast<void*>(m_Framebuffer.GetTexture()), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+		ImGui::Image(reinterpret_cast<void*>(Application::Get().DebugGetFramebuffer()->GetTexture()), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 		ImGui::End();
 		ImGui::PopStyleVar();
 
-
-		m_ProjectBrowser.OnGUI();
+		if (m_ProjectBrowser)
+			m_ProjectBrowser->OnGUI();
 		TestClassMetadataDisplay();
 	}
 
@@ -264,7 +231,7 @@ namespace VeiM
 					ImGui::Indent(10.f);
 					if (ImGui::MenuItem("Open Project..."))
 					{
-						m_ProjectBrowser.Open();
+						m_ProjectBrowser->Open();
 					}
 					ImGui::Unindent(10.f);
 

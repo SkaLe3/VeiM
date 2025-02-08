@@ -18,6 +18,26 @@
 #include "Test/Base.h" // TEmporary
 
 
+
+const char* vertexShaderSource = R"(
+#version 460 core
+layout (location = 0) in vec3 aPos;
+
+void main() {
+    gl_Position = vec4(aPos, 1.0);
+}
+)";
+
+const char* fragmentShaderSource = R"(
+#version 460 core
+out vec4 FragColor;
+
+void main() {
+    FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Red color
+}
+)";
+
+
 namespace VeiM
 {
 	Application* Application::s_Instance = nullptr;
@@ -42,7 +62,7 @@ namespace VeiM
 		{
 			fs::path projectPath = fs::path(cmdArgs[0]);
 			ModuleManager::Get().SetGameBianariesDir(projectPath.parent_path() / "Binaries" / "Win64");
-			ModuleManager::Get().LoadModule(projectPath.stem().wstring()); // TODO: Make function to get binaries path from projectfile (in module manager)
+			ModuleManager::Get().LoadModule(projectPath.stem().wstring());
 			ModuleManager::Get().LoadModule(projectPath.stem().wstring());
 		}
 
@@ -114,6 +134,14 @@ namespace VeiM
 		{
 			character->Start();
 		}
+		TestRenderer::Init();
+		// Compile shaders
+		uint32 myshader = ShaderStatics::CreateProgram(vertexShaderSource, fragmentShaderSource);
+
+		m_Mesh = new QuadMesh();
+
+		m_Mesh->SetShader(myshader);
+		m_Framebuffer.Invalidate(1280, 720);
 
 		while (!glfwWindowShouldClose(m_Window->GetNativeWindow()) && m_Running)
 		{
@@ -129,6 +157,13 @@ namespace VeiM
 			{
 				character->Update(m_DeltaTime);
 			}
+			GetFramebufferSize(Application::Get().GetWindow().GetNativeWindow(), display_w, display_h);
+			m_Framebuffer.Invalidate(display_w, display_h);
+			m_Framebuffer.Bind();
+			TestRenderer::Clear();
+
+			TestRenderer::RenderMesh(m_Mesh);
+			m_Framebuffer.UnBind();
 
 #ifdef VM_WITH_EDITOR
 			RenderGUI();

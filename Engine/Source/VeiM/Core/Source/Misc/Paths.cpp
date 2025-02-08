@@ -93,5 +93,24 @@ namespace VeiM
 	}
 
 
+	bool Paths::StartsWith(const std::wstring& inPath, const std::wstring& inSubPath)
+	{
+		std::filesystem::path full(inPath);
+		std::filesystem::path sub(inSubPath);
+
+		return std::mismatch(sub.begin(), sub.end(), full.begin()).first == sub.end();
+	}
+
+	std::wstring Paths::Replace(const std::wstring& inName, const std::wstring& inFrom, const std::wstring& inTo)
+	{
+		std::wstring nameCopy = inName;
+		size_t startPos = 0;
+		while ((startPos = nameCopy.find(inFrom, startPos)) != std::wstring::npos) {
+			nameCopy.replace(startPos, inFrom.length(), inTo);
+			startPos += inTo.length();
+		}
+		return nameCopy;
+	}
+
 }
 

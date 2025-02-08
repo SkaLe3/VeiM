@@ -1,6 +1,7 @@
 #include "Windows/DesktopPlatformWindows.h"
-#include "Misc/Paths.h" // TODO: change to Paths from Core
+#include "Misc/Paths.h"
 #include "Windows/WindowsRegistry.h"
+#include "HAL/PlatformService.h"
 
 #include <GLFW/glfw3.h>
 #define GLFW_EXPOSE_NATIVE_WIN32
@@ -245,6 +246,15 @@ bool DesktopPlatformWindows::IsValidRootDirectory(const std::wstring& rootDir)
 	return true;
 }
 
+std::wstring DesktopPlatformWindows::GetCurrentEngineIdentifier()
+{
+	std::wstring currentIdentifier;
+	std::wstring rootDir = Paths::GetPath(BaseDir());
+	NormalizeEngineRootDir(rootDir);
+	GetEngineIdentifierFromRootDir(rootDir, currentIdentifier);
+	return currentIdentifier;
+}
+
 bool DesktopPlatformWindows::GetEngineIdentifierFromRootDir(const std::wstring& rootDir, std::wstring& outIdentifier)
 {
 	std::unordered_map<std::wstring, std::wstring> installations;
@@ -317,6 +327,22 @@ bool DesktopPlatformWindows::GetEngineRootDirFromIdentifier(const std::wstring& 
 		}
 	}
 	return false;
+}
+
+bool DesktopPlatformWindows::SetEngineIdentifierForProject(const std::wstring& projectFileName, const std::wstring& inIdentifier)
+{
+	std::wofstream projectFileHandle(projectFileName);
+	if (!projectFileHandle.is_open())
+	{
+		return false;
+	}
+	if (inIdentifier.empty())
+	{
+		return false;
+	}
+	projectFileHandle << TEXT("EngineAssociation: ") << inIdentifier;
+	projectFileHandle.close();
+	return true;
 }
 
 bool DesktopPlatformWindows::RegisterEngineInstallation(const std::wstring& rootDir, std::wstring& outIdentifier)
@@ -410,6 +436,35 @@ void DesktopPlatformWindows::EnumerateEngineInstallations(std::unordered_map<std
 }
 
 
+
+bool DesktopPlatformWindows::CompileGameProject(const std::wstring& projectFileName)
+{
+
+	std::wstring rootDir = Paths::GetPath(PlatformService::ExecutablePath());
+	NormalizeEngineRootDir(rootDir);
+	std::wstring binariesDir = (fs::path(rootDir) / "Engine" / "Binaries" / "Win64" / "Shipping").wstring();
+	std::wstring vmmtFilePath = binariesDir + TEXT("\\") + TEXT("VeimManagerTool-Win64-Shipping.exe");
+	std::wstring args = std::wstring(TEXT("/projectfiles ")) + TEXT("\"") + projectFileName + TEXT("\"");
+	std::wstring workingDirectory = Paths::GetPath(projectFileName);
+
+	Paths::MakeWindowsFileName(vmmtFilePath);
+	if (!PlatformService::CreateProc(vmmtFilePath.c_str(), args.c_str(), nullptr, workingDirectory.c_str()))
+	{
+		return false;
+	}
+
+	// Only for visual studio
+	std::wstring solutionFileName = workingDirectory + TEXT("\\") + fs::path(projectFileName).stem().wstring() + TEXT(".sln");
+	std::wstring compilerFilePath = TEXT("C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe");
+	std::wstring compilerArgs = TEXT("\"")  + solutionFileName + TEXT("\"") + TEXT(" /p:Configuration=Development_Editor /p:Platform=Win64");
+
+	if (PlatformService::CreateProc(compilerFilePath.c_str(), compilerArgs.c_str(), nullptr, NULL))
+	{
+		return false;
+	}
+
+	return true;
+}
 
 bool DesktopPlatformWindows::VerifyFileAssociations()
 {
@@ -570,7 +625,7 @@ const TCHAR* DesktopPlatformWindows::GetConfigurationDir()
 	return TEXT("Shipping");
 }
 
-const TCHAR* DesktopPlatformWindows::BaseDir()
+const TCHAR* DesktopPlatformWindows::BaseDir() // TODO: Delete this
 {
 	static TCHAR exePath[MAX_PATH] = TEXT("");
 	GetModuleFileName(NULL, exePath, MAX_PATH);

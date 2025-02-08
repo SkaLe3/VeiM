@@ -1,4 +1,4 @@
-#include "Template_Blank.h"
+#include "Template_Example.h"
 
 #ifdef IS_UNIFIED
 #include <VeiM/Core/EntryPoint.h>
@@ -6,16 +6,16 @@
 
 namespace VeiM
 {
-	class Template_Blank : public Application
+	class Template_Example : public Application
 	{
 	public:
-		Template_Blank(const ApplicationSpecification& appSpecs)
+		Template_Example(const ApplicationSpecification& appSpecs)
 			: Application(appSpecs)
 		{
 
 		}
 
-		~Template_Blank()
+		~Template_Example()
 		{
 
 		}
@@ -25,12 +25,12 @@ namespace VeiM
 	{
 		ApplicationSpecification specs;
 
-		specs.AppConfig.Name = "Template_Blank";
+		specs.AppConfig.Name = "Template_Example";
 		specs.AppConfig.EnableConsole = true;
 		specs.AppConfig.WorkingDirectory = PlatformService::BaseDir();
 		specs.AppConfig.CommandLineArgs = arguments;
 
-		specs.WndConfig.Title = "Template_Blank";
+		specs.WndConfig.Title = "Template_Example";
 		specs.WndConfig.Width = 800;
 		specs.WndConfig.Height = 600;
 		specs.WndConfig.VSync = true;
@@ -39,7 +39,7 @@ namespace VeiM
 		specs.WndConfig.Mode = EWindowMode::Windowed;
 		// TODO: Make default icon
 
-		Application* app = new Template_Blank(specs);
+		Application* app = new Template_Example(specs);
 		return app;
 	}
 }

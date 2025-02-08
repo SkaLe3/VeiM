@@ -189,7 +189,7 @@ namespace VeiM
 			{
 				if (entry.is_regular_file() && entry.path().extension() == ".vmproject")
 				{
-					std::filesystem::path projectFile = entry.path();
+					std::filesystem::path projectFile = fs::absolute(entry.path());
 					std::filesystem::path projectPath = std::filesystem::path(Paths::GetPath(entry.path().wstring()));
 					std::filesystem::path thumbnailPath = projectPath / "Media" / "Thumbnail.png";
 					std::filesystem::path previewPath = projectPath / "Media" / "Preview.png";
@@ -203,7 +203,7 @@ namespace VeiM
 					SharedPtr<Image> previewImage = MakeShared<Image>(previewPath.string());
 
 					SharedPtr<TemplateItem> templateProject = MakeShared<TemplateItem>(templateName,
-						"Description placeholder. Desctiption should be retrieved from some info file in template",
+						"Description placeholder. Description should be retrieved from some info file in template",
 						thumbnailImage,
 						previewImage,
 						projectFile);
@@ -487,6 +487,12 @@ namespace VeiM
 		if (!CreateProject(projectFile))
 			return;
 
+
+		if (GameProjectUtils::CompileGameProject(projectFile))
+		{
+			// OpenIDE
+
+		}
 
 		// TODO: Generate project files, build project and open IDE
 	}
