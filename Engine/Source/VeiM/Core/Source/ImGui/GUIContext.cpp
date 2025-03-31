@@ -1,6 +1,7 @@
 #include "ImGui/GUIContext.h"
 
 #include "Application/Application.h"
+#include "Misc/Paths.h"
 
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
@@ -27,7 +28,18 @@ namespace VeiM
 		g_ImGuiContext = ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 
-		io.IniFilename = "Engine/Config/imgui.ini";
+		fs::path configPath = fs::path(Paths::GetEngineInstallation()) / "Engine/Config";
+		m_ConfigFilename = (configPath / "imgui.ini").string();
+		if (!fs::exists(configPath))
+		{
+			VM_CORE_WARN("imgui config path: '{0}' does not exist", fs::absolute(configPath).string());
+		}
+		else
+		{
+			VM_CORE_TRACE("imgui config file: '{0}'", (fs::absolute(configPath) / "imgui.ini").string());
+		}
+
+		io.IniFilename = m_ConfigFilename.c_str();
 
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls

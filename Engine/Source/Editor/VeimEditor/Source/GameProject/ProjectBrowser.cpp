@@ -115,6 +115,7 @@ namespace VeiM
 		SetDefaultProjectLocation();
 
 		m_bCreationValid = true;
+		m_bUseVisualStudio = true;
 		m_Mode = EProjectBrowserMode::Projects;
 
 		if (!m_TemplatesList.empty())
@@ -400,6 +401,8 @@ namespace VeiM
 		ImGui::EndGroup();
 		ImGui::SetCursorPosY(98);
 		RenderTemplatesDialogButtons();
+		ImGui::SameLine();
+		ImGui::Checkbox("Use Visual Studio", &m_bUseVisualStudio);
 		if (!m_bCreationValid)
 		{
 			ImGui::SameLine();
@@ -467,6 +470,11 @@ namespace VeiM
 		ImGui::Image((ImTextureID)previewImage->GetData(), { availableWidth,  height });
 	}
 
+	void ProjectBrowser::RenderCreatingProjectPopup()
+	{
+
+	}
+
 	void ProjectBrowser::OnCancel() const
 	{
 		Application::Get().Close();
@@ -487,14 +495,21 @@ namespace VeiM
 		if (!CreateProject(projectFile))
 			return;
 
-
+		if (!m_bUseVisualStudio)
+		{
+			// TODO: Add pop up that project is created;
+			m_ProjectBrowserHandler->OnUpdateProjects();
+			return;
+		}
+		
 		if (GameProjectUtils::CompileGameProject(projectFile))
 		{
-			// OpenIDE
-
+			Application::Get().Close();
+			OpenIDE(projectFile);
+			OpenProject(projectFile);
+			
 		}
-
-		// TODO: Generate project files, build project and open IDE
+		// TODO: Add pop up that failed to compile
 	}
 
 	bool ProjectBrowser::CreateProject(const fs::path& projectFile)
@@ -513,6 +528,28 @@ namespace VeiM
 		}
 		// TODO: Use GameProjectUtils
 		// Add validation everywhere
+		return true;
+	}
+
+	bool ProjectBrowser::OpenIDE(const fs::path& projectFile)
+	{
+		String errorMessage;
+		if (!GameProjectUtils::OpenProjectInIDE(projectFile, errorMessage))
+		{
+			// TODO: Add popup
+			return false;
+		}
+		return true;
+	}
+
+	bool ProjectBrowser::OpenProject(const fs::path& projectFile)
+	{
+		String errorMessage;
+		if (!GameProjectUtils::OpenProject(projectFile, errorMessage))
+		{
+			// TODO: Add popup
+			return false;
+		}
 		return true;
 	}
 

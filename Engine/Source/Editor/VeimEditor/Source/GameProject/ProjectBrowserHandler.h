@@ -22,6 +22,7 @@ namespace VeiM
 		void OpenSelectedProject();
 		void OnBrowseToProject();
 		void OnOpenProject();
+		void OnUpdateProjects();
 
 	private:
 		void RenderProjectsView();

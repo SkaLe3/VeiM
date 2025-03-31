@@ -22,6 +22,7 @@ public:
 	virtual bool RegisterEngineInstallation(const std::wstring& rootDir, std::wstring& outIdentifier) override;
 	virtual void EnumerateEngineInstallations(std::unordered_map<std::wstring, std::wstring>& outInstallations) override;
 	virtual bool CompileGameProject(const std::wstring& projectFileName) override;
+	virtual bool OpenIDE(const std::wstring& projectFileName) override;
 
 	virtual bool VerifyFileAssociations() override;
 	virtual bool UpdateFileAssociations() override;

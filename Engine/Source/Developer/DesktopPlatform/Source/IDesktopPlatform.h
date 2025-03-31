@@ -27,6 +27,7 @@ public:
 	virtual bool RegisterEngineInstallation(const std::wstring& rootDir, std::wstring& outIdentifier) = 0;
 	virtual void EnumerateEngineInstallations(std::unordered_map<std::wstring, std::wstring>& outInstallations) = 0;
 	virtual bool CompileGameProject(const std::wstring& projectFileName) = 0;
+	virtual bool OpenIDE(const std::wstring& projectFileName) = 0;
 
 	virtual bool VerifyFileAssociations() = 0;
 	virtual bool UpdateFileAssociations() = 0;

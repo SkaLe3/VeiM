@@ -5,6 +5,11 @@
 
 namespace VeiM
 {
+	struct ProcessHandle : BaseProcessHandle<HANDLE>
+	{
+
+	};
+
 	struct CORE_API WindowsPlatformService : public GenericPlatformService
 	{
 	public:
@@ -13,7 +18,11 @@ namespace VeiM
 		static const TCHAR* BaseDir();
 		static void SetCurrentWorkingDirectoryToBaseDir();
 		static TCHAR* ExecutablePath();
-		static bool CreateProc(const TCHAR* URL, const TCHAR* params, uint32* outProcessID, const TCHAR* optionalWorkingDirectory);
+		static ProcessHandle CreateProc(const TCHAR* URL, const TCHAR* params, uint32* outProcessID, const TCHAR* optionalWorkingDirectory, void* output);
+		static bool IsProcessActive(ProcessHandle& handle);
+		static void WaitForProcess(ProcessHandle& handle);
+		static void CloseProcess(ProcessHandle& handle);
+		static uint32 GetProcessExitCode(ProcessHandle& handle);
 		static void ExploreFolder(const TCHAR* filePath);
 		static void AddDllDirPath(const TCHAR* dir);
 	};

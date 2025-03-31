@@ -72,7 +72,7 @@ namespace VeiM::UI
 	bool Theme::m_NameCollision;
 	char Theme::m_NewThemeName[32];
 	ImGuiTextFilter Theme::m_ColorFilter;
-	std::filesystem::path Theme::m_ConfPath = "Engine/Config/Themes.conf";
+	std::filesystem::path Theme::m_ConfPath = fs::absolute(fs::path(Paths::GetEngineInstallation()) / "Engine/Config/Themes.conf");
 
 
 	YAML::Emitter& operator<<(YAML::Emitter& out, const ImVec2& v)
@@ -463,7 +463,8 @@ namespace VeiM::UI
 	}
 	void Theme::LoadThemes()
 	{
-		YAML::Node config = YAML::LoadFile(m_ConfPath.string());
+		String confPath = m_ConfPath.string();
+		YAML::Node config = YAML::LoadFile(confPath);
 		m_DefaultThemeName = config["general"]["default_theme"].as<String>();
 		m_SelectedThemeName = config["general"]["selected_theme"].as<String>();
 		VM_CORE_ASSERT(!m_DefaultThemeName.empty(), "[Editor] Default theme section is missing in the Themes.ini file.");	  // TODO: Make as verify

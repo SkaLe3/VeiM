@@ -8,17 +8,17 @@ void VeiM::FrameBuffer::Invalidate(uint32 widht, uint32 height)
 {
 	swidth = widht;
 	sheight = height;
-	if (framebuffer)
+	if (Handle)
 	{
-		glDeleteFramebuffers(1, &framebuffer);
+		glDeleteFramebuffers(1, &Handle);
 		glDeleteTextures(1, &textureColorBuffer);
 		glDeleteRenderbuffers(1, &rbo);
-		framebuffer = 0;
+		Handle = 0;
 		textureColorBuffer = 0;
 		rbo = 0;
 	}
-	glCreateFramebuffers(1, &framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glCreateFramebuffers(1, &Handle);
+	glBindFramebuffer(GL_FRAMEBUFFER, Handle);
 
 
 
@@ -43,7 +43,7 @@ void VeiM::FrameBuffer::Invalidate(uint32 widht, uint32 height)
 
 void VeiM::FrameBuffer::Bind()
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, Handle);
 	glViewport(0, 0, swidth, sheight);
 }
 

@@ -49,12 +49,15 @@ namespace VeiM
 		void RenderTemplatesDialogButtons();
 		void RenderProjectsDialogButtons();
 		void RenderTemplateProperties();
+		void RenderCreatingProjectPopup();
 
 		void OnCancel() const;
 		void OnSelectTemplate(SharedPtr<TemplateItem> templateItem);
 
 		void CreateAndOpenProject();
 		bool CreateProject(const fs::path& projectFile);
+		bool OpenIDE(const fs::path& projectFile);
+		bool OpenProject(const fs::path& projectFile);
 
 		void HandleTemplateSelection(SharedPtr<TemplateItem> templateItem);
 		void SetDefaultProjectLocation();
@@ -77,6 +80,7 @@ namespace VeiM
 
 		String m_CreationErrorMessage;
 		bool m_bCreationValid;
+		bool m_bUseVisualStudio;
 
 		std::function<void()> m_CreateButton;
 		std::function<void()> m_OpenButton;

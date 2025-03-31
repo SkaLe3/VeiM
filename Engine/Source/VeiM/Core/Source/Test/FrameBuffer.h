@@ -11,12 +11,13 @@ namespace VeiM
 		void UnBind();
 		uint32 GetTexture();
 
+
+		uint32 Handle = 0;
+		uint32 swidth, sheight;
 	private:
-		uint32 framebuffer = 0;
 		uint32 textureColorBuffer = 0;
 		uint32 rbo = 0;
 
-		uint32 swidth, sheight;
 	};
 
 	class CORE_API ShaderStatics

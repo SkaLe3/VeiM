@@ -45,6 +45,8 @@ namespace VeiM
 	private:
 		UI::Theme m_Theme;
 		GUIDebug m_Debug;
+		String m_ConfigFilename;
+
 
 	};
 }

@@ -156,10 +156,7 @@ namespace VeiM
 		m_CurrentSelectedProjectPath = "";
 		UI::Utils::SetCharArrayData(m_SearchQuery, 128, "");
 
-		LoadProjects();
-
-		if (HasProjects())
-			HandleProjectSelection(m_ProjectsList.front());
+		OnUpdateProjects();
 	}
 
 	void ProjectBrowserHandler::OnGUI()
@@ -179,8 +176,13 @@ namespace VeiM
 
 		ImGui::BeginChild("ContentViewSection", { 798, 345 }, ImGuiChildFlags_AlwaysUseWindowPadding);
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 10, 10 });
-		ImGui::SetNextItemWidth(766);
-		ImGui::InputTextWithHint("##FilterProjects", "Filter Projects...", m_SearchQuery, IM_ARRAYSIZE(m_SearchQuery));
+		ImGui::SetNextItemWidth(734);
+		ImGui::InputTextWithHint("##FilterProjects", "Filter Projects...", m_SearchQuery, IM_ARRAYSIZE(m_SearchQuery)); 
+		ImGui::SameLine();
+		if (ImGui::Button("R", {22, 22}))
+		{
+			OnUpdateProjects();
+		}
 		RenderProjectsView();
 		if (m_ProjectsList.empty())
 		{
@@ -271,6 +273,14 @@ namespace VeiM
 			return false;
 		}
 		return true;
+	}
+
+	void ProjectBrowserHandler::OnUpdateProjects()
+	{
+		LoadProjects();
+
+		if (HasProjects())
+			HandleProjectSelection(m_ProjectsList.front());
 	}
 
 	void ProjectBrowserHandler::RenderProjectsView()

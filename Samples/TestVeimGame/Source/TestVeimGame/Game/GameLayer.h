@@ -20,9 +20,9 @@ namespace VeiM
 
 	private:
 		// Temp
-		FrameBuffer m_Framebuffer;
-		int display_w, display_h;
-		IMesh* m_Mesh;
+// 		FrameBuffer m_Framebuffer;
+// 		int display_w, display_h;
+// 		IMesh* m_Mesh;
 
 	};
 }

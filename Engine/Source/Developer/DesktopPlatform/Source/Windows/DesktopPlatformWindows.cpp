@@ -448,21 +448,42 @@ bool DesktopPlatformWindows::CompileGameProject(const std::wstring& projectFileN
 	std::wstring workingDirectory = Paths::GetPath(projectFileName);
 
 	Paths::MakeWindowsFileName(vmmtFilePath);
-	if (!PlatformService::CreateProc(vmmtFilePath.c_str(), args.c_str(), nullptr, workingDirectory.c_str()))
+	ProcessHandle vmmtProcessHandle = PlatformService::CreateProc(vmmtFilePath.c_str(), args.c_str(), nullptr, workingDirectory.c_str(), nullptr);
+	if (!vmmtProcessHandle.IsValid())
 	{
+		VM_CORE_ERROR("Failed to generate project files");
 		return false;
 	}
-
-	// Only for visual studio
+	PlatformService::WaitForProcess(vmmtProcessHandle);
+	PlatformService::CloseProcess(vmmtProcessHandle);
+	// C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\ /
+	std::wstring devenvFilePath = TEXT("C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\devenv.exe");
 	std::wstring solutionFileName = workingDirectory + TEXT("\\") + fs::path(projectFileName).stem().wstring() + TEXT(".sln");
-	std::wstring compilerFilePath = TEXT("C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe");
-	std::wstring compilerArgs = TEXT("\"")  + solutionFileName + TEXT("\"") + TEXT(" /p:Configuration=Development_Editor /p:Platform=Win64");
-
-	if (PlatformService::CreateProc(compilerFilePath.c_str(), compilerArgs.c_str(), nullptr, NULL))
+	std::wstring compilerArgs = TEXT("\"") + solutionFileName + TEXT("\"") + TEXT(" /build ") + TEXT("Development_Editor");
+	ProcessHandle compilerProcessHandle = PlatformService::CreateProc(devenvFilePath.c_str(), compilerArgs.c_str(), nullptr, NULL, nullptr);
+	if (!compilerProcessHandle.IsValid())
 	{
+		VM_CORE_ERROR("Failed to compile");
 		return false;
 	}
+	PlatformService::WaitForProcess(compilerProcessHandle);
+	PlatformService::CloseProcess(compilerProcessHandle);
+	return true;
+}
 
+bool DesktopPlatformWindows::OpenIDE(const std::wstring& projectFileName)
+{
+	std::wstring workingDirectory = Paths::GetPath(projectFileName);
+	std::wstring devenvFilePath = TEXT("C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\devenv.exe");
+	std::wstring solutionFileName = TEXT("\"") + workingDirectory + TEXT("\\") + fs::path(projectFileName).stem().wstring() + TEXT(".sln") + TEXT("\"");
+
+	ProcessHandle IDEProcessHandle = PlatformService::CreateProc(devenvFilePath.c_str(), solutionFileName.c_str(), nullptr, NULL, nullptr);
+	if (!IDEProcessHandle.IsValid())
+	{
+		VM_CORE_ERROR("Failed to open project in IDE");
+		return false;
+	}
+	PlatformService::CloseProcess(IDEProcessHandle);
 	return true;
 }
 

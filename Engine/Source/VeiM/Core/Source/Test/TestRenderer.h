@@ -1,13 +1,15 @@
 #pragma once
 #include "CoreDefines.h"
 #include "Test/FrameBuffer.h"
+#include "Renderer/Shader.h"
+#include "Renderer/Texture.h"
 
 namespace VeiM
 {
 
 	struct CORE_API Vertex
 	{
-		float Pos[2];
+		float Pos[3];
 		float TexCoord[2];
 	};
 
@@ -39,12 +41,56 @@ namespace VeiM
 
 	private:
 		static inline 		std::vector<VeiM::Vertex> s_Vertices = {
-		{{-0.5f, -0.5f}, {0.0f, 0.0f}},
-		{{ 0.5f, -0.5f}, {1.0f, 0.0f}},
-		{{ 0.5f,  0.5f}, {1.0f, 1.0f}},
-		{{-0.5f,  0.5f}, {0.0f, 1.0f}}
+		{{-0.5f, -0.5f, 0.f}, {0.0f, 0.0f}},
+		{{ 0.5f, -0.5f, 0.f}, {1.0f, 0.0f}},
+		{{ 0.5f,  0.5f, 0.f}, {1.0f, 1.0f}},
+		{{-0.5f,  0.5f, 0.f}, {0.0f, 1.0f}}
 		};
 		static inline 		std::vector<VeiM::uint32> s_Indices = { 0, 1, 2, 2, 0, 3 };
+	};
+
+	class CORE_API CubeMesh : public IMesh
+	{
+	public:
+		CubeMesh() : IMesh(s_Vertices, s_Indices) {}
+
+
+	private:
+		static inline 		std::vector<VeiM::Vertex> s_Vertices = {
+		{{ 1.f,  1.f, -1.f},{0.625f, 0.500f}},
+		{{-1.f,  1.f, -1.f},{0.875f, 0.500f}},
+		{{-1.f,  1.f,  1.f},{0.875f, 0.750f}},
+		{{ 1.f,  1.f,  1.f},{0.625f, 0.750f}},
+		{{ 1.f, -1.f,  1.f},{0.375f, 0.750f}},
+		{{ 1.f,  1.f,  1.f},{0.625f, 0.750f}},
+		{{-1.f,  1.f,  1.f},{0.625f, 1.000f}},
+		{{-1.f, -1.f,  1.f},{0.375f, 1.000f}},
+		{{-1.f, -1.f,  1.f},{0.375f, 0.000f}},
+		{{-1.f,  1.f,  1.f},{0.625f, 0.000f}},
+		{{-1.f,  1.f, -1.f},{0.625f, 0.250f}},
+		{{-1.f, -1.f, -1.f},{0.375f, 0.250f}},
+		{{-1.f, -1.f, -1.f},{0.125f, 0.500f}},
+		{{ 1.f, -1.f, -1.f},{0.375f, 0.500f}},
+		{{ 1.f, -1.f,  1.f},{0.375f, 0.750f}},
+		{{-1.f, -1.f,  1.f},{0.125f, 0.750f}},
+		{{ 1.f, -1.f, -1.f},{0.375f, 0.500f}},
+		{{ 1.f,  1.f, -1.f},{0.625f, 0.500f}},
+		{{ 1.f,  1.f,  1.f},{0.625f, 0.750f}},
+		{{ 1.f, -1.f,  1.f},{0.375f, 0.750f}},
+		{{-1.f, -1.f, -1.f},{0.375f, 0.250f}},
+		{{-1.f,  1.f, -1.f},{0.625f, 0.250f}},
+		{{ 1.f,  1.f, -1.f},{0.625f, 0.500f}},
+		{{ 1.f, -1.f, -1.f},{0.375f, 0.500f}},
+
+		};
+		static inline 		std::vector<VeiM::uint32> s_Indices = {
+		0, 1, 2,  0, 2, 3,
+		4, 5, 6,  4, 6, 7,
+		8, 9, 10,  8, 10, 11,
+		12, 13, 14,  12, 14, 15,
+		16, 17, 18,  16, 18, 19,
+		20, 21, 22,  20, 22, 23
+		};
 	};
 
 	class  TestRenderer
@@ -52,44 +98,9 @@ namespace VeiM
 	public:
 		CORE_API static void Init();
 
-		CORE_API static void RenderMesh(IMesh* mesh);
+		CORE_API static void RenderMesh(IMesh* mesh, Shader& shader, Texture& tex, const glm::mat4& viewProj, const glm::mat4& view, const glm::mat4& transform);
 		CORE_API static void Clear();
-		CORE_API static void DisplayFramebufferToScreen(FrameBuffer& frameBufferA);
+		CORE_API static void BlitFramebufferToSwapchain(FrameBuffer& framebuffer);
 
-	private:
-		static inline float fullscreenQuadVertices[] = {
-			// Positions         // Texture coordinates
-			-1.0f,  -1.0f, 0.0f,  0.0f,
-			 1.0f,  -1.0f, 1.0f,  0.0f,
-			 1.0f,   1.0f, 1.0f,  1.0f,
-			-1.0f,   1.0f, 0.0f,  1.0f
-		};
-		static inline unsigned int quadIndices[] = { 0, 1, 2, 2, 3, 0 };
-		static inline unsigned int fullscreenQuadVAO, fullscreenQuadVBO, fullscreenQuadEBO;
-		static inline const char* vertexShaderSource = R"(
-#version 460 core
-layout(location = 0) in vec2 aPos; // Position
-layout(location = 1) in vec2 aTexCoord; // Texture coordinate
-
-out vec2 TexCoord;
-
-void main() {
-    TexCoord = aTexCoord; // Pass the texture coordinate to fragment shader
-    gl_Position = vec4(aPos, 0.0, 1.0);
-}
-)";
-		static inline const char* fragmentShaderSource = R"(
-#version 460 core
-in vec2 TexCoord;
-
-out vec4 FragColor;
-
-uniform sampler2D screenTexture; // The texture from the framebuffer
-
-void main() {
-    FragColor = texture(screenTexture, TexCoord); // Sample the texture
-}
-)";
-		static inline uint32 displayShader;
 	};
 }

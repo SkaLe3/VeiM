@@ -1,5 +1,6 @@
 #include "Application/EntryPoint.h"
 #include "HAL/PlatformService.h"
+#include "Misc/Paths.h"
 
 #include "EditorLayer.h"
 
@@ -28,7 +29,7 @@ namespace VeiM
 		specs.AppConfig.Name = "VeiM Editor";
 		specs.AppConfig.EnableConsole = true; // TODO: Add option to enable console in game shipping build, or to choose it instead of editor console in debug and development editor build
 		specs.AppConfig.WorkingDirectory = PlatformService::BaseDir();
-		specs.AppConfig.EngineContentPath = "Engine\\Content";
+		specs.AppConfig.EngineContentPath = fs::path( Paths::GetEngineInstallation()) / "Engine\\Content";
 		specs.AppConfig.CommandLineArgs = arguments;
 
 		specs.WndConfig.Title = "VeiM Editor";

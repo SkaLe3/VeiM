@@ -1,6 +1,7 @@
 #include "VeimManagerTool.h"
 #include "DesktopPlatformModule.h"
 #include "Misc/Paths.h"
+#include "HAL/PlatformService.h"
 #include "PlatformInstallation.h"
 
 
@@ -262,34 +263,37 @@ bool GenerateProjectFiles(const std::wstring& projectFileName)
 		return false;
 	}
 
+	bool bSuccess = true;
 
-	// May be add reading from config Engine.ini file for finding path of premake
 	Paths::MakeWindowsFileName(rootDir);
 	std::wstring premakeDir = (std::filesystem::path(rootDir) / TEXT("Engine\\Programs\\premake\\premake5.exe")).wstring();
-	std::wstring action = TEXT("vs2022");
-	std::wstring commandStart = TEXT("echo Generating project files... && echo.");
-	std::wstring commandEnd = TEXT("@echo. && pause");
-	std::wstring changeDir = std::wstring(L"cd ") + fs::absolute(Paths::GetPath(projectFileName)).wstring() + TEXT("\\");
+	std::wstring premakeWorkingDir = fs::absolute(Paths::GetPath(projectFileName));
+	std::wstring premakeArgs = TEXT("vs2022");
 
-	std::wstring command = commandStart + TEXT(" && ") + changeDir + TEXT(" && ") + TEXT("call ") + premakeDir + TEXT(" ") + action + TEXT(" && ") + commandEnd;
-	std::wstring cmdCommand = TEXT("cmd.exe /C \"") + command + TEXT("\"");
-	std::wstring cmdCommandFail = TEXT("cmd.exe /K \"") + command + TEXT("\"");
+	void* premakeOutput = malloc(1024);
 
-
-	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-	std::string cmdCommandA = converter.to_bytes(cmdCommand);
-	std::string cmdCommandFailA = converter.to_bytes(cmdCommandFail);
-
-	// TODO: Consider creating process
-	int32 bResult = std::system(cmdCommandA.c_str());
-	if (bResult != 0)
+	ProcessHandle premakeProcessHandle = PlatformService::CreateProc(premakeDir.c_str(), premakeArgs.c_str(), nullptr, premakeWorkingDir.c_str(), premakeOutput);
+	if (!premakeProcessHandle.IsValid())
 	{
-		// Run again with /K flag to keep console open 
-		std::system(cmdCommandFailA.c_str());
-		return false;
-	}
 
-	return true;
+		bSuccess = false;
+
+	}
+	PlatformService::WaitForProcess(premakeProcessHandle);
+
+	uint32 premakeExitCode = PlatformService::GetProcessExitCode(premakeProcessHandle);
+	if (premakeExitCode != 0)
+	{
+		String premakeOutputA(reinterpret_cast<char*>(premakeOutput), 1024);
+		std::wstring errorDialogMessage = std::wstring(TEXT("Failed to generate project files.\nError: ")) + std::wstring(premakeOutputA.begin(), premakeOutputA.end());
+		MessageBoxW(NULL, errorDialogMessage.c_str(), TEXT("Error"), MB_OK | MB_ICONWARNING);
+		PlatformService::CloseProcess(premakeProcessHandle);
+		bSuccess = false;
+	}
+	PlatformService::CloseProcess(premakeProcessHandle);
+
+	free(premakeOutput);
+	return bSuccess;
 }
 
 

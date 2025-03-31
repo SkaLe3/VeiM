@@ -1,6 +1,8 @@
 #include "EditorMisc.h"
 #include "HAL/PlatformService.h"
 #include "Application/Application.h"
+#include "Misc/Paths.h"
+#include "DesktopPlatformModule.h"
 
 namespace VeiM
 {
@@ -54,12 +56,19 @@ namespace VeiM
 
 	bool EditorMisc::SpawnEditor(const std::wstring& projectName)
 	{
-		const std::wstring cmd = projectName;
+		const std::wstring cmd = TEXT("\"") + projectName + TEXT("\"");
+		std::wstring rootDir = Paths::GetPath(PlatformService::ExecutablePath());
+		DesktopPlatformModule::Get()->NormalizeEngineRootDir(rootDir);
+		std::wstring binariesDir = (fs::path(rootDir) / "Engine" / "Binaries" / "Win64" / "Development_Editor").wstring();
+		std::wstring editorFilePath = binariesDir + TEXT("\\") + TEXT("VeimEditor.exe");
 
-		const std::wstring exeFilename = PlatformService::ExecutablePath();
-		bool bSuccess = PlatformService::CreateProc(exeFilename.data(), cmd.data(), nullptr, NULL);
-		return bSuccess;
+		ProcessHandle editorProcessHandle = PlatformService::CreateProc(editorFilePath.data(), cmd.data(), nullptr, NULL, nullptr);
+		if (editorProcessHandle.IsValid())
+		{
+			PlatformService::CloseProcess(editorProcessHandle);
+			return true;
+		}
+		return false;
 	}
-
 }
 

@@ -93,6 +93,13 @@ namespace VeiM
 		FrameBuffer m_Framebuffer;
 		int display_w, display_h;
 		IMesh* m_Mesh;
+		float xAngle = -45;
+		float yAngle = -30;
+		float zAngle = 0;
+		float fow = 45.f;
+		float distan = -6.f;
+	public:
+		FrameBuffer& GetFramebuffer() { return m_Framebuffer; };
 
 	private:
 		static Application* s_Instance;

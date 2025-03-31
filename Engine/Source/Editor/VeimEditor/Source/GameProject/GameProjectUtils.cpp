@@ -131,6 +131,11 @@ namespace VeiM
 		return true;
 	}
 
+	bool GameProjectUtils::OpenProjectInIDE(const fs::path& projectFile, String& outErrorMessage)
+	{
+		return DesktopPlatformModule::Get()->OpenIDE(projectFile);
+	}
+
 	bool GameProjectUtils::AssociateProjectWithEngine(const fs::path& projectFile, String& outErrorMessage)
 	{
 		return DesktopPlatformModule::Get()->SetEngineIdentifierForProject(projectFile.wstring(), DesktopPlatformModule::Get()->GetCurrentEngineIdentifier());

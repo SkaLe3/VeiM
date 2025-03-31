@@ -112,5 +112,10 @@ namespace VeiM
 		return nameCopy;
 	}
 
+	std::wstring Paths::GetEngineInstallation()
+	{
+		return TEXT("../../../../");
+	}
+
 }
 
