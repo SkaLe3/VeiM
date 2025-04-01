@@ -38,6 +38,8 @@ project "TestVeimGame"
 		engine_root_dir .. "/Engine/ThirdParty/glm"
 
     }
+	
+	defines {"VM_GAME=1"}
 
 	-- Game Dependencies
     links {"Core"}									-- Link against the VeiM Engine

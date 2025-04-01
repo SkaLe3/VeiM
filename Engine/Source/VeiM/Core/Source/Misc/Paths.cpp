@@ -1,6 +1,9 @@
 #include "Paths.h"
 #include "CoreDefines.h"
 
+#include "HAL/PlatformMisc.h"
+#include "Misc/Singleton.h"
+
 #include <Windows.h>
 #include <filesystem>
 #include <shlobj.h>
@@ -82,11 +85,26 @@ namespace VeiM
 		return std::filesystem::absolute(std::filesystem::path(inPath)).wstring();
 	}
 
-	std::wstring Paths::EngineDir()
+
+
+	bool Paths::TrimPathAt(fs::path& inPath, const std::wstring& removePart)
 	{
-		std::wstring dir = TEXT("../../../../Engine");
-		return dir;
+		std::wstring pathStr = inPath.wstring();
+		std::wstring removePartNormalized = fs::path(removePart);
+		std::replace(pathStr.begin(), pathStr.end(), L'\\', L'/');
+		std::replace(removePartNormalized.begin(), removePartNormalized.end(), L'\\', L'/');
+		size_t pos = pathStr.rfind(removePartNormalized);
+		if (pos != std::wstring::npos)
+		{
+			pathStr = pathStr.substr(0, pos);
+			inPath = pathStr;
+			return true;
+		}
+		inPath = pathStr;
+		return false;
 	}
+
+
 	bool Paths::DirectoryExists(const std::wstring& inPath)
 	{
 		return std::filesystem::exists(inPath) && std::filesystem::is_directory(inPath);
@@ -112,9 +130,39 @@ namespace VeiM
 		return nameCopy;
 	}
 
-	std::wstring Paths::GetEngineInstallation()
+	fs::path Paths::LaunchDir()
 	{
-		return TEXT("../../../../");
+		return PlatformMisc::LaunchDir();
+	}
+
+	fs::path Paths::EngineDir()
+	{
+		return PlatformMisc::EngineDir();
+	}
+
+	fs::path Paths::RootDir()
+	{
+		return PlatformMisc::RootDir();
+	}
+
+	fs::path Paths::ProjectDir()
+	{
+		return PlatformMisc::ProjectDir();
+	}
+
+	bool Paths::IsProjectFilePathSet()
+	{
+		return Singleton<StaticData>::Get().GameProjectFilePath.empty();
+	}
+
+	fs::path Paths::GetProjectFilePath()
+	{
+		return Singleton<StaticData>::Get().GameProjectFilePath;
+	}
+
+	void Paths::SetProjectFilePath(const fs::path& newProjectFilePath)
+	{
+		Singleton<StaticData>::Get().GameProjectFilePath = fs::absolute(newProjectFilePath);
 	}
 
 }

@@ -16,7 +16,7 @@ workspace "VeiM"
 	location "..\\"
 	
 	filter "configurations:Debug or Development or Shipping"
-		defines { "IS_UNIFIED" }
+		defines { "IS_UNIFIED=1" }
 	filter {}
 
 outputdir = "%{cfg.platform}"

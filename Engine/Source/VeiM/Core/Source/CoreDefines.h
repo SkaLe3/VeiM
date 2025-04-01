@@ -1,4 +1,6 @@
 #pragma once
+#include "Misc/Build.h"
+
 
 #ifdef VM_DEBUG
 	#define VM_DEBUGBREAK() __debugbreak()
@@ -33,7 +35,7 @@
 	#define VM_CORE_ASSERT(...)
 #endif
 
-#ifdef IS_UNIFIED
+#if IS_UNIFIED
 	#define CORE_API
 #else
 	#ifdef _WIN32
@@ -46,6 +48,16 @@
 		#define CORE_API
 	#endif
 #endif
+
+
+#if defined(_MSC_VER) 
+	#define FORCEINLINE __forceinline
+#else 
+	#define FORCEINLINE inline
+#endif
+
+#include "Misc/Misc.h"
+
 
 #include <memory>
 #include <string>

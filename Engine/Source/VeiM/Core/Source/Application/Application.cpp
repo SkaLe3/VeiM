@@ -8,6 +8,7 @@
 
 #include "HAL/PlatformService.h"
 #include "Windows/WindowsUtils.h"
+#include "Misc/Paths.h"
 #include "Logging/Log.h"
 #include "Project/ModuleManager.h"
 
@@ -91,14 +92,25 @@ namespace VeiM
 				layer->OnGUI();
 		}
 
-		ImGui::Begin("Test Renderer");
+		if (bHasGame)
+		{
 
-		ImGui::SliderFloat("x Angle", &xAngle, 90, -180, "%.0f");
-		ImGui::SliderFloat("y Angle", &yAngle, 90, -180, "%.0f");
-		ImGui::SliderFloat("z Angle", &zAngle, 0, -90, "%.0f");
-		ImGui::SliderFloat("fow", &fow, 10, 90, "%.0f");
-		ImGui::SliderFloat("distance", &distan, -10, 10, "%.0f");
+			ImGui::Begin("Test Renderer");
+
+			ImGui::SliderFloat("x Angle", &xAngle, 90, -180, "%.0f");
+			ImGui::SliderFloat("y Angle", &yAngle, 90, -180, "%.0f");
+			ImGui::SliderFloat("z Angle", &zAngle, 0, -90, "%.0f");
+			ImGui::SliderFloat("fow", &fow, 10, 90, "%.0f");
+			ImGui::SliderFloat("distance", &distan, -10, 10, "%.0f");
+			ImGui::End();
+		}
+
+		ImGui::Begin("Engine Info");
+		ImGui::Text(Paths::ProjectDir().string().c_str());
 		ImGui::End();
+		
+
+		
 
 		m_GUIContext->EndFrame();
 	}
@@ -134,28 +146,40 @@ namespace VeiM
 		std::vector<String> cmdArgs = m_Config.CommandLineArgs;
 		fs::path shaderFilename;
 		fs::path textureFilename;
-		if (!cmdArgs.empty())
-		{
-			fs::path projectPath = fs::path(cmdArgs[0]);
-			shaderFilename = projectPath.parent_path() / "Content" / "basic.glsl";
-			textureFilename = projectPath.parent_path() / "Content" / "T_Cube.png";
-		}
-		else
+
+		if (IsRunningGame())
 		{
 			shaderFilename = fs::current_path().parent_path().parent_path() / "Content" / "basic.glsl";
 			textureFilename = fs::current_path().parent_path().parent_path() / "Content" / "T_Cube.png";
+			bHasGame = true;
+		}
+		else
+		{
+			if (!cmdArgs.empty())
+			{
+				fs::path projectPath = fs::path(cmdArgs[0]);
+				shaderFilename = projectPath.parent_path() / "Content" / "basic.glsl";
+				textureFilename = projectPath.parent_path() / "Content" / "T_Cube.png";
+				bHasGame = true;
+			}
 		}
 
-		Shader testShader = Shader(shaderFilename);
-		m_Mesh = new CubeMesh();
+		Shader* testShader;
+		Texture* texture0;
 
-		Texture texture0(textureFilename);
- 		testShader.Bind();
- 		testShader.SetUniformInt("u_Texture", 0);
- 		testShader.UnBind();
+		if (bHasGame)
+		{
 
+			testShader = new Shader(shaderFilename);
+			m_Mesh = new CubeMesh();
 
-		m_Framebuffer.Invalidate(1280, 720);
+			texture0 = new Texture(textureFilename);
+			testShader->Bind();
+			testShader->SetUniformInt("u_Texture", 0);
+			testShader->UnBind();
+
+			m_Framebuffer.Invalidate(1280, 720);
+		}
 
 		while (!glfwWindowShouldClose(m_Window->GetNativeWindow()) && m_Running)
 		{
@@ -167,45 +191,51 @@ namespace VeiM
 
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate(m_DeltaTime);
-			if (character)
+
+			if (bHasGame)
 			{
-				character->Update(m_DeltaTime);
-			}
-			GetFramebufferSize(Application::Get().GetWindow().GetNativeWindow(), display_w, display_h);
-			m_Framebuffer.Invalidate(display_w, display_h);
-			m_Framebuffer.Bind();
-			TestRenderer::Clear();
+
+				if (character)
+				{
+					character->Update(m_DeltaTime);
+				}
+				GetFramebufferSize(Application::Get().GetWindow().GetNativeWindow(), display_w, display_h);
+				m_Framebuffer.Invalidate(display_w, display_h);
+				m_Framebuffer.Bind();
+				TestRenderer::Clear();
 
 
-			float real_display_h = display_h;
+				float real_display_h = display_h;
 #ifdef VM_WITH_EDITOR
-			real_display_h = display_h - 54;
+				real_display_h = display_h - 54;
 #endif
 
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, glm::vec3(0.0f, 0.0f, -3.5f));
+				glm::mat4 model = glm::mat4(1.0f);
+				model = glm::translate(model, glm::vec3(0.0f, 0.0f, -3.5f));
 
-			model = glm::rotate(glm::mat4(1.0f), glm::radians(xAngle), glm::vec3(1.0f, 0.0f, 0.0f)) *
-					glm::rotate(glm::mat4(1.0f), glm::radians(yAngle), glm::vec3(0.0f, 1.0f, 0.0f)) * 
- 					glm::rotate(glm::mat4(1.0f), glm::radians(zAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+				model = glm::rotate(glm::mat4(1.0f), glm::radians(xAngle), glm::vec3(1.0f, 0.0f, 0.0f)) *
+					glm::rotate(glm::mat4(1.0f), glm::radians(yAngle), glm::vec3(0.0f, 1.0f, 0.0f)) *
+					glm::rotate(glm::mat4(1.0f), glm::radians(zAngle), glm::vec3(0.0f, 0.0f, 1.0f));
 
-			glm::mat4 view = glm::mat4(1.0f);
-			view = glm::translate(view, glm::vec3(0.0f, 0.0f, distan));
+				glm::mat4 view = glm::mat4(1.0f);
+				view = glm::translate(view, glm::vec3(0.0f, 0.0f, distan));
 
-			glm::mat4 projection;
-			projection = glm::perspective(glm::radians(fow), (float)display_w / real_display_h, 0.1f, 100.0f);
+				glm::mat4 projection;
+				projection = glm::perspective(glm::radians(fow), (float)display_w / real_display_h, 0.1f, 100.0f);
 
-			glm::mat4 viewProj;
-			viewProj = projection * view;
+				glm::mat4 viewProj;
+				viewProj = projection * view;
 
-			
-			TestRenderer::RenderMesh(m_Mesh, testShader, texture0, projection, view, model);
-			m_Framebuffer.UnBind();
-			
+
+				TestRenderer::RenderMesh(m_Mesh, *testShader, *texture0, projection, view, model);
+				m_Framebuffer.UnBind();
+			}
+
 #ifdef VM_WITH_EDITOR
 			RenderGUI();
 #else
-			TestRenderer::BlitFramebufferToSwapchain(m_Framebuffer);
+			if (bHasGame)
+				TestRenderer::BlitFramebufferToSwapchain(m_Framebuffer);
 #endif
 
 			m_Window->SwapBuffers();

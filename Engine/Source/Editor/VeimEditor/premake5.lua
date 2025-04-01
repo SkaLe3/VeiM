@@ -67,6 +67,7 @@ project "VeimEditor"
 	-- Define Macros
 	defines 
 	{
+		"VM_EDITOR=1",
 		"YAML_CPP_STATIC_DEFINE",				-- Use static YAML-CPP
         "VM_APP_NAME=\"" .. app_name .. "\""	-- Define application name
 	}

@@ -98,6 +98,7 @@ namespace VeiM
 		float zAngle = 0;
 		float fow = 45.f;
 		float distan = -6.f;
+		bool bHasGame = false;
 	public:
 		FrameBuffer& GetFramebuffer() { return m_Framebuffer; };
 

@@ -526,7 +526,7 @@ void DesktopPlatformWindows::GetRequiredRegistrySetting(std::vector<RegistryRoot
 	{
 		defaultVersionSelectorName = TEXT("VeiMManagerTool-Win64-Shipping.exe");
 	}
-	std::wstring executableFileName = std::filesystem::path(Paths::Absolute(Paths::EngineDir())) / TEXT("Binaries/Win64") / GetConfigurationDir() / defaultVersionSelectorName;
+	std::wstring executableFileName = std::filesystem::path(Paths::Absolute(Paths::EngineDir().wstring())) / TEXT("Binaries/Win64") / GetConfigurationDir() / defaultVersionSelectorName;
 
 	Paths::NormalizeDirectoryName(executableFileName);
 	Paths::MakeWindowsFileName(executableFileName);

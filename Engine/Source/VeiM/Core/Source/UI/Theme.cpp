@@ -72,7 +72,7 @@ namespace VeiM::UI
 	bool Theme::m_NameCollision;
 	char Theme::m_NewThemeName[32];
 	ImGuiTextFilter Theme::m_ColorFilter;
-	std::filesystem::path Theme::m_ConfPath = fs::absolute(fs::path(Paths::GetEngineInstallation()) / "Engine/Config/Themes.conf");
+	std::filesystem::path Theme::m_ConfPath = fs::absolute(fs::path(Paths::RootDir()) / "Engine/Config/Themes.conf");
 
 
 	YAML::Emitter& operator<<(YAML::Emitter& out, const ImVec2& v)

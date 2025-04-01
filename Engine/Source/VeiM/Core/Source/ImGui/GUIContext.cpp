@@ -28,7 +28,7 @@ namespace VeiM
 		g_ImGuiContext = ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 
-		fs::path configPath = fs::path(Paths::GetEngineInstallation()) / "Engine/Config";
+		fs::path configPath = fs::path(Paths::RootDir()) / "Engine/Config";
 		m_ConfigFilename = (configPath / "imgui.ini").string();
 		if (!fs::exists(configPath))
 		{

@@ -140,7 +140,8 @@ namespace VeiM
 
 		if (m_ProjectBrowser)
 			m_ProjectBrowser->OnGUI();
-		TestClassMetadataDisplay();
+		else
+			TestClassMetadataDisplay();
 	}
 
 	void EditorLayer::ImGuiWindowMenu()

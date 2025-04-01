@@ -182,7 +182,7 @@ namespace VeiM
 	std::vector<std::shared_ptr<TemplateItem>> ProjectBrowser::LoadTemplateProjects()
 	{
 		std::vector<std::shared_ptr<TemplateItem>> templates;
-		std::wstring templateRootFolder = TEXT("Templates");
+		fs::path templateRootFolder = Paths::RootDir() / "Templates";
 
 		if (std::filesystem::exists(templateRootFolder) && std::filesystem::is_directory(templateRootFolder))
 		{
@@ -191,7 +191,7 @@ namespace VeiM
 				if (entry.is_regular_file() && entry.path().extension() == ".vmproject")
 				{
 					std::filesystem::path projectFile = fs::absolute(entry.path());
-					std::filesystem::path projectPath = std::filesystem::path(Paths::GetPath(entry.path().wstring()));
+					std::filesystem::path projectPath = std::filesystem::path(entry.path().parent_path());
 					std::filesystem::path thumbnailPath = projectPath / "Media" / "Thumbnail.png";
 					std::filesystem::path previewPath = projectPath / "Media" / "Preview.png";
 
@@ -464,10 +464,13 @@ namespace VeiM
 
 	void ProjectBrowser::RenderTemplateProperties()
 	{
-		SharedPtr<Image> previewImage = m_SelectedTempalteItem->PreviewImage;
-		float availableWidth = ImGui::GetContentRegionAvail().x;
-		float height = (float)previewImage->GetHeight() / (float)previewImage->GetWidth() * availableWidth;
-		ImGui::Image((ImTextureID)previewImage->GetData(), { availableWidth,  height });
+		if (m_SelectedTempalteItem)
+		{
+			SharedPtr<Image> previewImage = m_SelectedTempalteItem->PreviewImage;
+			float availableWidth = ImGui::GetContentRegionAvail().x;
+			float height = (float)previewImage->GetHeight() / (float)previewImage->GetWidth() * availableWidth;
+			ImGui::Image((ImTextureID)previewImage->GetData(), { availableWidth,  height });
+		}
 	}
 
 	void ProjectBrowser::RenderCreatingProjectPopup()
@@ -501,13 +504,13 @@ namespace VeiM
 			m_ProjectBrowserHandler->OnUpdateProjects();
 			return;
 		}
-		
+
 		if (GameProjectUtils::CompileGameProject(projectFile))
 		{
 			Application::Get().Close();
 			OpenIDE(projectFile);
 			OpenProject(projectFile);
-			
+
 		}
 		// TODO: Add pop up that failed to compile
 	}
@@ -519,7 +522,7 @@ namespace VeiM
 			return false;
 		}
 		String errorMessage;
-		ProjectCreateInfo createInfo{ projectFile, m_SelectedTempalteItem->projectFilename};
+		ProjectCreateInfo createInfo{ projectFile, m_SelectedTempalteItem->projectFilename };
 		if (!GameProjectUtils::CreateProject(createInfo, errorMessage))
 		{
 			// TODO: Change to popup
