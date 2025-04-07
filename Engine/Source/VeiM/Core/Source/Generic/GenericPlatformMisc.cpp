@@ -74,13 +74,22 @@ namespace VeiM
 		}
 		if (projectDir.empty())
 		{
-			if (Paths::IsProjectFilePathSet()) // TODO: Look where to set ProjectFilePath
+			if (Paths::IsProjectFilePathSet())
 			{
-				projectDir = Paths::GetProjectFilePath();
+				projectDir = Paths::GetProjectFilePath().parent_path();
 			}
 			else
 			{
-				// For editor build Find project file path by game name and set it to Paths and projectDir
+				if (PlatformProperties::IsUnified())
+				{
+					projectDir = fs::path(PlatformService::BaseDir()).parent_path().parent_path();
+				}
+				else
+				{
+					// TODO: set projectDir
+					// This is editor build. Find project file by game name and use it to set directory + set project file path in Paths
+				}
+				
 			}
 		}
 

@@ -2,6 +2,7 @@
 
 #include "Application/Application.h"
 #include "Logging/Log.h"
+#include "Misc/Paths.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>		 
@@ -246,8 +247,7 @@ namespace VeiM
 		int channels;
 		if (!iconPath.empty())
 		{
-			String iconPathStr = iconPath.string();
-			icon.pixels = stbi_load((Application::Get().GetEngineResourcePath() / iconPathStr).string().c_str(), &icon.width, &icon.height, &channels, 4);
+			icon.pixels = stbi_load((Paths::EngineContentDir() / iconPath).string().c_str(), &icon.width, &icon.height, &channels, 4);
 			glfwSetWindowIcon(m_Window, 1, &icon);
 			stbi_image_free(icon.pixels);
 		}

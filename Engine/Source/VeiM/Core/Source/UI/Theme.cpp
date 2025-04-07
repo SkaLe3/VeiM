@@ -72,7 +72,7 @@ namespace VeiM::UI
 	bool Theme::m_NameCollision;
 	char Theme::m_NewThemeName[32];
 	ImGuiTextFilter Theme::m_ColorFilter;
-	std::filesystem::path Theme::m_ConfPath = fs::absolute(fs::path(Paths::RootDir()) / "Engine/Config/Themes.conf");
+	std::filesystem::path Theme::m_ConfPath = Paths::EngineConfigDir() / "Themes.conf";
 
 
 	YAML::Emitter& operator<<(YAML::Emitter& out, const ImVec2& v)
@@ -486,8 +486,8 @@ namespace VeiM::UI
 	{
 		Theme theme;
 
-		theme.m_Icons["Folder"] = MakeShared<Image>((Application::Get().GetEngineResourcePath() / "Editor" / "Icons" / "Folder.png").string());
-		theme.m_Icons["DefaultThumbnail"] = MakeShared<Image>((Application::Get().GetEngineResourcePath() / "UI" / "Icons" / "VeiM_Logo.png").string());
+		theme.m_Icons["Folder"] = MakeShared<Image>((Paths::EngineContentDir() / "Editor" / "Icons" / "Folder.png").string());
+		theme.m_Icons["DefaultThumbnail"] = MakeShared<Image>((Paths::EngineContentDir() / "UI" / "Icons" / "VeiM_Logo.png").string());
 
 		YAML::Node dt = m_Themes[themeName];
 

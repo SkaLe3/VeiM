@@ -27,8 +27,6 @@ namespace VeiM
 	{
 		std::string Name = "VeiM Engine";
 		bool EnableConsole = true;
-		std::filesystem::path WorkingDirectory;
-		std::filesystem::path EngineContentPath;
 		std::vector<String> CommandLineArgs;
 	};
 
@@ -56,7 +54,6 @@ namespace VeiM
 
 		void Close() { m_Running = false; }
 
-		inline std::filesystem::path GetEngineResourcePath() { return m_Config.EngineContentPath; }
 		inline float GetDeltaTime() { return m_DeltaTime; }
 		Window& GetWindow() const { return *m_Window; }
 		ApplicationConfig GetConfig() { return m_Config; }

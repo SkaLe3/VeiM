@@ -29,11 +29,6 @@ namespace VeiM
 		return result;
 	}
 
-	std::wstring Paths::EngineContentDir()
-	{
-		return L"";
-	}
-
 	std::wstring Paths::UserDocumentsDir()
 	{
 		TCHAR* path = nullptr;
@@ -150,9 +145,29 @@ namespace VeiM
 		return PlatformMisc::ProjectDir();
 	}
 
+	fs::path Paths::EngineContentDir()
+	{
+		return Paths::EngineDir() / "Content";
+	}
+
+	fs::path Paths::EngineConfigDir()
+	{
+		return Paths::EngineDir() / "Config";
+	}
+
+	fs::path Paths::ProjectContentDir()
+	{
+		return Paths::ProjectDir() / "Content";
+	}
+
+	fs::path Paths::ProjectConfigDir()
+	{
+		return Paths::ProjectDir() / "Config";
+	}
+
 	bool Paths::IsProjectFilePathSet()
 	{
-		return Singleton<StaticData>::Get().GameProjectFilePath.empty();
+		return !Singleton<StaticData>::Get().GameProjectFilePath.empty();
 	}
 
 	fs::path Paths::GetProjectFilePath()

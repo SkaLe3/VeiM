@@ -3,6 +3,7 @@
 #include "Application/Application.h"
 #include "UI/UI.h"
 #include "UI/Theme.h"
+#include "Misc/Paths.h"
 
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
@@ -109,7 +110,7 @@ namespace VeiM::UI
 				const ImRect menuBarRect = { menubarStart, { ImGui::GetContentRegionAvail().x + ImGui::GetCursorScreenPos().x, ImGui::GetFrameHeightWithSpacing() + (isMaximized ? 8 : 0) } };
 
 				ImGui::BeginGroup();
-	
+
 				if (UI::BeginMenubar(menuBarRect))
 				{
 
@@ -132,17 +133,27 @@ namespace VeiM::UI
 			}
 			if (ImGui::IsItemHovered())
 				m_Hovered = false;
-		}	
+		}
 		ImGui::ResumeLayout();
 	}
 
 	void TitleBar::RenderProjectName()
 	{
+		static String projectName;
+		// TODO: change to use actual project name variable
+		if (projectName.empty())
+		{
+			if (Paths::IsProjectFilePathSet())
+			{
+				projectName = Paths::GetProjectFilePath().stem().string();
+			}
+		}
+
 		ImVec2 currentCursorPos = ImGui::GetCursorPos();
 		float rectOffsetY = -5.f; // Do not draw upper rounded corners
 
 		ImVec2 framePadding = { 20.f, 5.f };
-		ImVec2 textSize = { ImGui::CalcTextSize("Project Name").x, 10 };
+		ImVec2 textSize = { ImGui::CalcTextSize(projectName.empty() ? "Project Name" : projectName.c_str()).x, 10 };
 		ImVec2 itemSize = { textSize.x + framePadding.x * 2.f, 16 + framePadding.y * 2.f - rectOffsetY };
 
 		ImGui::SetCursorPos({ ImGui::GetWindowWidth() - m_Style.ButtonsAreaWidth - itemSize.x - m_Style.ButtonSize.x / 2.0f, m_IsMaximized ? 8 : 0.f });
@@ -154,7 +165,7 @@ namespace VeiM::UI
 
 		UI::ShiftCursor(framePadding.x, framePadding.y - rectOffsetY + 1);
 		ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(200, 200, 200, 255));
-		ImGui::Text("Project Name");
+		ImGui::Text(projectName.empty() ? "Project Name" : projectName.c_str());
 		ImGui::PopStyleColor();
 		ImGui::SetCursorPos(currentCursorPos);
 	}
@@ -202,7 +213,7 @@ namespace VeiM::UI
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 		// Minimize Button
-		ImGui::Spring(); 
+		ImGui::Spring();
 		UI::ShiftCursorY(11.0f);
 		{
 			const int iconWidth = m_IconMinimize->GetWidth();
@@ -245,11 +256,11 @@ namespace VeiM::UI
 			const int iconHeight = m_IconClose->GetHeight();
 			const float padY = (m_Style.ButtonSize.y - (float)iconHeight) / 2.0f;
 			const float padX = (m_Style.ButtonSize.x - (float)iconWidth) / 2.0f;
-			if (ImGui::InvisibleButton("Close", ImVec2(m_Style.ButtonSize.x + 6 , m_Style.ButtonSize.y)))
+			if (ImGui::InvisibleButton("Close", ImVec2(m_Style.ButtonSize.x + 6, m_Style.ButtonSize.y)))
 				Application::Get().Close();
 
 			UI::DrawButtonImage(m_IconClose, UI::Theme::Get().EditorColors.Text, UI::Colors::ColorWithMultipliedValue(UI::Theme::Get().EditorColors.Text, 1.4f), buttonColP,
-								ImRect({ImGui::GetItemRectMin().x + padX, ImGui::GetItemRectMin().y + padY}, {ImGui::GetItemRectMax().x - padX - 6, ImGui::GetItemRectMax().y - padY}));
+				ImRect({ ImGui::GetItemRectMin().x + padX, ImGui::GetItemRectMin().y + padY }, { ImGui::GetItemRectMax().x - padX - 6, ImGui::GetItemRectMax().y - padY }));
 		}
 		ImGui::Spring(-1, 18);
 		ImGui::PopStyleVar();
@@ -260,7 +271,7 @@ namespace VeiM::UI
 		// Title bar drag area
 		ImGui::SetCursorPos(ImVec2(m_Style.WindowPadding.x, m_Style.WindowPadding.y + m_Style.VerticalOffset)); // Reset cursor pos
 		RenderDebugHelpers(titlebarMin, titlebarMax, w);
-		UI::InvisibleItem("##titleBarDragZone", ImVec2(w - m_Style.ButtonsAreaWidth - m_Style.WindowPadding.x , m_Style.Height));
+		UI::InvisibleItem("##titleBarDragZone", ImVec2(w - m_Style.ButtonsAreaWidth - m_Style.WindowPadding.x, m_Style.Height));
 
 		m_Hovered = ImGui::IsItemHovered();
 

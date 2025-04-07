@@ -29,14 +29,14 @@ namespace VeiM
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 
 		fs::path configPath = fs::path(Paths::RootDir()) / "Engine/Config";
-		m_ConfigFilename = (configPath / "imgui.ini").string();
-		if (!fs::exists(configPath))
+		m_ConfigFilename = (Paths::EngineConfigDir() / "imgui.ini").string();
+		if (!fs::exists(Paths::EngineConfigDir()))
 		{
-			VM_CORE_WARN("imgui config path: '{0}' does not exist", fs::absolute(configPath).string());
+			VM_CORE_WARN("imgui config path: '{0}' does not exist", Paths::EngineConfigDir().string());
 		}
 		else
 		{
-			VM_CORE_TRACE("imgui config file: '{0}'", (fs::absolute(configPath) / "imgui.ini").string());
+			VM_CORE_TRACE("imgui config file: '{0}'", (Paths::EngineConfigDir() / "imgui.ini").string());
 		}
 
 		io.IniFilename = m_ConfigFilename.c_str();
@@ -49,28 +49,28 @@ namespace VeiM
 		//io.ConfigViewportsNoTaskBarIcon = true;
 
 		float fontSize = 16.0f;
-		String fontPath = Application::Get().GetEngineResourcePath().string() + "/UI/Fonts/";
-		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-Bold.ttf").c_str(), fontSize);
-		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-Bold.ttf").c_str(), 24);
-		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-Bold.ttf").c_str(), 18);
-		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-Black.ttf").c_str(), fontSize);
-		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-BlackItalic.ttf").c_str(), fontSize);
-		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-BoldItalic.ttf").c_str(), fontSize);
-		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-Italic.ttf").c_str(), fontSize);
-		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-Light.ttf").c_str(), fontSize);
-		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-LightItalic.ttf").c_str(), fontSize);
-		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-Medium.ttf").c_str(), fontSize);
-		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-MediumItalic.ttf").c_str(), fontSize);
-		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-Thin.ttf").c_str(), fontSize);
-		io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-ThinItalic.ttf").c_str(), fontSize);
-		io.Fonts->AddFontFromFileTTF((fontPath + "Nunito-Sans/NunitoSans_10pt-Bold.ttf").c_str(), fontSize);
-		io.Fonts->AddFontFromFileTTF((fontPath + "Nunito-Sans/NunitoSans_10pt-BoldItalic.ttf").c_str(), fontSize);
-		io.Fonts->AddFontFromFileTTF((fontPath + "Nunito-Sans/NunitoSans_10pt-Italic.ttf").c_str(), fontSize);
-		io.Fonts->AddFontFromFileTTF((fontPath + "Nunito-Sans/NunitoSans_10pt-Light.ttf").c_str(), fontSize);
-		io.Fonts->AddFontFromFileTTF((fontPath + "Nunito-Sans/NunitoSans_10pt-LightItalic.ttf").c_str(), fontSize);
-		io.Fonts->AddFontFromFileTTF((fontPath + "Nunito-Sans/NunitoSans_10pt-Regular.ttf").c_str(), fontSize);
-		io.Fonts->AddFontFromFileTTF((fontPath + "Nunito-Sans/NunitoSans_10pt-SemiBold.ttf").c_str(), fontSize);
-		io.FontDefault = io.Fonts->AddFontFromFileTTF((fontPath + "Roboto/Roboto-Regular.ttf").c_str(), fontSize);
+		fs::path fontPath = Paths::EngineContentDir() / "UI/Fonts";
+		io.Fonts->AddFontFromFileTTF((fontPath / "Roboto/Roboto-Bold.ttf").string().c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath / "Roboto/Roboto-Bold.ttf").string().c_str(), 24);
+		io.Fonts->AddFontFromFileTTF((fontPath / "Roboto/Roboto-Bold.ttf").string().c_str(), 18);
+		io.Fonts->AddFontFromFileTTF((fontPath / "Roboto/Roboto-Black.ttf").string().c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath / "Roboto/Roboto-BlackItalic.ttf").string().c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath / "Roboto/Roboto-BoldItalic.ttf").string().c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath / "Roboto/Roboto-Italic.ttf").string().c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath / "Roboto/Roboto-Light.ttf").string().c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath / "Roboto/Roboto-LightItalic.ttf").string().c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath / "Roboto/Roboto-Medium.ttf").string().c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath / "Roboto/Roboto-MediumItalic.ttf").string().c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath / "Roboto/Roboto-Thin.ttf").string().c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath / "Roboto/Roboto-ThinItalic.ttf").string().c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath / "Nunito-Sans/NunitoSans_10pt-Bold.ttf").string().c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath / "Nunito-Sans/NunitoSans_10pt-BoldItalic.ttf").string().c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath / "Nunito-Sans/NunitoSans_10pt-Italic.ttf").string().c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath / "Nunito-Sans/NunitoSans_10pt-Light.ttf").string().c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath / "Nunito-Sans/NunitoSans_10pt-LightItalic.ttf").string().c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath / "Nunito-Sans/NunitoSans_10pt-Regular.ttf").string().c_str(), fontSize);
+		io.Fonts->AddFontFromFileTTF((fontPath / "Nunito-Sans/NunitoSans_10pt-SemiBold.ttf").string().c_str(), fontSize);
+		io.FontDefault = io.Fonts->AddFontFromFileTTF((fontPath / "Roboto/Roboto-Regular.ttf").string().c_str(), fontSize);
 
 
 

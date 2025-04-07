@@ -11,7 +11,6 @@ namespace VeiM
 		// TODO: Change return types to std::filesystem:path
 
 		static std::wstring GetPath(const std::wstring& inPath);
-		static std::wstring EngineContentDir();
 		static std::wstring UserDocumentsDir();
 		static std::wstring DefaultProjectsDir();
 
@@ -29,6 +28,13 @@ namespace VeiM
 		static fs::path EngineDir();
 		static fs::path RootDir();
 		static fs::path ProjectDir();
+
+		static fs::path EngineContentDir();
+		static fs::path EngineConfigDir();
+
+		static fs::path ProjectContentDir();
+		static fs::path ProjectConfigDir();
+		// Add more
 
 		static bool IsProjectFilePathSet();
 		static fs::path GetProjectFilePath();

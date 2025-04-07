@@ -28,8 +28,6 @@ namespace VeiM
 		// TODO: Add version and build configuration to name   
 		specs.AppConfig.Name = "VeiM Editor";
 		specs.AppConfig.EnableConsole = true; // TODO: Add option to enable console in game shipping build, or to choose it instead of editor console in debug and development editor build
-		specs.AppConfig.WorkingDirectory = PlatformService::BaseDir();
-		specs.AppConfig.EngineContentPath = fs::path( Paths::RootDir()) / "Engine\\Content";
 		specs.AppConfig.CommandLineArgs = arguments;
 
 		specs.WndConfig.Title = "VeiM Editor";

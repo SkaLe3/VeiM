@@ -9,8 +9,10 @@
 #include "HAL/PlatformService.h"
 #include "Windows/WindowsUtils.h"
 #include "Misc/Paths.h"
+#include "Misc/Timer.h"
 #include "Logging/Log.h"
 #include "Project/ModuleManager.h"
+#include "Types/StringID.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>		 
@@ -18,6 +20,8 @@
 
 #include "Test/Base.h" // TEmporary
 #include "Renderer/Shader.h"
+#include "Renderer/CubeMesh.h"
+#include "Renderer/SphereMesh.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -35,7 +39,6 @@ namespace VeiM
 		VM_CORE_ASSERT(!s_Instance, "Application already exists!");
 		s_Instance = this;
 
-
 		PlatformService::SetCurrentWorkingDirectoryToBaseDir();
 
 
@@ -48,10 +51,10 @@ namespace VeiM
 		std::vector<String> cmdArgs = m_Config.CommandLineArgs;
 		if (!cmdArgs.empty())
 		{
-			fs::path projectPath = fs::path(cmdArgs[0]);
-			ModuleManager::Get().SetGameBianariesDir(projectPath.parent_path() / "Binaries" / "Win64");
-			ModuleManager::Get().LoadModule(projectPath.stem().wstring());
-			ModuleManager::Get().LoadModule(projectPath.stem().wstring());
+			Paths::SetProjectFilePath(cmdArgs[0]);
+			ModuleManager::Get().SetGameBianariesDir(Paths::ProjectDir() / "Binaries" / "Win64");
+			ModuleManager::Get().LoadModule(Paths::GetProjectFilePath().stem().wstring());
+			ModuleManager::Get().LoadModule(Paths::GetProjectFilePath().stem().wstring());
 		}
 
 		InitGUI();
@@ -105,13 +108,6 @@ namespace VeiM
 			ImGui::End();
 		}
 
-		ImGui::Begin("Engine Info");
-		ImGui::Text(Paths::ProjectDir().string().c_str());
-		ImGui::End();
-		
-
-		
-
 		m_GUIContext->EndFrame();
 	}
 #endif
@@ -149,6 +145,7 @@ namespace VeiM
 
 		if (IsRunningGame())
 		{
+			// TODO: User ProjectContentDir, but make sure to get correct path for unified build
 			shaderFilename = fs::current_path().parent_path().parent_path() / "Content" / "basic.glsl";
 			textureFilename = fs::current_path().parent_path().parent_path() / "Content" / "T_Cube.png";
 			bHasGame = true;
@@ -157,9 +154,8 @@ namespace VeiM
 		{
 			if (!cmdArgs.empty())
 			{
-				fs::path projectPath = fs::path(cmdArgs[0]);
-				shaderFilename = projectPath.parent_path() / "Content" / "basic.glsl";
-				textureFilename = projectPath.parent_path() / "Content" / "T_Cube.png";
+				shaderFilename = Paths::ProjectContentDir() / "sun.glsl";
+				textureFilename = Paths::ProjectContentDir() / "T_Cube.png";
 				bHasGame = true;
 			}
 		}
@@ -180,6 +176,38 @@ namespace VeiM
 
 			m_Framebuffer.Invalidate(1280, 720);
 		}
+
+		{
+			Timer sidTimer;
+			for (int i = 0; i < 1000000; i++)
+			{
+				StringID a("MyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringA", 1);
+				StringID b("MyTestStringBMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringA", 1);
+				if (a == b) {}
+			}
+			VM_CORE_TRACE("String IDs CHAR result (cached): {0}", sidTimer.ElapsedMillis());
+		}
+		{
+			Timer sidTimer;
+			for (int i = 0; i < 1000000; i++)
+			{
+				StringID a("MyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringA");
+				StringID b("MyTestStringBMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringA");
+				if (a == b) {}
+			}
+			VM_CORE_TRACE("String IDs string result (cached): {0}", sidTimer.ElapsedMillis());
+		}
+		{
+			Timer sidTimer;
+			for (int i = 0; i < 1000000; i++)
+			{
+				String a("MyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringAMyTestStringA");
+				String b("MyTestStringBMyTestStringBMyTestStringBMyTestStringBMyTestStringBMyTestStringBMyTestStringBMyTestStringBMyTestStringBMyTestStringAMyTestStringA");
+				if (a == b) {}
+			}
+			VM_CORE_TRACE("Regular strings result (cached): {0}", sidTimer.ElapsedMillis());
+		}
+
 
 		while (!glfwWindowShouldClose(m_Window->GetNativeWindow()) && m_Running)
 		{
@@ -202,6 +230,8 @@ namespace VeiM
 				GetFramebufferSize(Application::Get().GetWindow().GetNativeWindow(), display_w, display_h);
 				m_Framebuffer.Invalidate(display_w, display_h);
 				m_Framebuffer.Bind();
+				TestRenderer::SetClearColor(0.2f, 0.3f, 0.3f, 1.f);
+				//TestRenderer::SetClearColor(0.05f, 0.0f, 0.1f, 1.f);
 				TestRenderer::Clear();
 
 
@@ -225,7 +255,6 @@ namespace VeiM
 
 				glm::mat4 viewProj;
 				viewProj = projection * view;
-
 
 				TestRenderer::RenderMesh(m_Mesh, *testShader, *texture0, projection, view, model);
 				m_Framebuffer.UnBind();
