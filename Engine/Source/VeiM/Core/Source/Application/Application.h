@@ -18,6 +18,7 @@
 // TEMPORARY
 #include "Test/FrameBuffer.h"
 #include "Test/TestRenderer.h"
+#include "Renderer/EditorCamera.h"
 
 struct GLFWwindow;
 
@@ -89,13 +90,15 @@ namespace VeiM
 		//Temp 
 		FrameBuffer m_Framebuffer;
 		int display_w, display_h;
-		IMesh* m_Mesh;
-		float xAngle = -45;
-		float yAngle = -30;
-		float zAngle = 0;
-		float fow = 45.f;
-		float distan = -6.f;
+		IMesh* m_CubeMesh;
+		IMesh* m_SphereMesh;
+		float cubePitch = -45;
+		float cubeYaw = -30;
+		float cubeRoll = 0;
+		float fov = 45.f;
+		float size = 10;
 		bool bHasGame = false;
+
 	public:
 		FrameBuffer& GetFramebuffer() { return m_Framebuffer; };
 

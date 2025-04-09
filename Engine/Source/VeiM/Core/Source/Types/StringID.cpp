@@ -12,10 +12,7 @@ namespace VeiM
 		return g_StringIdTable;
 	}
 
-
-
-
-	StringID::StringID(const char* str)
+	StringID::StringID(const char* str, EFindStringID findType /*= StringID_Add*/)
 	{
 		uint32 sid = static_cast<uint32>(std::hash<const char*>{}(str));
 
@@ -26,8 +23,15 @@ namespace VeiM
 		}
 		else
 		{
-			m_ID = sid;
-			GetStringIdTable()[m_ID] = strdup(str);
+			if (findType == EFindStringID::StringID_Add)
+			{
+				m_ID = sid;
+				GetStringIdTable()[m_ID] = strdup(str);
+			}
+			else
+			{
+				m_ID = 0;
+			}
 		}
 	}
 
@@ -40,6 +44,5 @@ namespace VeiM
 		}
 		return out;
 	}
-
 }
 
