@@ -36,6 +36,8 @@ namespace VeiM
 			}
 		}
 		Topology = ETopology::Triangles;
+		UV.clear();
+		Normals.clear();
 		Finilize();
 	}
 

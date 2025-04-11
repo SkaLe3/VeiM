@@ -32,6 +32,8 @@ namespace VeiM
 		void RenderDockspace();
 		void BeginFrame();
 		void EndFrame();
+		void BlockEvents(bool block) { m_bBlockEvents = block; }
+		bool IsBlockingEvents() const { return m_bBlockEvents; }
 
 		static ImGuiContext* GetImGuiContext();
 
@@ -46,6 +48,8 @@ namespace VeiM
 		UI::Theme m_Theme;
 		GUIDebug m_Debug;
 		String m_ConfigFilename;
+
+		bool m_bBlockEvents = true;
 
 
 	};

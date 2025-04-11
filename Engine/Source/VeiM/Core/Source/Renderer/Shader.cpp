@@ -175,7 +175,7 @@ namespace VeiM
 				bool bS = bSuccess;
 				glGetShaderInfoLog(shaderIDs[shaderSource.first], 512, NULL, infoLog);;
 				VM_CORE_ASSERT(bS);
-				VM_CORE_ERROR("***** shader compilation failed: {0}", infoLog);
+				VM_CORE_ERROR("{1} : ***** shader compilation failed: {0}", infoLog, m_ShaderPath.string()); // TODO: Add enum to string for shader type name
 			}
 		}
 

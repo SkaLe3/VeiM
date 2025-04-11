@@ -77,6 +77,7 @@ project "Core"
 		defines "VM_DEBUG"
 		runtime "Debug"
 		symbols "on"
+		defines {"VM_GAME=1"}
 	
 	filter "configurations:Debug_Editor"
 		defines "VM_DEBUG"
@@ -90,6 +91,7 @@ project "Core"
 		runtime "Release"
 		optimize "on"
         symbols "on"
+		defines {"VM_GAME=1"}
 
 	filter "configurations:Development_Editor"
 		defines "VM_DEVELOPMENT"
@@ -104,4 +106,5 @@ project "Core"
 		runtime "Release"
 		optimize "on"
         symbols "off"
+		defines {"VM_GAME=1"}
 

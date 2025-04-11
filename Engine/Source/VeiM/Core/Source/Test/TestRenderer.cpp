@@ -29,14 +29,13 @@ namespace VeiM
 
 	}
 
-	CORE_API void TestRenderer::RenderMesh(IMesh* mesh, Shader& shader, Texture& tex, const glm::mat4& viewProj, const glm::mat4& view, const glm::mat4& transform)
+	CORE_API void TestRenderer::RenderMesh(IMesh* mesh, Shader& shader, Texture& tex, const glm::mat4& viewProj, const glm::mat4& transform)
 	{
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, tex.GetTexID());
 
 		shader.Bind();
 		shader.SetMat4("u_ViewProjection", viewProj);
-		shader.SetMat4("u_View", view);
 		shader.SetMat4("u_Transform", transform);
 		shader.SetFloat4("tintColor", { 1.0f, 1.0f, 1.0f, 1.0f });
 		mesh->Render();

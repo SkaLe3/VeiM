@@ -124,24 +124,33 @@ namespace VeiM
 		ImGui::End();
 
 
-		// Render
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
-		ImGui::Begin("Viewport");
-		auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
-		auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
-		auto viewportOffset = ImGui::GetWindowPos();
-		m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
-		m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
-		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-		m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
-		ImGui::Image(reinterpret_cast<void*>(Application::Get().DebugGetFramebuffer()->GetTexture()), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-		ImGui::End();
-		ImGui::PopStyleVar();
-
 		if (m_ProjectBrowser)
+		{
 			m_ProjectBrowser->OnGUI();
+		}
 		else
+		{
+			// Render
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
+			ImGui::Begin("Viewport");
+			auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
+			auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
+			auto viewportOffset = ImGui::GetWindowPos();
+			m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
+			m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
+
+			m_bViewportFocused = ImGui::IsWindowFocused();
+			m_bViewportHovered = ImGui::IsWindowHovered();
+			Application::Get().GetGUIContext()->BlockEvents(!m_bViewportHovered);
+
+			ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+			m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
+			Application::Get().ViewportResize(m_ViewportSize.x, m_ViewportSize.y);
+			ImGui::Image(reinterpret_cast<void*>(Application::Get().DebugGetFramebuffer()->GetTexture()), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+			ImGui::End();
+			ImGui::PopStyleVar();
 			TestClassMetadataDisplay();
+		}
 	}
 
 	void EditorLayer::ImGuiWindowMenu()

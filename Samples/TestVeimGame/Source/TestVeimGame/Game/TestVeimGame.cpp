@@ -29,7 +29,6 @@ namespace VeiM
 
 		specs.AppConfig.Name = "TestGame";
 		specs.AppConfig.EnableConsole = true;
-		specs.AppConfig.WorkingDirectory = PlatformService::BaseDir();
 		specs.AppConfig.CommandLineArgs = arguments;
 
 		specs.WndConfig.Title = "Test Game";

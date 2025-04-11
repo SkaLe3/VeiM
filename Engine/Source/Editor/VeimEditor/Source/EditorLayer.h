@@ -44,6 +44,9 @@ namespace VeiM
 		glm::vec2 m_ViewportBounds[2];
 		glm::vec2 m_ViewportSize;
 
+		bool m_bViewportFocused = false;
+		bool m_bViewportHovered = false;
+
 
 		// Temp
 

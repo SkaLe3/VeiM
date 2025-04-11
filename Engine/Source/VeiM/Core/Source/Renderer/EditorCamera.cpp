@@ -42,6 +42,11 @@ namespace VeiM
 		return glm::rotate(GetOrientation(), glm::vec3(0.f, 1.f, 0.f));
 	}
 
+	void EditorCamera::SetPosition(const glm::vec3& position)
+	{
+		m_Position = position;
+	}
+
 	void EditorCamera::InputKey(float deltaTime, const glm::vec3& direction)
 	{
 		float speed = m_MovementSpeed * deltaTime;

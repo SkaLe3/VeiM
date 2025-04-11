@@ -6,7 +6,7 @@ namespace VeiM
 	class CORE_API FrameBuffer
 	{
 	public:
-		void Invalidate(uint32 widht, uint32 height);
+		void Invalidate(uint32 width, uint32 height);
 		void Bind();
 		void UnBind();
 		uint32 GetTexture();

@@ -23,6 +23,8 @@ namespace VeiM
 		float& MovementSpeed() { return m_MovementSpeed; }
 		float& Sensitivity() { return m_MouseSensitivity; }
 
+		void SetPosition(const glm::vec3& position);
+
 		void InputKey(float deltaTime, const glm::vec3& direction);
 		void InputMouse(const glm::vec2& delta);
 		void InputScroll(const glm::vec2& delta);
