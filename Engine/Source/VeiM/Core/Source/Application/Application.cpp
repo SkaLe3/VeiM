@@ -397,17 +397,6 @@ namespace VeiM
 
 
 			m_Framebuffer.Invalidate(1280, 720);
-
-			// SunMesh
-			glGenVertexArrays(1, &lightVAO);
-			glBindVertexArray(lightVAO);
-			// we only need to bind to the VBO, the container's VBO's data already contains the data.
-			glBindBuffer(GL_ARRAY_BUFFER, m_SphereMesh->GetVBO());
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_SphereMesh->GetEBO());
-			// set the vertex attribute 
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-			glEnableVertexAttribArray(0);
-			glBindVertexArray(0);
 		}
 
 		m_Camera = MakeUnique<EditorCamera>();
@@ -550,7 +539,7 @@ namespace VeiM
 				lightSourceShader->SetMat4("u_ViewProjection", viewProjection);
 				lightSourceShader->SetMat4("u_Transform", pointLightModel1);
 				lightSourceShader->SetFloat3("u_LightColor", m_PointLightDiffuse);
-				glBindVertexArray(lightVAO);
+				glBindVertexArray(m_SphereMesh->GetVAO());
 				glDrawElements(GL_TRIANGLES, m_SphereMesh->Indices.size(), GL_UNSIGNED_INT, 0);
 
 				lightSourceShader->SetMat4("u_Transform", pointLightModel2);

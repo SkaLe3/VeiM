@@ -13,3 +13,6 @@
 [submodule "Engine/ThirdParty/spdlog"]
 	path = Engine/ThirdParty/spdlog
 	url = https://github.com/gabime/spdlog
+[submodule "Engine/ThirdParty/assimp"]
+	path = Engine/ThirdParty/assimp
+	url = https://github.com/SkaLe3/assimp.git

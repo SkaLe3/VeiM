@@ -15,6 +15,20 @@ namespace VeiM
 		TriangleFan
 	};
 
+	struct VertexAttributeLayout
+	{
+		int32 Location;
+		int32 Components;
+		size_t Offset;
+	};
+
+	struct Vertex
+	{
+		glm::vec3 Position;
+		glm::vec2 UV;
+		glm::vec3 Normal;
+	};
+
 	class CORE_API IMesh
 	{
 	public:
@@ -46,8 +60,10 @@ namespace VeiM
 		std::vector<uint32> Indices;
 
 	protected:
+		std::vector<VertexAttributeLayout> m_Layout;
 		uint32 m_VAO, m_VBO, m_EBO;
 		uint32 m_Shader;
 		uint32 m_IndexCount;
+
 	};
 }

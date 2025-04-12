@@ -56,56 +56,37 @@ namespace VeiM
 			glGenBuffers(1, &m_VBO);
 			glGenBuffers(1, &m_EBO);
 		}
-		std::vector<float> internalData;
-		internalData.reserve(Positions.size() * 3 + UV.size() * 2 + Normals.size() * 3);
-		for (size_t i = 0; i < Positions.size(); i++)
+
+		size_t vertexCount = Positions.size();
+		std::vector<Vertex> vertexData(vertexCount);
+
+		for (size_t i = 0; i < vertexCount; i++)
 		{
-			internalData.push_back(Positions[i].x);
-			internalData.push_back(Positions[i].y);
-			internalData.push_back(Positions[i].z);
-			if (!UV.empty())
-			{
-				internalData.push_back(UV[i].x);
-				internalData.push_back(UV[i].y);
-			}
-			if (!Normals.empty())
-			{
-				internalData.push_back(Normals[i].x);
-				internalData.push_back(Normals[i].y);
-				internalData.push_back(Normals[i].z);
-			}
+			vertexData[i].Position = Positions[i];
+			vertexData[i].UV = (!UV.empty() ? UV[i] : glm::vec2(0.0f));
+			vertexData[i].Normal = (!Normals.empty() ? Normals[i] : glm::vec3(0.0f));
 		}
+
 		glBindVertexArray(m_VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-		glBufferData(GL_ARRAY_BUFFER, internalData.size() * sizeof(float), internalData.data(), GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(Vertex), vertexData.data(), GL_STATIC_DRAW);
 		if (!Indices.empty())
 		{
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, Indices.size() * sizeof(uint32), Indices.data(), GL_STATIC_DRAW);
 		}
 
-		size_t stride = 3 * sizeof(float);
-		if (!UV.empty())		stride += 2 * sizeof(float);
-		if (!Normals.empty())	stride += 3 * sizeof(float);
+		size_t stride = sizeof(Vertex);
 
-		size_t offset = 0;
+		m_Layout.clear();
+		m_Layout.push_back({ 0, 3, offsetof(Vertex, Position) });
+		m_Layout.push_back({ 1, 2, offsetof(Vertex, UV) });
+		m_Layout.push_back({ 2, 3, offsetof(Vertex, Normal) });
 
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)offset);
-		offset += 3 * sizeof(float);
-
-		if (!UV.empty())
+		for (const auto& attr : m_Layout)
 		{
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(offset));
-			glEnableVertexAttribArray(1);
-			offset += 2 * sizeof(float);
-		}
-		if (!Normals.empty())
-		{
-			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)(offset));
-			glEnableVertexAttribArray(2);
-			offset += 3 * sizeof(float);
-
+			glEnableVertexAttribArray(attr.Location);
+			glVertexAttribPointer(attr.Location, attr.Components, GL_FLOAT, GL_FALSE, stride, (void*)(attr.Offset));
 		}
 		glBindVertexArray(0);
 	}
