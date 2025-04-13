@@ -8,6 +8,7 @@ void VeiM::FrameBuffer::Invalidate(uint32 width, uint32 height)
 {
 	swidth = width;
 	sheight = height;
+
 	if (Handle)
 	{
 		glDeleteFramebuffers(1, &Handle);
@@ -18,27 +19,25 @@ void VeiM::FrameBuffer::Invalidate(uint32 width, uint32 height)
 		rbo = 0;
 	}
 	glCreateFramebuffers(1, &Handle);
-	glBindFramebuffer(GL_FRAMEBUFFER, Handle);
 
+	// Color texture
+	glCreateTextures(GL_TEXTURE_2D, 1, &textureColorBuffer);
+	glTextureStorage2D(textureColorBuffer, 1, GL_RGB8, width, height);
+	glTextureParameteri(textureColorBuffer, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTextureParameteri(textureColorBuffer, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+	// Attach
+	glNamedFramebufferTexture(Handle, GL_COLOR_ATTACHMENT0, textureColorBuffer, 0);
 
-	glGenTextures(1, &textureColorBuffer);
-	glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorBuffer, 0);
+	// Renderbuffer for depth+stencil
+	glCreateRenderbuffers(1, &rbo);
+	glNamedRenderbufferStorage(rbo, GL_DEPTH24_STENCIL8, width, height);
 
+	// Attach
+	glNamedFramebufferRenderbuffer(Handle, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
-
-	glGenRenderbuffers(1, &rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	if (glCheckNamedFramebufferStatus(Handle, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		VM_CORE_ERROR(" Framebuffer is not complete!");
-	glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind
 }
 
 void VeiM::FrameBuffer::Bind()
