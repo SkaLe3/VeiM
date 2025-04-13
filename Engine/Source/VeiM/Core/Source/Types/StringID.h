@@ -21,6 +21,7 @@ namespace VeiM
 	class StringID
 	{
 	public:
+		StringID();
 		explicit StringID(const char* str, EFindStringID findType = StringID_Add);
 		uint32 GetID() const { return m_ID; }
 		String ToString();

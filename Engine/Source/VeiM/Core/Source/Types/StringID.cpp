@@ -35,6 +35,11 @@ namespace VeiM
 		}
 	}
 
+	StringID::StringID()
+	{
+		m_ID = 0;
+	}
+
 	String StringID::ToString()
 	{
 		String out;

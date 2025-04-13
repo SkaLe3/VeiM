@@ -9,13 +9,16 @@ namespace VeiM
 
 	IMesh::IMesh() : m_VAO(0), m_VBO(0), m_EBO(0)
 	{
-
+		Tdiffuse.Id = 0;
+		Tspecualr.Id = 0;
 	}
 
 	IMesh::IMesh(const std::vector<glm::vec3>& positions, const std::vector<uint32>& indices) : IMesh()
 	{
 		Positions = positions;
 		Indices = indices;
+		Tdiffuse.Id = 0;
+		Tspecualr.Id = 0;
 	}
 
 	IMesh::IMesh(const std::vector<glm::vec3>& positions, const std::vector<glm::vec2>& uv, const std::vector<uint32>& indices) : IMesh()
@@ -23,6 +26,8 @@ namespace VeiM
 		Positions = positions;
 		UV = uv;
 		Indices = indices;
+		Tdiffuse.Id = 0;
+		Tspecualr.Id = 0;
 	}
 
 	IMesh::IMesh(const std::vector<glm::vec3>& positions, const std::vector<glm::vec2>& uv, const std::vector<glm::vec3>& normals, const std::vector<uint32>& indices) : IMesh()
@@ -31,6 +36,8 @@ namespace VeiM
 		UV = uv;
 		Normals = normals;
 		Indices = indices;
+		Tdiffuse.Id = 0;
+		Tspecualr.Id = 0;
 	}
 
 	IMesh::~IMesh()
@@ -40,12 +47,6 @@ namespace VeiM
 		glDeleteVertexArrays(1, &m_VAO);
 	}
 
-	void IMesh::Render()
-	{
-		glBindVertexArray(m_VAO);
-		glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
-	}
 
 
 	void IMesh::Finilize()

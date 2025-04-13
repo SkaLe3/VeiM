@@ -82,10 +82,15 @@ uniform DirLight u_DirLight;
 uniform PointLight u_PointLights[NR_POINT_LIGHTS];
 uniform SpotLight u_SpotLights[NR_SPOT_LIGHTS];
 
+uniform bool u_UseDepth;
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir);
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
+float LinearizeDepth(float depth);
+
+float nearZ = 0.2;
+float farZ = 100.0;
 
 void main() {
 
@@ -103,7 +108,15 @@ void main() {
     for (int i = 0; i < NR_SPOT_LIGHTS; i++)
         result += CalcSpotLight(u_SpotLights[i], norm, FragPos, viewDir);
 
-    FragColor = vec4(result, 1.0);
+    if (u_UseDepth)
+    {
+        float depth = LinearizeDepth(gl_FragCoord.z) / farZ; // divide by far for demonstration
+        FragColor = vec4(vec3(depth), 1.0);
+    }
+    else
+    {
+       FragColor = vec4(result, 1.0); 
+    }  
 }
 
 
@@ -182,4 +195,11 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     specular *= attenuation * intensity;
 
     return (ambient  + diffuse + specular);
+}
+
+
+float LinearizeDepth(float depth) 
+{
+    float z = depth * 2.0 - 1.0; // back to NDC 
+    return (2.0 * nearZ * farZ) / (farZ + nearZ - z * (farZ - nearZ));    
 }

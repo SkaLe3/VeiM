@@ -21,6 +21,7 @@ namespace VeiM
 		uint32 GetUniformLocation(const String& uniformName);
 
 		// TODO: Check link in bookmarks
+		void SetBool(const String& name, bool value);
 		void SetUniformInt(const String& name, int32 value); 
 		void SetUnformIntArray(const String& name, int32* values, uint32 count);
 		void SetFloat(const String& name, float value);

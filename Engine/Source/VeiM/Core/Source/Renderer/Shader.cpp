@@ -67,11 +67,16 @@ namespace VeiM
 
 		if (uniformLocation == GL_INVALID_INDEX)
 		{
-			VM_CORE_ERROR("Uniform {0} not found in shader", uniformName);
+			VM_CORE_ERROR("Uniform {0} not found in shader '{1}'", uniformName, m_Name);
 			return -1;
 		}
 		m_UniformLocationMap.emplace(uniformName, uniformLocation);
 		return uniformLocation;
+	}
+
+	void Shader::SetBool(const String& name, bool value)
+	{
+		glUniform1i(GetUniformLocation(name), (int)value);
 	}
 
 	void Shader::SetUniformInt(const String& name, int32 value)

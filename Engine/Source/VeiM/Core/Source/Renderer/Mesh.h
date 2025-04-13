@@ -1,5 +1,7 @@
 #pragma once
 #include "CoreDefines.h"
+#include "Renderer/Shader.h"
+#include "Renderer/Texture.h"
 
 #include <glm/glm.hpp>
 
@@ -46,8 +48,6 @@ namespace VeiM
 		uint32 GetVBO() { return m_VBO; }
 		uint32 GetEBO() { return m_EBO; }
 
-		void Render();
-
 		void Finilize();
 
 	public:
@@ -58,6 +58,9 @@ namespace VeiM
 
 		ETopology Topology = ETopology::Triangles;
 		std::vector<uint32> Indices;
+
+		Texture Tdiffuse;
+		Texture Tspecualr;
 
 	protected:
 		std::vector<VertexAttributeLayout> m_Layout;

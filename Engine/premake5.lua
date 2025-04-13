@@ -35,6 +35,7 @@ group "Dependencies"
 	include "ThirdParty/Glad"
 	include "ThirdParty/imgui"
 	include "ThirdParty/yaml-cpp"
+	include "ThirdParty/assimp"
 group ""
 
 group "Engine"

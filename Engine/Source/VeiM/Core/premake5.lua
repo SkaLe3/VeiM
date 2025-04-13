@@ -51,7 +51,9 @@ project "Core"
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.yaml_cpp}",
-		"%{IncludeDir.stb_image}"
+		"%{IncludeDir.stb_image}",
+		"%{IncludeDir.assimp}",
+		"%{IncludeDir.assimpCfg}"
     }
 
 	defines
@@ -67,6 +69,7 @@ project "Core"
 		"Glad",
 		"GLFW",
 		"yaml-cpp",
+		"assimp",
 		"opengl32.lib"
 	}
 

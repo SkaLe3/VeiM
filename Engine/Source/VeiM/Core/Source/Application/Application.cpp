@@ -22,6 +22,7 @@
 #include "Renderer/Shader.h"
 #include "Renderer/CubeMesh.h"
 #include "Renderer/SphereMesh.h"
+#include "Renderer/Model.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -207,6 +208,9 @@ namespace VeiM
 
 			ImGui::Begin("Test Renderer");
 
+			ImGui::SeparatorText("General");
+			ImGui::Checkbox("Draw Depth Buffer", &bDrawDepthBuffer);
+
 			ImGui::SeparatorText("Cube Controls");
 			ImGui::SliderFloat("Cube Pitch", &cubePitch, 0, 360, "%.0f");
 			ImGui::SliderFloat("Cube Yaw", &cubeYaw, 0, 360, "%.0f");
@@ -302,29 +306,23 @@ namespace VeiM
 		TestRenderer::Init();
 		// Compile shaders
 		std::vector<String> cmdArgs = m_Config.CommandLineArgs;
-		fs::path cubeTextureFilename;
-		fs::path sphereTextureFilename;
-		fs::path grayTextureFilename;
+
 		fs::path lightSourceShaderFilename;
-		fs::path cubeShaderFilename;
-
-		fs::path directionalLightShaderFilename;
-		fs::path pointLightShaderFilename;
-		fs::path spotLightShaderFilename;
 		fs::path LitShaderFilename;
+		fs::path borderShaderFilename;
 
+		fs::path grayTextureFilename;
 		fs::path boxDiffuseTextureFilename;
 		fs::path boxSpecularTextureFilename;
 		fs::path boxEmissionTextureFilename;
+
+		fs::path backpackModelFilename;
+		fs::path coinMeshFilename;
 
 		VM_CORE_TRACE("VAlue: {0}", VM_GAME);
 		if (IsRunningGame())
 		{
 			// TODO: User ProjectContentDir, but make sure to get correct path for unified build
-			cubeShaderFilename = fs::current_path().parent_path().parent_path() / "Content" / "basic.glsl";
-			cubeTextureFilename = fs::current_path().parent_path().parent_path() / "Content" / "T_Cube.png";
-			pointLightShaderFilename = fs::current_path().parent_path().parent_path() / "Content" / "sun.glsl";
-			sphereTextureFilename = fs::current_path().parent_path().parent_path() / "Content" / "T_Sun.jpg";
 			grayTextureFilename = fs::current_path().parent_path().parent_path() / "Content" / "T_Gray.png";
 			bHasGame = true;
 		}
@@ -332,75 +330,61 @@ namespace VeiM
 		{
 			if (!cmdArgs.empty())
 			{
-				cubeShaderFilename = Paths::ProjectContentDir() / "basic.glsl";
-				cubeTextureFilename = Paths::ProjectContentDir() / "T_Cube.png";
-				sphereTextureFilename = Paths::ProjectContentDir() / "T_Sun.jpg";
 				grayTextureFilename = Paths::ProjectContentDir() / "T_Gray.png";
 				lightSourceShaderFilename = Paths::ProjectContentDir() / "lightsource.glsl";
-
-				directionalLightShaderFilename = Paths::ProjectContentDir() / "directionallight.glsl";
-				pointLightShaderFilename = Paths::ProjectContentDir() / "pointlight.glsl";
-				spotLightShaderFilename = Paths::ProjectContentDir() / "spotlight.glsl";
 				LitShaderFilename = Paths::ProjectContentDir() / "Lit.glsl";
+				borderShaderFilename = Paths::ProjectContentDir() / "border.glsl";
+
 
 				boxDiffuseTextureFilename = Paths::ProjectContentDir() / "T_BoxDiffuse.png";
 				boxSpecularTextureFilename = Paths::ProjectContentDir() / "T_BoxSpecular.png";
 				boxEmissionTextureFilename = Paths::ProjectContentDir() / "T_BoxEmission.png";
+				backpackModelFilename = Paths::ProjectContentDir() / "backpack" / "backpack.obj";
+				coinMeshFilename = Paths::ProjectContentDir() / "coin" / "Coin.obj";
 
 				bHasGame = true;
 			}
 		}
 
-		Shader* cubeShader;
 		Shader* lightSourceShader;
-
-		Shader* directionalLightShader;
-		Shader* pointLightShader;
-		Shader* spotLightShader;
 		Shader* litShader;
+		Shader* borderShader;
 
+		Texture grayTexture;
 
-		Texture* cubeTexture;
-		Texture* sphereTexture;
-		Texture* grayTexture;
+		Texture boxDiffuse;
+		Texture boxSpecular;
+		Texture boxEmission;
 
-		Texture* boxDiffuse;
-		Texture* boxSpecular;
-		Texture* boxEmission;
+		Model* backpackMesh;
+		Model* coinMesh;
 
-		unsigned int lightVAO;
 		if (bHasGame)
 		{
 
-			cubeShader = new Shader(cubeShaderFilename);
 			lightSourceShader = new Shader(lightSourceShaderFilename);
-
-			directionalLightShader = new Shader(directionalLightShaderFilename);
-			pointLightShader = new Shader(pointLightShaderFilename);
-			spotLightShader = new Shader(spotLightShaderFilename);
 			litShader = new Shader(LitShaderFilename);
+			borderShader = new Shader(borderShaderFilename);
 
 			m_CubeMesh = new CubeMesh();
 			m_SphereMesh = new SphereMesh(8, 8);
 
-			cubeTexture = new Texture(cubeTextureFilename);
-			sphereTexture = new Texture(sphereTextureFilename);
-			grayTexture = new Texture(grayTextureFilename);
+			backpackMesh = new Model(backpackModelFilename);
+			coinMesh = new Model(coinMeshFilename);
 
-			boxDiffuse = new Texture(boxDiffuseTextureFilename);
-			boxSpecular = new Texture(boxSpecularTextureFilename);
-			boxEmission = new Texture(boxEmissionTextureFilename);
+			grayTexture = TextureFromFile(grayTextureFilename);
+			boxDiffuse = TextureFromFile(boxDiffuseTextureFilename);
+			boxSpecular = TextureFromFile(boxSpecularTextureFilename);
+			boxEmission = TextureFromFile(boxEmissionTextureFilename);
 
-			cubeShader->Bind();
-			cubeShader->SetUniformInt("u_Texture", 0);
-			cubeShader->UnBind();
-
+			m_CubeMesh->Tdiffuse = boxDiffuse;
+			m_CubeMesh->Tspecualr = boxSpecular;
 
 			m_Framebuffer.Invalidate(1280, 720);
 		}
 
 		m_Camera = MakeUnique<EditorCamera>();
-		m_Camera->SetPerspective(45.f, 1280.f / 720.f, 0.05f, 4000.f);
+		m_Camera->SetPerspective(45.f, 1280.f / 720.f, 0.2f, 100.f);
 		m_Camera->SetPosition({ -2.f, 1.f, 4.f });
 
 
@@ -460,17 +444,17 @@ namespace VeiM
 				glm::mat4 spotLightModel = glm::translate(glm::mat4(1.0f), m_SpotLightPos) * glm::toMat4(spotLightRotation) * glm::scale(glm::mat4(1.0f), glm::vec3(0.15f, 0.15f, 0.1f));
 
 
-
-
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, boxDiffuse->GetTexID());
-
-				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_2D, boxSpecular->GetTexID());
+				m_CubeMesh->Tdiffuse = boxDiffuse;
+				m_CubeMesh->Tspecualr = boxSpecular;
+				borderShader->SetMat4("u_ViewProjection", viewProjection);
+				glEnable(GL_DEPTH_TEST);
+				glEnable(GL_STENCIL_TEST);
+				glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
+				glStencilMask(0xFF);
 
 				litShader->Bind();
+				litShader->SetBool("u_UseDepth", bDrawDepthBuffer);
 				litShader->SetMat4("u_ViewProjection", viewProjection);
-				litShader->SetMat4("u_Transform", cubeModel);
 
 				litShader->SetFloat3("u_ViewPos", m_Camera->GetPosition());
 
@@ -524,39 +508,87 @@ namespace VeiM
 				litShader->SetFloat3("u_SpotLights[0].diffuse", m_SpotLightDiffuse);
 				litShader->SetFloat3("u_SpotLights[0].specular", m_SpotLightSpecular);
 
+				// Floor
+				m_CubeMesh->Tdiffuse = grayTexture;
+				m_CubeMesh->Tspecualr = boxSpecular;
+				litShader->Bind();
+				litShader->SetMat4("u_Transform", glm::translate(glm::mat4(1.0f), glm::vec3(0.f, -4.f, 0.f)) * glm::scale(glm::mat4(1.0f), glm::vec3(20.f, 1.f, 20.f)));
+				TestRenderer::RenderMesh(m_CubeMesh, *litShader);
 
-				glBindVertexArray(m_CubeMesh->GetVAO());
-				glDrawElements(GL_TRIANGLES, m_CubeMesh->Indices.size(), GL_UNSIGNED_INT, 0);
+				m_CubeMesh->Tdiffuse = boxDiffuse;
+				m_CubeMesh->Tspecualr = boxSpecular;
+
+				litShader->SetMat4("u_Transform", cubeModel);
+				TestRenderer::RenderMesh(m_CubeMesh, *litShader);
 
 				litShader->SetMat4("u_Transform", cubeModel * glm::translate(glm::mat4(1.0f), glm::vec3(5, 3, 5)));
-				glDrawElements(GL_TRIANGLES, m_CubeMesh->Indices.size(), GL_UNSIGNED_INT, 0);
+				TestRenderer::RenderMesh(m_CubeMesh, *litShader);
 
 				litShader->SetMat4("u_Transform", cubeModel * glm::translate(glm::mat4(1.0f), glm::vec3(-3, 0, 8)));
-				glDrawElements(GL_TRIANGLES, m_CubeMesh->Indices.size(), GL_UNSIGNED_INT, 0);
+				TestRenderer::RenderMesh(m_CubeMesh, *litShader);
 
 
 				lightSourceShader->Bind();
 				lightSourceShader->SetMat4("u_ViewProjection", viewProjection);
-				lightSourceShader->SetMat4("u_Transform", pointLightModel1);
 				lightSourceShader->SetFloat3("u_LightColor", m_PointLightDiffuse);
-				glBindVertexArray(m_SphereMesh->GetVAO());
-				glDrawElements(GL_TRIANGLES, m_SphereMesh->Indices.size(), GL_UNSIGNED_INT, 0);
+
+
+				lightSourceShader->SetMat4("u_Transform", pointLightModel1);
+				TestRenderer::RenderMesh(m_SphereMesh, *lightSourceShader);
 
 				lightSourceShader->SetMat4("u_Transform", pointLightModel2);
-				glDrawElements(GL_TRIANGLES, m_SphereMesh->Indices.size(), GL_UNSIGNED_INT, 0);
+				TestRenderer::RenderMesh(m_SphereMesh, *lightSourceShader);
 
 				lightSourceShader->SetMat4("u_Transform", pointLightModel3);
-				glDrawElements(GL_TRIANGLES, m_SphereMesh->Indices.size(), GL_UNSIGNED_INT, 0);
+				TestRenderer::RenderMesh(m_SphereMesh, *lightSourceShader);
 
 				lightSourceShader->SetMat4("u_Transform", pointLightModel4);
-				glDrawElements(GL_TRIANGLES, m_SphereMesh->Indices.size(), GL_UNSIGNED_INT, 0);
+				TestRenderer::RenderMesh(m_SphereMesh, *lightSourceShader);
 
-				lightSourceShader->SetMat4("u_Transform", spotLightModel);
 				lightSourceShader->SetFloat3("u_LightColor", m_SpotLightDiffuse);
-				glDrawElements(GL_TRIANGLES, m_SphereMesh->Indices.size(), GL_UNSIGNED_INT, 0);
+				lightSourceShader->SetMat4("u_Transform", spotLightModel);
+				TestRenderer::RenderMesh(m_SphereMesh, *lightSourceShader);
 
-				// Floor
-				TestRenderer::RenderMesh(m_CubeMesh, *cubeShader, *grayTexture, viewProjection, glm::translate(glm::mat4(1.0f), glm::vec3(0.f, -4.f, 0.f)) * glm::scale(glm::mat4(1.0f), glm::vec3(20.f, 1.f, 20.f)));
+
+
+
+				// Backpack
+				litShader->Bind();
+				glm::mat4 backpackModel = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 12.0f, 10.f));
+				litShader->SetMat4("u_Transform", backpackModel);
+				backpackMesh->Draw(*litShader);
+
+
+
+
+				// Coin
+				glStencilFunc(GL_ALWAYS, 1, 0xFF);
+				glStencilMask(0xFF);
+				glEnable(GL_DEPTH_TEST);
+
+				litShader->Bind();
+				glm::mat4 coinModel = glm::translate(glm::mat4(1.0f), glm::vec3(-6.0f, 12.0f, 10.f));
+				litShader->SetMat4("u_Transform", coinModel);
+				coinMesh->Draw(*litShader);
+
+
+				glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+				glStencilMask(0x00);
+				glDisable(GL_DEPTH_TEST);
+				if (!bDrawDepthBuffer)
+				{
+
+					borderShader->Bind();
+					coinModel = glm::translate(glm::mat4(1.0f), glm::vec3(-6.0f, 12.0f, 10.f)) * glm::scale(glm::mat4(1.0f), glm::vec3(1.05f));
+					borderShader->SetMat4("u_Transform", coinModel);
+					coinMesh->Draw(*borderShader);
+				}
+
+				glEnable(GL_DEPTH_TEST);
+				glStencilMask(0xFF);
+				glStencilFunc(GL_ALWAYS, 0, 0xFF);
+
+
 				m_Framebuffer.UnBind();
 			}
 

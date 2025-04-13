@@ -99,6 +99,8 @@ namespace VeiM
 		float size = 10;
 		bool bHasGame = false;
 
+		bool bDrawDepthBuffer = false;
+
 		float m_Shininess = 64;
 
 		glm::vec3 m_DirLightAmbient = { 0.2f, 0.2f, 0.2f };
@@ -115,10 +117,10 @@ namespace VeiM
 		glm::vec3 m_SpotLightSpecular = { 1.f, 1.f, 1.f };
 
 
-		glm::vec3 m_PointLightPos1 = { -1.0f, -0.2f,  0.0f };
-		glm::vec3 m_PointLightPos2 = {  1.0f, -0.2f,  0.0f };
-		glm::vec3 m_PointLightPos3 = {  0.0f, -0.2f, -1.0f };
-		glm::vec3 m_PointLightPos4 = {  0.0f, -0.2f,  1.0f };
+		glm::vec3 m_PointLightPos1 = { -1.0f, -20.2f,  0.0f };
+		glm::vec3 m_PointLightPos2 = {  1.0f, -20.2f,  0.0f };
+		glm::vec3 m_PointLightPos3 = {  0.0f, -20.2f, -1.0f };
+		glm::vec3 m_PointLightPos4 = {  0.0f, -20.2f,  1.0f };
 
 		glm::vec3 m_SpotLightPos = { 5.f, 4.0f, 5.0f };
 		glm::vec3 m_SpotLightDir = { 0.f, -1.f, 0.f };
