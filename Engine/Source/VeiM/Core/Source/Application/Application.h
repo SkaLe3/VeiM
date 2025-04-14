@@ -90,6 +90,7 @@ namespace VeiM
 
 		//Temp 
 		FrameBuffer m_Framebuffer;
+		FrameBuffer m_PostProcessFramebuffer;
 		IMesh* m_CubeMesh;
 		IMesh* m_SphereMesh;
 		float cubePitch = 0;
@@ -100,6 +101,9 @@ namespace VeiM
 		bool bHasGame = false;
 
 		bool bDrawDepthBuffer = false;
+		bool bUseNatureSkybox = true;
+		bool bExplode = false;
+		bool bUseInstancing = false;
 
 		float m_Shininess = 64;
 

@@ -69,6 +69,10 @@ group "Engine Dependencies"
 		location (engine_root_dir .. "/Engine/ThirdParty/yaml-cpp")
 		kind "StaticLib"
 		language "C++"
+	externalproject "assimp"
+		location (engine_root_dir .. "/Engine/ThirdParty/assimp")
+		kind "StaticLib"
+		language "C++"
 group ""
 
 -- Include Game modules to the workspace

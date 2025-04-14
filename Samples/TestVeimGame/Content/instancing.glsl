@@ -6,6 +6,7 @@
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec2 aUV;
 layout (location = 2) in vec3 aNormal;
+layout (location = 3) in mat4 instanceMatrix;
 
 out VS_OUT{
     vec3 FragPos;
@@ -18,14 +19,10 @@ layout (std140) uniform Matrices
     uniform mat4 u_ViewProjection;    
 };
 
-uniform mat4 u_Transform;
-
-
-
 void main() {
-    gl_Position = u_ViewProjection * u_Transform * vec4(aPos, 1.0);
-    vs_out.FragPos = vec3(u_Transform * vec4(aPos, 1.0));
-    vs_out.Normal = mat3(transpose(inverse(u_Transform))) * aNormal; 
+    gl_Position = u_ViewProjection * instanceMatrix * vec4(aPos, 1.0);
+    vs_out.FragPos = vec3(instanceMatrix * vec4(aPos, 1.0));
+    vs_out.Normal = mat3(transpose(inverse(instanceMatrix))) * aNormal; 
     vs_out.UV = aUV;
 }
 
@@ -218,81 +215,82 @@ void main() {
     }  
 }
 
-float CalcSpecular(vec3 lightDir, vec3 normal, vec3 viewDir)
-{
-    vec3 reflectDir = reflect(-lightDir, normal);
-    return pow(max(dot(viewDir, reflectDir), 0.0), u_Material.shininess);
-}
-
-float CalcDiffuse(vec3 lightDir, vec3 normal)
-{
-    return max(dot(normal, lightDir), 0.0);
-}
-
-vec3 CombineLight(vec3 lAmbient, vec3 lDiffuse, vec3 lSpecular, float diffFactor, float specFactor, float attenuation, float intensity)
-{
-    vec3 cAmbient = lAmbient * texture(u_Material.diffuse, fs_in.UV).rgb;
-    vec3 cDiffuse = lDiffuse * diffFactor * texture(u_Material.diffuse, fs_in.UV).rgb;
-    vec3 cSpecular = lSpecular * specFactor * texture(u_Material.specular, fs_in.UV).rgb;
-    cAmbient *= attenuation * intensity;
-    cDiffuse *= attenuation * intensity;
-    cSpecular *= attenuation * intensity;
-    return (cAmbient + cDiffuse + cSpecular);
-}
-
-vec3 CombineLight(vec3 lAmbient, vec3 lDiffuse, vec3 lSpecular, float diffFactor, float specFactor, float attenuation)
-{
-    return CombineLight(lAmbient, lDiffuse, lSpecular, diffFactor, specFactor, attenuation, 1.0);
-}
-
-vec3 CombineLight(vec3 lAmbient, vec3 lDiffuse, vec3 lSpecular, float diffFactor, float specFactor)
-{
-    return CombineLight(lAmbient, lDiffuse, lSpecular, diffFactor, specFactor, 1.0, 1.0);
-}
-
-
-float CalcAttenuation(vec3 lightPos, vec3 fragPos, float c, float l, float q)
-{
-    float distance = length(lightPos - fragPos);
-    float attenuation = 1.0 / (c + l * distance + q * distance * distance);
-    return attenuation;
-}
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
 {
     vec3 lightDir = normalize(-light.direction);
     
-    float diff = CalcDiffuse(lightDir, normal);
-    float spec = CalcSpecular(lightDir, normal, viewDir);
+    /* Diffuse Shading */
+    float diff = max(dot(normal, lightDir), 0.0);
 
-    return CombineLight(light.ambient, light.diffuse, light.specular, diff, spec);
+    /* Specular Shading */
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), u_Material.shininess);
+
+    /* Combine */
+    vec3 ambient = light.ambient * texture(u_Material.diffuse, fs_in.UV).rgb;
+    vec3 diffuse = light.diffuse * diff * texture(u_Material.diffuse, fs_in.UV).rgb;
+    vec3 specular = light.specular * spec * texture(u_Material.specular, fs_in.UV).rgb;
+    return (ambient + diffuse + specular);
 }
 
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
     vec3 lightDir = normalize(light.position - fragPos);
 
-    float diff = CalcDiffuse(lightDir, normal);
-    float spec = CalcSpecular(lightDir, normal, viewDir);
-    float attenuation = CalcAttenuation(light.position, fragPos, light.constant, light.linear, light.quadratic);
+    /* Diffuse Shading */
+    float diff = max(dot(normal, lightDir), 0.0);
 
-    return CombineLight(light.ambient, light.diffuse, light.specular, diff, spec, attenuation);
+    /* Specular Shading */
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), u_Material.shininess);
+
+    /* Attenuation */
+    float distance = length(light.position - fragPos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance 
+        + light.quadratic * distance * distance);
+
+    /* Combine */
+    vec3 ambient = light.ambient * texture(u_Material.diffuse, fs_in.UV).rgb;
+    vec3 diffuse = light.diffuse * diff * texture(u_Material.diffuse, fs_in.UV).rgb;
+    vec3 specular = light.specular * spec * texture(u_Material.specular, fs_in.UV).rgb;
+    ambient *= attenuation;
+    diffuse *= attenuation;
+    specular *= attenuation;
+
+    return (ambient + diffuse + specular);
 }
 
 vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
     vec3 lightDir = normalize(light.position - fragPos);
 
-    float diff = CalcDiffuse(lightDir, normal);
-    float spec = CalcSpecular(lightDir, normal, viewDir);
-    float attenuation = CalcAttenuation(light.position, fragPos, light.constant, light.linear, light.quadratic);
+    /* Diffuse Shading */
+    float diff = max(dot(normal, lightDir), 0.0);
+
+    /* Specular Shading */
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), u_Material.shininess);
 
     /* Spot light */
     float theta = dot(lightDir, normalize(-light.direction));
     float epsilon = light.innerCutOff - light.outerCutOff;
     float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
 
-    return CombineLight(light.ambient, light.diffuse, light.specular, diff, spec, attenuation, intensity);
+    /* Attenuation */
+    float distance = length(light.position - fragPos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance 
+        + light.quadratic * distance * distance);
+
+    /* Combine */
+    vec3 ambient = light.ambient * texture(u_Material.diffuse, fs_in.UV).rgb;
+    vec3 diffuse = light.diffuse * diff * texture(u_Material.diffuse, fs_in.UV).rgb;
+    vec3 specular = light.specular * spec * texture(u_Material.specular, fs_in.UV).rgb;
+    ambient *= attenuation * intensity;
+    diffuse *= attenuation * intensity;
+    specular *= attenuation * intensity;
+
+    return (ambient  + diffuse + specular);
 }
 
 

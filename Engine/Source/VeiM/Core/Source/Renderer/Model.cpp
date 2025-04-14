@@ -37,12 +37,10 @@ namespace VeiM
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 			m_Meshes.push_back(processMesh(mesh, scene));
 		}
-		VM_CORE_TRACE("Submesh loaded");
 
 		for (uint32 i = 0; i < node->mNumChildren; i++)
 		{
 			processNode(node->mChildren[i], scene);
-			VM_CORE_TRACE("Loaded childrens: {0}/{1}", i, node->mNumChildren);
 		}
 	}
 

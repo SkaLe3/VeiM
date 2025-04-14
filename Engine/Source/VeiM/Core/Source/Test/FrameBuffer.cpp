@@ -25,6 +25,8 @@ void VeiM::FrameBuffer::Invalidate(uint32 width, uint32 height)
 	glTextureStorage2D(textureColorBuffer, 1, GL_RGB8, width, height);
 	glTextureParameteri(textureColorBuffer, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTextureParameteri(textureColorBuffer, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTextureParameteri(textureColorBuffer, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(textureColorBuffer, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	// Attach
 	glNamedFramebufferTexture(Handle, GL_COLOR_ATTACHMENT0, textureColorBuffer, 0);

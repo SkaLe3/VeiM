@@ -69,4 +69,13 @@ namespace VeiM
 		uint32 m_IndexCount;
 
 	};
+	
+	struct SkyBoxCube
+	{
+		SkyBoxCube();
+		void Finilize();
+		std::vector<glm::vec3> SkyboxVertices;
+		uint32 VAO;
+		uint32 VBO;
+	};
 }

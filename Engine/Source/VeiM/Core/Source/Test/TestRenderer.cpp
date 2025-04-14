@@ -29,6 +29,10 @@ namespace VeiM
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_CULL_FACE); // TODO: Set in render command to be able to choose between 1 or 2 sided material in material properties
 		glCullFace(GL_BACK);
+
+		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+		glEnable(GL_MULTISAMPLE);
 		// Enable texture 2d
 
 	}
@@ -78,9 +82,16 @@ namespace VeiM
 	{
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.Handle);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-		glBlitFramebuffer(0, 0, framebuffer.swidth, framebuffer.sheight, 0, 0, framebuffer.swidth, framebuffer.sheight, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		glBlitFramebuffer(0, 0, framebuffer.swidth, framebuffer.sheight, 0, 0, framebuffer.swidth, framebuffer.sheight, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
 	}
 
 
+
+	void TestRenderer::BlitStencil(FrameBuffer& framebufferSource, FrameBuffer& framebufferDestination)
+	{
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, framebufferSource.Handle);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebufferDestination.Handle);
+		glBlitFramebuffer(0, 0, framebufferSource.swidth, framebufferSource.sheight, 0, 0, framebufferDestination.swidth, framebufferDestination.sheight, GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
+	}
 
 }

@@ -185,6 +185,7 @@ namespace VeiM
 
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+		glfwWindowHint(GLFW_SAMPLES, 4);
 
 		if (m_Data.CustomTitlebar)
 		{
@@ -223,7 +224,8 @@ namespace VeiM
 
 		VM_CORE_ASSERT(GLVersion.major > 4 || (GLVersion.major == 4 && GLVersion.minor >= 5), "VeiM requires OpenGL version 4.5 or higher");
 
-		SetVSync(true);
+		//SetVSync(true);
+		SetVSync(false);
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		glfwSetWindowAttrib(m_Window, GLFW_RESIZABLE, config.WindowResizeable ? GLFW_TRUE : GLFW_FALSE);

@@ -7,11 +7,26 @@ namespace VeiM
 	namespace Utils
 	{
 		static GLenum ShaderTypeFromString(const String& type)
-		{
+		{// TODO: use string id
 			if (type == "vertex")
 				return GL_VERTEX_SHADER;
 			if (type == "fragment" || type == "pixel")
 				return GL_FRAGMENT_SHADER;
+			if (type == "geometry")
+				return GL_GEOMETRY_SHADER;
+			VM_CORE_ASSERT(false, "Unknown shader type!");
+			return 0;
+		}
+
+		/* Only for debug */
+		static String StringFromShaderType(GLenum type)
+		{// TODO: use string id
+			if (type == GL_VERTEX_SHADER)
+				return  "vertex";
+			if (type == GL_FRAGMENT_SHADER)
+				return "fragment";
+			if (type == GL_GEOMETRY_SHADER)
+				return "geometry";
 			VM_CORE_ASSERT(false, "Unknown shader type!");
 			return 0;
 		}
@@ -152,7 +167,8 @@ namespace VeiM
 			VM_CORE_ASSERT(eol != String::npos, "Syntax error");
 			size_t begin = pos + typeTokenLength + 1;
 			String type = source.substr(begin, eol - begin);
-			VM_CORE_ASSERT(Utils::ShaderTypeFromString(type) == GL_VERTEX_SHADER || Utils::ShaderTypeFromString(type) == GL_FRAGMENT_SHADER, "Invalid shader type specified");
+			VM_CORE_ASSERT(Utils::ShaderTypeFromString(type) == GL_VERTEX_SHADER || Utils::ShaderTypeFromString(type) == GL_FRAGMENT_SHADER 
+				|| Utils::ShaderTypeFromString(type) == GL_GEOMETRY_SHADER, "Invalid shader type specified");
 
 			size_t nextLinePos = source.find_first_not_of("\r\n", eol);
 			VM_CORE_ASSERT(nextLinePos != String::npos, "Syntax error");
@@ -179,8 +195,8 @@ namespace VeiM
 			{
 				bool bS = bSuccess;
 				glGetShaderInfoLog(shaderIDs[shaderSource.first], 512, NULL, infoLog);;
+				VM_CORE_ERROR("{1} : -> {2} shader <- compilation failed: Message: {0}", infoLog, m_ShaderPath.string(), Utils::StringFromShaderType(shaderSource.first)); // TODO: Add enum to string for shader type name
 				VM_CORE_ASSERT(bS);
-				VM_CORE_ERROR("{1} : ***** shader compilation failed: {0}", infoLog, m_ShaderPath.string()); // TODO: Add enum to string for shader type name
 			}
 		}
 
@@ -188,16 +204,25 @@ namespace VeiM
 		m_RendererID = glCreateProgram();
 		glAttachShader(m_RendererID, shaderIDs[GL_VERTEX_SHADER]);
 		glAttachShader(m_RendererID, shaderIDs[GL_FRAGMENT_SHADER]);
+		if (shaderIDs.count(GL_GEOMETRY_SHADER))
+		{
+			glAttachShader(m_RendererID, shaderIDs[GL_GEOMETRY_SHADER]);
+		}
 		glLinkProgram(m_RendererID);
 		glGetProgramiv(m_RendererID, GL_LINK_STATUS, &bSuccess);
 		if (!bSuccess)
 		{
 			glGetProgramInfoLog(m_RendererID, 512, NULL, infoLog);
+			VM_CORE_ERROR("Shader linking failed: Message: {0}", infoLog);
 			VM_CORE_ASSERT(bSuccess);
-			VM_CORE_ERROR("Shader linking failed: {0}", infoLog);
+			
 		}
 		glDeleteShader(shaderIDs[GL_VERTEX_SHADER]);
 		glDeleteShader(shaderIDs[GL_FRAGMENT_SHADER]);
+		if (shaderIDs.count(GL_GEOMETRY_SHADER))
+		{
+			glDeleteShader(shaderIDs[GL_GEOMETRY_SHADER]);
+		}
 	}
 }
 

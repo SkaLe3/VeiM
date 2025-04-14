@@ -2,7 +2,10 @@
 #version 460 core
 layout (location = 0) in vec3 aPos;
 
-uniform mat4 u_ViewProjection;
+layout (std140) uniform Matrices
+{
+    uniform mat4 u_ViewProjection;    
+};
 uniform mat4 u_Transform;
 
 

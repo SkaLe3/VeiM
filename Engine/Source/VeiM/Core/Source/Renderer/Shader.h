@@ -15,6 +15,8 @@ namespace VeiM
 		Shader(const String& name, const String& vertexSource, const String& fragmentSource);
 		~Shader();
 
+		uint32 GetId() const { return m_RendererID; }
+
 		void Bind() const;
 		void UnBind() const;
 

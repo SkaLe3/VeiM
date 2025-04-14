@@ -23,6 +23,8 @@ namespace VeiM
 			loadModel(filepath);
 		}
 		void Draw(Shader& shader);
+		uint32 GetMeshesCount() { return m_Meshes.size(); }
+		IMesh* GetMesh(uint32 index) { return m_Meshes[index]; }
 	private:
 		// model data
 		std::vector<IMesh*> m_Meshes;
