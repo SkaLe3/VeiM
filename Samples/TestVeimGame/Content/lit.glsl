@@ -220,8 +220,8 @@ void main() {
 
 float CalcSpecular(vec3 lightDir, vec3 normal, vec3 viewDir)
 {
-    vec3 reflectDir = reflect(-lightDir, normal);
-    return pow(max(dot(viewDir, reflectDir), 0.0), u_Material.shininess);
+    vec3 halfwayDir = normalize(lightDir + viewDir);
+    return pow(max(dot(normal, halfwayDir), 0.0), u_Material.shininess);
 }
 
 float CalcDiffuse(vec3 lightDir, vec3 normal)
