@@ -214,6 +214,34 @@ namespace VeiM
 			ImGui::Checkbox("Explode", &bExplode);
 			ImGui::Checkbox("Use Instancing", &bUseInstancing);
 			ImGui::Checkbox("Use SRGB", &bUseSRGB);
+			if (ImGui::SliderInt("Shadow maps level", &m_ShadowMapLevel, 0, 3))
+			{
+				SHADOW_WIDTH = SHADOW_HEIGHT = 512 * glm::pow(2, m_ShadowMapLevel);
+				// Generate depth map
+
+				glDeleteFramebuffers(1, &depthMapFBO);
+				glDeleteTextures(1, &depthMap);
+
+				glGenFramebuffers(1, &depthMapFBO);
+				glGenTextures(1, &depthMap);
+				glBindTexture(GL_TEXTURE_2D, depthMap);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+					SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+				float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+				glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+				// Attach depth map to framebuffer
+				glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+				glDrawBuffer(GL_NONE);
+				glReadBuffer(GL_NONE);
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			}
+			ImGui::SliderFloat("Shadow Bias", &m_ShadowBiasMin, 0.0001f, 0.001f, "%.4f");
 
 			/* AA OPTIONS */
 			static const char* aaOptions[] = {
@@ -291,12 +319,14 @@ namespace VeiM
 			ImGui::SliderFloat3("Diffuse Color D", glm::value_ptr(m_DirLightDiffuse), 0.0f, 1.0f, "%.3f");
 			ImGui::SliderFloat3("Specular Color D", glm::value_ptr(m_DirLightSpecular), 0.0f, 1.0f, "%.3f");
 			ImGui::SliderFloat3("Direction D", glm::value_ptr(m_DirLightDirection), -1.0f, 1.0f, "%.2f");
+			ImGui::Checkbox("Cast Shadows D", &bCastGlobalShadows);
 
 			ImGui::SeparatorText("Point Lights");
 			ImGui::SliderFloat3("Ambient Color P", glm::value_ptr(m_PointLightAmbient), 0.0f, 1.0f, "%.3f");
 			ImGui::SliderFloat3("Diffuse Color P", glm::value_ptr(m_PointLightDiffuse), 0.0f, 1.0f, "%.3f");
 			ImGui::SliderFloat3("Specular Color P", glm::value_ptr(m_PointLightSpecular), 0.0f, 1.0f, "%.3f");
 			ImGui::DragFloat3("Light 1 Position", glm::value_ptr(m_PointLightPos1), 0.1f);
+			ImGui::Checkbox("Cast Shadows P", &bCastPointShadows);
 			ImGui::DragFloat3("Light 2 Position", glm::value_ptr(m_PointLightPos2), 0.1f);
 			ImGui::DragFloat3("Light 3 Position", glm::value_ptr(m_PointLightPos3), 0.1f);
 			ImGui::DragFloat3("Light 4 Position", glm::value_ptr(m_PointLightPos4), 0.1f);
@@ -352,6 +382,8 @@ namespace VeiM
 		fs::path screenShaderFilename;
 		fs::path skyboxShaderFilename;
 		fs::path instanceShaderFilename;
+		fs::path shadowmapShaderFilename;
+		fs::path pointshadowmapShaderFilename;
 
 		fs::path grayTextureFilename;
 		fs::path boxDiffuseTextureFilename;
@@ -395,6 +427,8 @@ namespace VeiM
 			screenShaderFilename = fs::current_path().parent_path().parent_path() / "Content" / "screen.glsl";
 			skyboxShaderFilename = fs::current_path().parent_path().parent_path() / "Content" / "skybox.glsl";
 			instanceShaderFilename = fs::current_path().parent_path().parent_path() / "Content" / "instancing.glsl";
+			shadowmapShaderFilename = fs::current_path().parent_path().parent_path() / "Content" / "shadowmap.glsl";
+			pointshadowmapShaderFilename = fs::current_path().parent_path().parent_path() / "Content" / "pointshadowmap.glsl";
 
 			boxDiffuseTextureFilename = fs::current_path().parent_path().parent_path() / "Content" / "T_BoxDiffuse.png";
 			boxSpecularTextureFilename = fs::current_path().parent_path().parent_path() / "Content" / "T_BoxSpecular.png";
@@ -420,6 +454,8 @@ namespace VeiM
 				screenShaderFilename = Paths::ProjectContentDir() / "screen.glsl";
 				skyboxShaderFilename = Paths::ProjectContentDir() / "skybox.glsl";
 				instanceShaderFilename = Paths::ProjectContentDir() / "instancing.glsl";
+				shadowmapShaderFilename = Paths::ProjectContentDir() / "shadowmap.glsl";
+				pointshadowmapShaderFilename = Paths::ProjectContentDir() / "pointshadowmap.glsl";
 
 				boxDiffuseTextureFilename = Paths::ProjectContentDir() / "T_BoxDiffuse.png";
 				boxSpecularTextureFilename = Paths::ProjectContentDir() / "T_BoxSpecular.png";
@@ -443,6 +479,8 @@ namespace VeiM
 		Shader* screenShader;
 		Shader* skyboxShader;
 		Shader* instanceShader;
+		Shader* shadowmapShader;
+		Shader* pointshadowmapShader;
 
 		Texture grayTexture;
 
@@ -495,6 +533,10 @@ namespace VeiM
 		unsigned int coinMatrixBuffer;
 
 
+		
+		
+
+
 		if (bHasGame)
 		{
 
@@ -504,6 +546,8 @@ namespace VeiM
 			screenShader = new Shader(screenShaderFilename);
 			skyboxShader = new Shader(skyboxShaderFilename);
 			instanceShader = new Shader(instanceShaderFilename);
+			shadowmapShader = new Shader(shadowmapShaderFilename);
+			pointshadowmapShader = new Shader(pointshadowmapShaderFilename);
 
 			m_CubeMesh = new CubeMesh();
 			m_SphereMesh = new SphereMesh(8, 8);
@@ -591,6 +635,55 @@ namespace VeiM
 			glBindBuffer(GL_ARRAY_BUFFER, coinMatrixBuffer);
 			glBufferData(GL_ARRAY_BUFFER, coinsCount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
 
+
+
+			/* Directional light Shadows */
+			glGenFramebuffers(1, &depthMapFBO);
+
+			// Generate depth map
+
+			glGenTextures(1, &depthMap);
+			glBindTexture(GL_TEXTURE_2D, depthMap);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+				SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+			float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+			glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+			// Attach depth map to framebuffer
+			glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+			glDrawBuffer(GL_NONE);
+			glReadBuffer(GL_NONE);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+			/* Point light shadows */
+			glGenFramebuffers(1, &depthCubeMapFBO);
+			glGenTextures(1, &depthCubemap);
+
+
+			glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
+			for (unsigned int i = 0; i < 6; ++i)
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT,
+					pSHADOW_WIDTH, pSHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+			glBindFramebuffer(GL_FRAMEBUFFER, depthCubeMapFBO);
+			glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthCubemap, 0);
+			glDrawBuffer(GL_NONE);
+			glReadBuffer(GL_NONE);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+			// Instancing
 			for (unsigned int i = 0; i < coinMesh->GetMeshesCount(); i++)
 			{
 				unsigned int VAO = coinMesh->GetMesh(i)->GetVAO();
@@ -660,10 +753,6 @@ namespace VeiM
 				}
 
 				m_Camera->Update(m_DeltaTime);
-				m_Framebuffer->Bind();
-				TestRenderer::SetClearColor(0.2f, 0.3f, 0.3f, 1.f);
-				//TestRenderer::SetClearColor(0.05f, 0.0f, 0.1f, 1.f);
-				TestRenderer::Clear();
 
 
 				glm::mat4 cubeModel = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.f))
@@ -683,8 +772,8 @@ namespace VeiM
 				glm::quat spotLightRotation = glm::rotation(glm::vec3(0.0f, 0.0f, -1.0f), spotLigthDirection);
 
 				glm::mat4 spotLightModel = glm::translate(glm::mat4(1.0f), m_SpotLightPos) * glm::toMat4(spotLightRotation) * glm::scale(glm::mat4(1.0f), glm::vec3(0.15f, 0.15f, 0.1f));
-
-
+				glm::mat4 backpackModel = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 4.0f, -5.f));
+				glm::mat4 coinModel = glm::translate(glm::mat4(1.0f), glm::vec3(-6.0f, 4.0f, -5.f));
 
 				//				glEnable(GL_DEPTH_TEST);
 				// 				glEnable(GL_STENCIL_TEST);
@@ -703,10 +792,132 @@ namespace VeiM
 				m_CubeMesh->Tdiffuse = boxDiffuse;
 				m_CubeMesh->Tspecualr = boxSpecular;
 
+				// 1. Render to depth map
+				// Configure shader and matrices
+				float near_plane = 1.0f, far_plane = 50.f;
+				glm::mat4 lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, near_plane, far_plane);
+				glm::vec3 dlpos = -glm::normalize(m_DirLightDirection) * 10.0f;
+				glm::mat4 lightView = glm::lookAt(
+					dlpos,
+					glm::vec3(0.0f, 0.0f, 0.0f),
+					glm::vec3(0.0f, 1.0f, 0.0f)
+				);
+				glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+				if (bCastGlobalShadows)
+				{
+
+					shadowmapShader->Bind();
+					shadowmapShader->SetMat4("u_LightSpaceMatrix", lightSpaceMatrix);
+
+					glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+					glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+					glDrawBuffer(GL_NONE);
+					glReadBuffer(GL_NONE);
+					glClear(GL_DEPTH_BUFFER_BIT);
+					glCullFace(GL_FRONT);
+					// Render Scene
+					// Floor
+					shadowmapShader->SetMat4("u_Transform", glm::translate(glm::mat4(1.0f), glm::vec3(0.f, -4.f, 0.f)) * glm::scale(glm::mat4(1.0f), glm::vec3(20.f, 1.f, 20.f)));
+					TestRenderer::RenderMesh(m_CubeMesh, *shadowmapShader, 0, 0, true);
+					// Cubes
+					shadowmapShader->SetMat4("u_Transform", cubeModel);
+					TestRenderer::RenderMesh(m_CubeMesh, *shadowmapShader, 0, 0, true);
+
+					shadowmapShader->SetMat4("u_Transform", cubeModel * glm::translate(glm::mat4(1.0f), glm::vec3(5, 3, 5)));
+					TestRenderer::RenderMesh(m_CubeMesh, *shadowmapShader, 0, 0, true);
+
+					shadowmapShader->SetMat4("u_Transform", cubeModel * glm::translate(glm::mat4(1.0f), glm::vec3(-3, 0, 8)));
+					TestRenderer::RenderMesh(m_CubeMesh, *shadowmapShader, 0, 0, true);
+
+					// Backpack
+
+					shadowmapShader->SetMat4("u_Transform", backpackModel);
+					backpackMesh->Draw(*shadowmapShader, 0, 0, true);
+
+					// Coin
+
+					shadowmapShader->SetMat4("u_Transform", coinModel);
+					coinMesh->Draw(*shadowmapShader, 0, 0, true);
+					glCullFace(GL_BACK);
+					glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				}
+				if (bCastPointShadows)
+				{
+					// Point light shadow map creation
+					glViewport(0, 0, pSHADOW_WIDTH, pSHADOW_HEIGHT);
+					glBindFramebuffer(GL_FRAMEBUFFER, depthCubeMapFBO);
+					glClear(GL_DEPTH_BUFFER_BIT);
+
+
+
+					float aspect = (float)pSHADOW_WIDTH / (float)pSHADOW_HEIGHT;
+					float psmNear = 1.0f;
+					float psmFar = 25.0f;
+					glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, psmNear, psmFar);
+					std::vector<glm::mat4> shadowTransforms;
+					shadowTransforms.push_back(shadowProj *
+						glm::lookAt(m_PointLightPos1, m_PointLightPos1 + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+					shadowTransforms.push_back(shadowProj *
+						glm::lookAt(m_PointLightPos1, m_PointLightPos1 + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+					shadowTransforms.push_back(shadowProj *
+						glm::lookAt(m_PointLightPos1, m_PointLightPos1 + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
+					shadowTransforms.push_back(shadowProj *
+						glm::lookAt(m_PointLightPos1, m_PointLightPos1 + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
+					shadowTransforms.push_back(shadowProj *
+						glm::lookAt(m_PointLightPos1, m_PointLightPos1 + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+					shadowTransforms.push_back(shadowProj *
+						glm::lookAt(m_PointLightPos1, m_PointLightPos1 + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+
+					litShader->Bind();
+					litShader->SetFloat("u_PointLights[0].farPlane", psmFar);
+
+					pointshadowmapShader->Bind();
+					for (int i = 0; i < 6; i++)
+						pointshadowmapShader->SetMat4(String("u_ShadowMatrices[") + std::to_string(i) + "]", shadowTransforms[i]);
+
+					pointshadowmapShader->SetFloat3("u_LightPos", m_PointLightPos1);
+					pointshadowmapShader->SetFloat("u_FarPlane", psmFar);
+
+					// Floor
+					pointshadowmapShader->SetMat4("u_Transform", glm::translate(glm::mat4(1.0f), glm::vec3(0.f, -4.f, 0.f)) * glm::scale(glm::mat4(1.0f), glm::vec3(20.f, 1.f, 20.f)));
+					TestRenderer::RenderMesh(m_CubeMesh, *pointshadowmapShader, 0,0, true);
+					// Cubes
+					pointshadowmapShader->SetMat4("u_Transform", cubeModel);
+					TestRenderer::RenderMesh(m_CubeMesh, *pointshadowmapShader, 0, 0, true);
+
+					pointshadowmapShader->SetMat4("u_Transform", cubeModel * glm::translate(glm::mat4(1.0f), glm::vec3(5, 3, 5)));
+					TestRenderer::RenderMesh(m_CubeMesh, *pointshadowmapShader, 0, 0, true);
+
+					pointshadowmapShader->SetMat4("u_Transform", cubeModel * glm::translate(glm::mat4(1.0f), glm::vec3(-3, 0, 8)));
+					TestRenderer::RenderMesh(m_CubeMesh, *pointshadowmapShader, 0, 0, true);
+
+					// Backpack
+
+					pointshadowmapShader->SetMat4("u_Transform", backpackModel);
+					backpackMesh->Draw(*pointshadowmapShader, 0, 0, true);
+
+					// Coin
+
+					pointshadowmapShader->SetMat4("u_Transform", coinModel);
+					coinMesh->Draw(*pointshadowmapShader, 0, 0, true);
+
+					// Render Scene
+					glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+				}
+				// 2. Use depth map to render with shadow mapping
+				m_Framebuffer->Bind();
+				TestRenderer::SetClearColor(0.2f, 0.3f, 0.3f, 1.f);
+				TestRenderer::Clear();
 
 				litShader->Bind();
+				litShader->SetMat4("u_LightSpaceMatrix", lightSpaceMatrix);
 				litShader->SetFloat("u_Time", explodeTime);
 				litShader->SetBool("u_UseDepth", bDrawDepthBuffer);
+				litShader->SetFloat("u_NearZ", m_Camera->GetNearClip());
+				litShader->SetFloat("u_FarZ", m_Camera->GetFarClip());
 
 
 				litShader->SetFloat3("u_ViewPos", m_Camera->GetPosition());
@@ -719,6 +930,7 @@ namespace VeiM
 				litShader->SetFloat3("u_DirLight.ambient", m_DirLightAmbient);
 				litShader->SetFloat3("u_DirLight.diffuse", m_DirLightDiffuse);
 				litShader->SetFloat3("u_DirLight.specular", m_DirLightSpecular);
+				litShader->SetBool("u_DirLight.castShadows", bCastGlobalShadows);
 
 				litShader->SetFloat3("u_PointLights[0].position", m_PointLightPos1);
 				litShader->SetFloat3("u_PointLights[1].position", m_PointLightPos2);
@@ -748,6 +960,7 @@ namespace VeiM
 				litShader->SetFloat3("u_PointLights[1].specular", m_PointLightSpecular);
 				litShader->SetFloat3("u_PointLights[2].specular", m_PointLightSpecular);
 				litShader->SetFloat3("u_PointLights[3].specular", m_PointLightSpecular);
+				litShader->SetBool("u_PointLights[0].castShadows", bCastPointShadows);
 
 				litShader->SetFloat3("u_SpotLights[0].position", m_SpotLightPos);
 				litShader->SetFloat3("u_SpotLights[0].direction", m_SpotLightDir);
@@ -843,19 +1056,19 @@ namespace VeiM
 				m_CubeMesh->Tspecualr = boxSpecular;
 				litShader->Bind();
 				litShader->SetMat4("u_Transform", glm::translate(glm::mat4(1.0f), glm::vec3(0.f, -4.f, 0.f)) * glm::scale(glm::mat4(1.0f), glm::vec3(20.f, 1.f, 20.f)));
-				TestRenderer::RenderMesh(m_CubeMesh, *litShader);
+				TestRenderer::RenderMesh(m_CubeMesh, *litShader, depthMap, depthCubemap);
 
 				m_CubeMesh->Tdiffuse = boxDiffuse;
 				m_CubeMesh->Tspecualr = boxSpecular;
 
 				litShader->SetMat4("u_Transform", cubeModel);
-				TestRenderer::RenderMesh(m_CubeMesh, *litShader);
+				TestRenderer::RenderMesh(m_CubeMesh, *litShader, depthMap, depthCubemap);
 
 				litShader->SetMat4("u_Transform", cubeModel * glm::translate(glm::mat4(1.0f), glm::vec3(5, 3, 5)));
-				TestRenderer::RenderMesh(m_CubeMesh, *litShader);
+				TestRenderer::RenderMesh(m_CubeMesh, *litShader, depthMap, depthCubemap);
 
 				litShader->SetMat4("u_Transform", cubeModel * glm::translate(glm::mat4(1.0f), glm::vec3(-3, 0, 8)));
-				TestRenderer::RenderMesh(m_CubeMesh, *litShader);
+				TestRenderer::RenderMesh(m_CubeMesh, *litShader, depthMap, depthCubemap);
 
 
 				lightSourceShader->Bind();
@@ -880,15 +1093,13 @@ namespace VeiM
 
 				// Backpack
 				litShader->Bind();
-				glm::mat4 backpackModel = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 4.0f, -5.f));
 				litShader->SetMat4("u_Transform", backpackModel);
-				backpackMesh->Draw(*litShader);
+				backpackMesh->Draw(*litShader, depthMap, depthCubemap);
 
 				// Coin
 				litShader->Bind();
-				glm::mat4 coinModel = glm::translate(glm::mat4(1.0f), glm::vec3(-6.0f, 4.0f, -5.f));
 				litShader->SetMat4("u_Transform", coinModel);
-				coinMesh->Draw(*litShader);
+				coinMesh->Draw(*litShader, depthMap, depthCubemap);
 
 				if (!bUseInstancing)
 				{

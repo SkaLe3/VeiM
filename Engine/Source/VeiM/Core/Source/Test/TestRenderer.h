@@ -12,7 +12,7 @@ namespace VeiM
 	public:
 		CORE_API static void Init();
 
-		CORE_API static void RenderMesh(IMesh* mesh, Shader& shader);
+		CORE_API static void RenderMesh(IMesh* mesh, Shader& shader, uint32 shadowmapTexture = 0, uint32 shadowcubemapTexture = 0, bool noTextures = false);
 		CORE_API static void SetClearColor(const float x, const float y, const float z, const float a);
 		CORE_API static void Clear();
 		CORE_API static void BlitFramebufferToSwapchain(FrameBuffer& framebuffer);

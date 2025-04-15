@@ -36,21 +36,34 @@ namespace VeiM
 
 	}
 
-	CORE_API void TestRenderer::RenderMesh(IMesh* mesh, Shader& shader)
+	CORE_API void TestRenderer::RenderMesh(IMesh* mesh, Shader& shader, uint32 shadowmapTexture, uint32 shadowcubemapTexture, bool noTextures)
 	{
 
-		if (mesh->Tdiffuse.Id != 0)
+		if (mesh->Tdiffuse.Id != 0 && !noTextures)
 		{
 			glActiveTexture(GL_TEXTURE0);
 			shader.SetUniformInt("u_Material.diffuse", 0);
 			glBindTexture(GL_TEXTURE_2D, mesh->Tdiffuse.Id);
 		}
-		if (mesh->Tspecualr.Id != 0)
+		if (mesh->Tspecualr.Id != 0 && !noTextures)
 		{
 			glActiveTexture(GL_TEXTURE1);
 			shader.SetUniformInt("u_Material.specular", 1);
 			glBindTexture(GL_TEXTURE_2D, mesh->Tspecualr.Id);
 		}
+		if (shadowmapTexture != 0 && !noTextures)
+		{
+			glActiveTexture(GL_TEXTURE2);
+			shader.SetUniformInt("u_ShadowMap", 2);
+			glBindTexture(GL_TEXTURE_2D, shadowmapTexture);
+		}
+		if (shadowcubemapTexture != 0 && !noTextures)
+		{
+			glActiveTexture(GL_TEXTURE3);
+			shader.SetUniformInt("u_ShadowCubeMap", 3);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, shadowcubemapTexture);
+		}
+
 
 		glBindVertexArray(mesh->GetVAO());
 		if (mesh->Indices.size() > 0)

@@ -42,6 +42,7 @@ namespace VeiM
 	{
 	public:
 		FrameBuffer* DebugGetFramebuffer() { return m_PostProcessFramebuffer; }
+		uint32 DebugGetFramebufferTexture() { return depthMap; }
 	public:
 		Application(const ApplicationSpecification& applicationSpecification);
 		~Application();
@@ -106,8 +107,15 @@ namespace VeiM
 		bool bDrawDepthBuffer = false;
 		bool bUseNatureSkybox = true;
 		bool bExplode = false;
-		bool bUseInstancing = false;
+		bool bUseInstancing = true;
+		bool bCastGlobalShadows = true;
+		bool bCastPointShadows = true;
 		bool bUseSRGB = false;
+		int32 m_ShadowMapLevel = 3;
+		uint32 SHADOW_WIDTH = 4096, SHADOW_HEIGHT = 4096;
+		uint32 pSHADOW_WIDTH = 1024, pSHADOW_HEIGHT = 1024;
+		float m_ShadowBiasMin = 0.001f;
+		float m_ShadowBiasMax = 0.005f;
 
 		float m_Shininess = 64;
 
@@ -139,6 +147,11 @@ namespace VeiM
 		uint32 m_Width = 600;
 		uint32 m_Height = 400;
 
+		// Shadows
+		unsigned int depthMapFBO;
+		unsigned int depthMap; // Depth Map for shadow maps
+		unsigned int depthCubeMapFBO;
+		uint32 depthCubemap;
 
 	private:
 		static Application* s_Instance;

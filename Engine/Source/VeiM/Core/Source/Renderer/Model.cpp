@@ -8,11 +8,11 @@
 namespace VeiM
 {
 
-	void Model::Draw(Shader& shader)
+	void Model::Draw(Shader& shader, uint32 shadowMap, uint32 shadowCubeMap, bool noTextures)
 	{
 
 		for (unsigned int i = 0; i < m_Meshes.size(); i++)
-			TestRenderer::RenderMesh(m_Meshes[i], shader);
+			TestRenderer::RenderMesh(m_Meshes[i], shader,shadowMap, shadowCubeMap, noTextures);
 	}
 
 	void Model::loadModel(fs::path filepath)

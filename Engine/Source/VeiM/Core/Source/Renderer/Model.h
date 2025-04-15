@@ -22,7 +22,7 @@ namespace VeiM
 		{
 			loadModel(filepath);
 		}
-		void Draw(Shader& shader);
+		void Draw(Shader& shader,uint32 shadowMap = 0, uint32 shadowCubeMap = 0, bool noTextures = false);
 		uint32 GetMeshesCount() { return m_Meshes.size(); }
 		IMesh* GetMesh(uint32 index) { return m_Meshes[index]; }
 	private:

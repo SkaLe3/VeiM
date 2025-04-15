@@ -147,9 +147,17 @@ namespace VeiM
 			m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 			Application::Get().ViewportResize(m_ViewportSize.x, m_ViewportSize.y);
 			ImGui::Image(reinterpret_cast<void*>(Application::Get().DebugGetFramebuffer()->GetTexture()), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+			//ImGui::Image(reinterpret_cast<void*>(Application::Get().DebugGetFramebufferTexture()), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 			ImGui::End();
 			ImGui::PopStyleVar();
 			TestClassMetadataDisplay();
+
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
+			ImGui::Begin("Directional Light shadow map");
+			viewportPanelSize = ImGui::GetContentRegionAvail();
+			ImGui::Image(reinterpret_cast<void*>(Application::Get().DebugGetFramebufferTexture()), ImVec2{ viewportPanelSize.x, viewportPanelSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+			ImGui::End();
+			ImGui::PopStyleVar();
 		}
 	}
 
