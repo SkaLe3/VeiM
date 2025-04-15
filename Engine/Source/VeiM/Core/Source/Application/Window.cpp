@@ -185,7 +185,6 @@ namespace VeiM
 
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-		glfwWindowHint(GLFW_SAMPLES, 4);
 
 		if (m_Data.CustomTitlebar)
 		{

@@ -213,6 +213,42 @@ namespace VeiM
 			ImGui::Checkbox("Nature Skybox", &bUseNatureSkybox);
 			ImGui::Checkbox("Explode", &bExplode);
 			ImGui::Checkbox("Use Instancing", &bUseInstancing);
+			ImGui::Checkbox("Use SRGB", &bUseSRGB);
+
+			/* AA OPTIONS */
+			static const char* aaOptions[] = {
+				"No AA",
+				"MSAA 2x",
+				"MSAA 4x",
+				"MSAA 8x",
+				"MSAA 16x"
+			};
+			static uint32 aaSamples[] = {
+				1,
+				2,
+				4,
+				8,
+				16
+			};
+			static int currentAAIndex = 2; // Default to "MSAA 4x"
+
+			if (ImGui::BeginCombo("Anti-Aliasing Mode", aaOptions[currentAAIndex]))
+			{
+				for (int n = 0; n < IM_ARRAYSIZE(aaOptions); n++)
+				{
+					bool isSelected = (currentAAIndex == n);
+					if (ImGui::Selectable(aaOptions[n], isSelected))
+						currentAAIndex = n;
+
+					if (isSelected)
+						ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+			samplesNumber = aaSamples[currentAAIndex];
+
+			/* END AA OPTIONS*/
+
 
 			ImGui::SeparatorText("Cube Controls");
 			ImGui::SliderFloat("Cube Pitch", &cubePitch, 0, 360, "%.0f");
@@ -362,7 +398,6 @@ namespace VeiM
 
 			boxDiffuseTextureFilename = fs::current_path().parent_path().parent_path() / "Content" / "T_BoxDiffuse.png";
 			boxSpecularTextureFilename = fs::current_path().parent_path().parent_path() / "Content" / "T_BoxSpecular.png";
-			boxEmissionTextureFilename = fs::current_path().parent_path().parent_path() / "Content" / "T_BoxEmission.png";
 			backpackModelFilename = fs::current_path().parent_path().parent_path() / "Content" / "backpack" / "backpack.obj";
 			coinMeshFilename = fs::current_path().parent_path().parent_path() / "Content" / "coin" / "Coin.obj";
 
@@ -388,7 +423,6 @@ namespace VeiM
 
 				boxDiffuseTextureFilename = Paths::ProjectContentDir() / "T_BoxDiffuse.png";
 				boxSpecularTextureFilename = Paths::ProjectContentDir() / "T_BoxSpecular.png";
-				boxEmissionTextureFilename = Paths::ProjectContentDir() / "T_BoxEmission.png";
 				backpackModelFilename = Paths::ProjectContentDir() / "backpack" / "backpack.obj";
 				coinMeshFilename = Paths::ProjectContentDir() / "coin" / "Coin.obj";
 
@@ -414,7 +448,6 @@ namespace VeiM
 
 		Texture boxDiffuse;
 		Texture boxSpecular;
-		Texture boxEmission;
 		CubeMap skybox;
 		CubeMap skybox2;
 
@@ -480,10 +513,9 @@ namespace VeiM
 			skyboxMesh = new SkyBoxCube();
 			skyboxMesh->Finilize();
 
-			grayTexture = TextureFromFile(grayTextureFilename);
-			boxDiffuse = TextureFromFile(boxDiffuseTextureFilename);
-			boxSpecular = TextureFromFile(boxSpecularTextureFilename);
-			boxEmission = TextureFromFile(boxEmissionTextureFilename);
+			grayTexture = TextureFromFile(grayTextureFilename, ETextureColorSpace::sRGB);
+			boxDiffuse = TextureFromFile(boxDiffuseTextureFilename, ETextureColorSpace::sRGB);
+			boxSpecular = TextureFromFile(boxSpecularTextureFilename, ETextureColorSpace::Linear);
 
 			m_CubeMesh->Tdiffuse = boxDiffuse;
 			m_CubeMesh->Tspecualr = boxSpecular;
@@ -491,9 +523,15 @@ namespace VeiM
 			skybox = loadCubemap(skyboxFilenames);
 			skybox2 = loadCubemap(skyboxSFilenames);
 
+			FramebufferSpecs fbspecs;
+			fbspecs.Width = 1280;
+			fbspecs.Height = 720;
+			fbspecs.Samples = samplesNumber;
+			m_Framebuffer = new FrameBuffer(fbspecs);
+			fbspecs.Samples = 1;
+			m_IntermediateFramebuffer = new FrameBuffer(fbspecs);
+			m_PostProcessFramebuffer = new FrameBuffer(fbspecs);
 
-			m_Framebuffer.Invalidate(1280, 720);
-			m_PostProcessFramebuffer.Invalidate(1280, 720);
 
 
 			m_Camera = MakeUnique<EditorCamera>();
@@ -606,11 +644,23 @@ namespace VeiM
 				m_Width = d_width;
 				m_Height = d_height;
 #endif
-				m_Framebuffer.Invalidate(m_Width, m_Height);
-				m_PostProcessFramebuffer.Invalidate(m_Width, m_Height);
-				m_Camera->SetViewport(m_Width, m_Height);
+				if (FramebufferSpecs spec = m_Framebuffer->Specs;
+					m_Width > 0.0f && m_Height > 0.0 &&
+					(spec.Width != m_Width || spec.Height != m_Height))
+				{
+					m_Framebuffer->Resize((uint32)m_Width, (uint32)m_Height);
+					m_IntermediateFramebuffer->Resize((uint32)m_Width, (uint32)m_Height);
+					m_PostProcessFramebuffer->Resize((uint32)m_Width, (uint32)m_Height);
+					m_Camera->SetViewport(m_Width, m_Height);
+				}
+				if (m_Framebuffer->Specs.Samples != samplesNumber)
+				{
+					m_Framebuffer->Specs.Samples = samplesNumber;
+					m_Framebuffer->Invalidate();
+				}
+
 				m_Camera->Update(m_DeltaTime);
-				m_Framebuffer.Bind();
+				m_Framebuffer->Bind();
 				TestRenderer::SetClearColor(0.2f, 0.3f, 0.3f, 1.f);
 				//TestRenderer::SetClearColor(0.05f, 0.0f, 0.1f, 1.f);
 				TestRenderer::Clear();
@@ -645,7 +695,6 @@ namespace VeiM
 				if (bExplode)
 					explodeTime = Time::GetTime();
 
-				glDisable(GL_CULL_FACE);
 
 				glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
 				glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(viewProjection));
@@ -829,23 +878,13 @@ namespace VeiM
 				lightSourceShader->SetMat4("u_Transform", spotLightModel);
 				TestRenderer::RenderMesh(m_SphereMesh, *lightSourceShader);
 
-
-
-
 				// Backpack
 				litShader->Bind();
 				glm::mat4 backpackModel = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 4.0f, -5.f));
 				litShader->SetMat4("u_Transform", backpackModel);
 				backpackMesh->Draw(*litShader);
 
-
-
-
 				// Coin
-// 				glStencilFunc(GL_ALWAYS, 1, 0xFF);
-// 				glStencilMask(0xFF);
-// 				glEnable(GL_DEPTH_TEST);
-
 				litShader->Bind();
 				glm::mat4 coinModel = glm::translate(glm::mat4(1.0f), glm::vec3(-6.0f, 4.0f, -5.f));
 				litShader->SetMat4("u_Transform", coinModel);
@@ -882,36 +921,23 @@ namespace VeiM
 				glEnable(GL_CULL_FACE);
 
 
-				m_Framebuffer.UnBind();
-				m_PostProcessFramebuffer.Bind();
-				TestRenderer::BlitStencil(m_Framebuffer, m_PostProcessFramebuffer);
+				m_Framebuffer->UnBind();
+				TestRenderer::BlitFramebufferTo(*m_Framebuffer, *m_IntermediateFramebuffer);
+
+
+
+				m_PostProcessFramebuffer->Bind();
+				TestRenderer::BlitStencil(*m_IntermediateFramebuffer, *m_PostProcessFramebuffer);
 
 				glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
 				screenShader->Bind();
 				glBindVertexArray(screenVAO);
 				glDisable(GL_DEPTH_TEST);
-				glBindTexture(GL_TEXTURE_2D, m_Framebuffer.GetTexture());
+				glBindTexture(GL_TEXTURE_2D, m_IntermediateFramebuffer->GetTexture());
 				glDrawArrays(GL_TRIANGLES, 0, 6);
 				glEnable(GL_DEPTH_TEST);
-
-
-				// 				glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-				// 				glDisable(GL_DEPTH_TEST);
-				// 				if (!bDrawDepthBuffer)
-				// 				{
-				// 
-				// 					borderShader->Bind();
-				// 					coinModel = glm::translate(glm::mat4(1.0f), glm::vec3(-6.0f, 12.0f, 10.f)) * glm::scale(glm::mat4(1.0f), glm::vec3(1.05f));
-				// 					borderShader->SetMat4("u_Transform", coinModel);
-				// 					coinMesh->Draw(*borderShader);
-				// 				}
-				// 
-				// 				glEnable(GL_DEPTH_TEST);
-				// 				glStencilFunc(GL_ALWAYS, 0, 0xFF);
-
-				m_PostProcessFramebuffer.UnBind();
+				m_PostProcessFramebuffer->UnBind();
 
 			}
 

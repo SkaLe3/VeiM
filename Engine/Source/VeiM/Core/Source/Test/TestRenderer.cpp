@@ -17,8 +17,7 @@ namespace VeiM
 	{
 		// enable gl debug output
 		// set opengl message callback
-		// enable blend
-		// set blend func
+
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
@@ -82,16 +81,23 @@ namespace VeiM
 	{
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.Handle);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-		glBlitFramebuffer(0, 0, framebuffer.swidth, framebuffer.sheight, 0, 0, framebuffer.swidth, framebuffer.sheight, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
+		glBlitFramebuffer(0, 0, framebuffer.Specs.Width, framebuffer.Specs.Height, 0, 0, framebuffer.Specs.Width, framebuffer.Specs.Height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
 	}
 
 
+
+	CORE_API void TestRenderer::BlitFramebufferTo(FrameBuffer& sourceFB, FrameBuffer& targetFB)
+	{
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, sourceFB.Handle);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFB.Handle);
+		glBlitFramebuffer(0, 0, sourceFB.Specs.Width, sourceFB.Specs.Height, 0, 0, targetFB.Specs.Width, targetFB.Specs.Height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
+	}
 
 	void TestRenderer::BlitStencil(FrameBuffer& framebufferSource, FrameBuffer& framebufferDestination)
 	{
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, framebufferSource.Handle);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebufferDestination.Handle);
-		glBlitFramebuffer(0, 0, framebufferSource.swidth, framebufferSource.sheight, 0, 0, framebufferDestination.swidth, framebufferDestination.sheight, GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
+		glBlitFramebuffer(0, 0, framebufferSource.Specs.Width, framebufferSource.Specs.Height, 0, 0, framebufferDestination.Specs.Width, framebufferDestination.Specs.Height, GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
 	}
 
 }

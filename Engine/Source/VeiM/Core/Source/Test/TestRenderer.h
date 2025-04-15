@@ -16,6 +16,7 @@ namespace VeiM
 		CORE_API static void SetClearColor(const float x, const float y, const float z, const float a);
 		CORE_API static void Clear();
 		CORE_API static void BlitFramebufferToSwapchain(FrameBuffer& framebuffer);
+		CORE_API static void BlitFramebufferTo(FrameBuffer& sourceFB, FrameBuffer& targetFB);
 		CORE_API static void BlitStencil(FrameBuffer& framebufferSource, FrameBuffer& framebufferDestination);
 
 	};

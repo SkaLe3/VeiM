@@ -41,7 +41,7 @@ namespace VeiM
 	class CORE_API Application
 	{
 	public:
-		FrameBuffer* DebugGetFramebuffer() { return &m_Framebuffer; }
+		FrameBuffer* DebugGetFramebuffer() { return m_PostProcessFramebuffer; }
 	public:
 		Application(const ApplicationSpecification& applicationSpecification);
 		~Application();
@@ -89,8 +89,11 @@ namespace VeiM
 
 
 		//Temp 
-		FrameBuffer m_Framebuffer;
-		FrameBuffer m_PostProcessFramebuffer;
+		FrameBuffer* m_Framebuffer;
+		FrameBuffer* m_IntermediateFramebuffer;
+		FrameBuffer* m_PostProcessFramebuffer;
+		uint32 samplesNumber = 1;
+
 		IMesh* m_CubeMesh;
 		IMesh* m_SphereMesh;
 		float cubePitch = 0;
@@ -104,6 +107,7 @@ namespace VeiM
 		bool bUseNatureSkybox = true;
 		bool bExplode = false;
 		bool bUseInstancing = false;
+		bool bUseSRGB = false;
 
 		float m_Shininess = 64;
 
@@ -135,8 +139,6 @@ namespace VeiM
 		uint32 m_Width = 600;
 		uint32 m_Height = 400;
 
-	public:
-		FrameBuffer& GetFramebuffer() { return m_Framebuffer; };
 
 	private:
 		static Application* s_Instance;

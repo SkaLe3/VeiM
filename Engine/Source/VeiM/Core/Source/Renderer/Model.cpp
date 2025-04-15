@@ -123,7 +123,10 @@ namespace VeiM
 			}
 			if (!skip)
 			{
-				Texture texture = TextureFromFile(m_Directory / str.C_Str());
+				ETextureColorSpace colorSpace = ETextureColorSpace::Linear;
+				if (typeName == StringID("texture_diffuse"))
+					colorSpace = ETextureColorSpace::sRGB;
+				Texture texture = TextureFromFile(m_Directory / str.C_Str(), colorSpace);
 				texture.Type = typeName;
 				texture.Path = str.C_Str();
 				textures.push_back(texture);

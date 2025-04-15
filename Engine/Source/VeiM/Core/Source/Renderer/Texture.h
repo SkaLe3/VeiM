@@ -5,6 +5,12 @@
 namespace VeiM
 {
 
+	enum class ETextureColorSpace
+	{
+		Linear,
+		sRGB
+	};
+
 	struct Texture
 	{
 		uint32 Id = 0;
@@ -17,6 +23,6 @@ namespace VeiM
 		uint32 Id = 0;
 	};
 
-	Texture TextureFromFile(const fs::path& filename);
+	Texture TextureFromFile(const fs::path& filename, ETextureColorSpace colorSpace);
 	CubeMap loadCubemap(const std::vector<fs::path>& texturesFaces);
 }

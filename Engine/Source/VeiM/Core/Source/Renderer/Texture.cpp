@@ -7,7 +7,8 @@ namespace VeiM
 {
 
 
-	Texture TextureFromFile(const fs::path& filename)
+	// TODO: Add sRGB as default
+	Texture TextureFromFile(const fs::path& filename, ETextureColorSpace colorSpace)
 	{
 		Texture texture;
 		glGenTextures(1, &texture.Id);
@@ -26,15 +27,27 @@ namespace VeiM
 		unsigned char* data = stbi_load(filename.string().c_str(), &width, &height, &nrChannels, 0);
 		if (data)
 		{
-			GLenum format = GL_RGB;
+			GLenum internalFormat = GL_SRGB8;
+			GLenum dataFormat = GL_RGB;
 
 			if (nrChannels == 1)
-				format = GL_RED;
+			{
+				internalFormat = GL_R8;
+				dataFormat = GL_RED;
+
+			}
 			else if (nrChannels == 3)
-				format = GL_RGB;
+			{
+				internalFormat = (colorSpace == ETextureColorSpace::sRGB) ? GL_SRGB8 : GL_RGB8;
+				dataFormat = GL_RGB;
+
+			}
 			else if (nrChannels == 4)
-				format = GL_RGBA;
-			glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+			{
+				internalFormat = (colorSpace == ETextureColorSpace::sRGB) ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+				dataFormat = GL_RGBA;
+			}
+			glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataFormat, GL_UNSIGNED_BYTE, data);
 			glGenerateMipmap(GL_TEXTURE_2D);
 		}
 		else
@@ -58,18 +71,30 @@ namespace VeiM
 			unsigned char* data = stbi_load(faces[i].string().c_str(), &width, &height, &nrChannels, 0);
 			if (data)
 			{
-				GLenum format = GL_RGB;
+				GLenum internalFormat = GL_SRGB8;
+				GLenum dataFormat = GL_RGB;
 
 				if (nrChannels == 1)
-					format = GL_RED;
+				{
+					internalFormat = GL_RED;
+					dataFormat = GL_RED;
+
+				}
 				else if (nrChannels == 3)
-					format = GL_RGB;
+				{
+					internalFormat = GL_SRGB8;
+					dataFormat = GL_RGB;
+
+				}
 				else if (nrChannels == 4)
-					format = GL_RGBA;
+				{
+					internalFormat = GL_SRGB8_ALPHA8;
+					dataFormat = GL_RGBA;
+				}
 
 				glTexImage2D(
 					GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-					0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data
+					0, internalFormat, width, height, 0, dataFormat, GL_UNSIGNED_BYTE, data
 				);
 				stbi_image_free(data);
 			}
