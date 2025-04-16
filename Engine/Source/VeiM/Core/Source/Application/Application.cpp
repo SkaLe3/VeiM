@@ -1157,7 +1157,7 @@ namespace VeiM
 #else
 			if (bHasGame)
 			{
-				TestRenderer::BlitFramebufferToSwapchain(m_PostProcessFramebuffer);
+				TestRenderer::BlitFramebufferToSwapchain(*m_PostProcessFramebuffer);
 
 
 			}
