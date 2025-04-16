@@ -51,16 +51,22 @@ namespace VeiM
 			shader.SetUniformInt("u_Material.specular", 1);
 			glBindTexture(GL_TEXTURE_2D, mesh->Tspecualr.Id);
 		}
-		if (shadowmapTexture != 0 && !noTextures)
+		if (mesh->Tnormal.Id != 0 && !noTextures)
 		{
 			glActiveTexture(GL_TEXTURE2);
-			shader.SetUniformInt("u_ShadowMap", 2);
+			shader.SetUniformInt("u_Material.normal", 2);
+			glBindTexture(GL_TEXTURE_2D, mesh->Tnormal.Id);
+		}
+		if (shadowmapTexture != 0 && !noTextures)
+		{
+			glActiveTexture(GL_TEXTURE3);
+			shader.SetUniformInt("u_ShadowMap", 3);
 			glBindTexture(GL_TEXTURE_2D, shadowmapTexture);
 		}
 		if (shadowcubemapTexture != 0 && !noTextures)
 		{
-			glActiveTexture(GL_TEXTURE3);
-			shader.SetUniformInt("u_ShadowCubeMap", 3);
+			glActiveTexture(GL_TEXTURE4);
+			shader.SetUniformInt("u_ShadowCubeMap", 4);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, shadowcubemapTexture);
 		}
 

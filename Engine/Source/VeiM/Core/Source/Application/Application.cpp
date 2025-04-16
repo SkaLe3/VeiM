@@ -213,6 +213,7 @@ namespace VeiM
 			ImGui::Checkbox("Nature Skybox", &bUseNatureSkybox);
 			ImGui::Checkbox("Explode", &bExplode);
 			ImGui::Checkbox("Use Instancing", &bUseInstancing);
+			ImGui::Checkbox("Use NormalMaps", &bUseNormalMaps);
 			ImGui::Checkbox("Use SRGB", &bUseSRGB);
 			if (ImGui::SliderInt("Shadow maps level", &m_ShadowMapLevel, 0, 3))
 			{
@@ -241,7 +242,7 @@ namespace VeiM
 				glReadBuffer(GL_NONE);
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			}
-			ImGui::SliderFloat("Shadow Bias", &m_ShadowBiasMin, 0.0001f, 0.001f, "%.4f");
+			//ImGui::SliderFloat("Shadow Bias", &m_ShadowBiasMin, 0.0001f, 0.001f, "%.4f");
 
 			/* AA OPTIONS */
 			static const char* aaOptions[] = {
@@ -393,6 +394,9 @@ namespace VeiM
 		fs::path backpackModelFilename;
 		fs::path coinMeshFilename;
 
+		fs::path brickDiffuseFilename;
+		fs::path brickNormalFilename;
+
 		std::vector<fs::path> skyboxFilenames;
 		std::vector<fs::path> skyboxSFilenames;
 
@@ -435,6 +439,8 @@ namespace VeiM
 			backpackModelFilename = fs::current_path().parent_path().parent_path() / "Content" / "backpack" / "backpack.obj";
 			coinMeshFilename = fs::current_path().parent_path().parent_path() / "Content" / "coin" / "Coin.obj";
 
+			
+
 			for (int i = 0; i < 6; i++)
 				skyboxFilenames.push_back(fs::current_path().parent_path().parent_path() / "Content" / "skybox" / faces[i]);
 
@@ -462,6 +468,9 @@ namespace VeiM
 				backpackModelFilename = Paths::ProjectContentDir() / "backpack" / "backpack.obj";
 				coinMeshFilename = Paths::ProjectContentDir() / "coin" / "Coin.obj";
 
+				brickDiffuseFilename = Paths::ProjectContentDir() / "brick" / "T_BrickDiffuse.jpg";
+				brickNormalFilename = Paths::ProjectContentDir() / "brick" / "T_BrickNormal.jpg";
+
 				for (int i = 0; i < 6; i++)
 					skyboxFilenames.push_back(Paths::ProjectContentDir() / "skybox" / faces[i]);
 
@@ -488,6 +497,10 @@ namespace VeiM
 		Texture boxSpecular;
 		CubeMap skybox;
 		CubeMap skybox2;
+
+		Texture brickDiffuse;
+		Texture brickNormal;
+		Texture defaultNormal;
 
 
 		Model* backpackMesh;
@@ -560,6 +573,10 @@ namespace VeiM
 			grayTexture = TextureFromFile(grayTextureFilename, ETextureColorSpace::sRGB);
 			boxDiffuse = TextureFromFile(boxDiffuseTextureFilename, ETextureColorSpace::sRGB);
 			boxSpecular = TextureFromFile(boxSpecularTextureFilename, ETextureColorSpace::Linear);
+			brickDiffuse = TextureFromFile(brickDiffuseFilename, ETextureColorSpace::sRGB);
+			brickNormal = TextureFromFile(brickNormalFilename, ETextureColorSpace::Linear);
+			uint8 normalData[3] = { 128, 128, 255 };
+			defaultNormal = GenerateTexture(normalData, 1, 1);
 
 			m_CubeMesh->Tdiffuse = boxDiffuse;
 			m_CubeMesh->Tspecualr = boxSpecular;
@@ -754,6 +771,7 @@ namespace VeiM
 
 				m_Camera->Update(m_DeltaTime);
 
+				glm::mat4 floorModel = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, -2.f, 0.f)) * glm::scale(glm::mat4(1.0f), glm::vec3(20.f, 1.f, 20.f));
 
 				glm::mat4 cubeModel = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.f))
 					* glm::toMat4(glm::quat(glm::vec3(glm::radians(-cubePitch), glm::radians(-cubeYaw), glm::radians(-cubeRoll))));
@@ -819,7 +837,7 @@ namespace VeiM
 					glCullFace(GL_FRONT);
 					// Render Scene
 					// Floor
-					shadowmapShader->SetMat4("u_Transform", glm::translate(glm::mat4(1.0f), glm::vec3(0.f, -4.f, 0.f)) * glm::scale(glm::mat4(1.0f), glm::vec3(20.f, 1.f, 20.f)));
+					shadowmapShader->SetMat4("u_Transform", floorModel);
 					TestRenderer::RenderMesh(m_CubeMesh, *shadowmapShader, 0, 0, true);
 					// Cubes
 					shadowmapShader->SetMat4("u_Transform", cubeModel);
@@ -829,6 +847,9 @@ namespace VeiM
 					TestRenderer::RenderMesh(m_CubeMesh, *shadowmapShader, 0, 0, true);
 
 					shadowmapShader->SetMat4("u_Transform", cubeModel * glm::translate(glm::mat4(1.0f), glm::vec3(-3, 0, 8)));
+					TestRenderer::RenderMesh(m_CubeMesh, *shadowmapShader, 0, 0, true);
+
+					shadowmapShader->SetMat4("u_Transform", cubeModel * glm::translate(glm::mat4(1.0f), glm::vec3(-3, 0, 2)));
 					TestRenderer::RenderMesh(m_CubeMesh, *shadowmapShader, 0, 0, true);
 
 					// Backpack
@@ -853,7 +874,7 @@ namespace VeiM
 
 
 					float aspect = (float)pSHADOW_WIDTH / (float)pSHADOW_HEIGHT;
-					float psmNear = 1.0f;
+					float psmNear = 0.1f;
 					float psmFar = 25.0f;
 					glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, psmNear, psmFar);
 					std::vector<glm::mat4> shadowTransforms;
@@ -881,7 +902,7 @@ namespace VeiM
 					pointshadowmapShader->SetFloat("u_FarPlane", psmFar);
 
 					// Floor
-					pointshadowmapShader->SetMat4("u_Transform", glm::translate(glm::mat4(1.0f), glm::vec3(0.f, -4.f, 0.f)) * glm::scale(glm::mat4(1.0f), glm::vec3(20.f, 1.f, 20.f)));
+					pointshadowmapShader->SetMat4("u_Transform", floorModel);
 					TestRenderer::RenderMesh(m_CubeMesh, *pointshadowmapShader, 0,0, true);
 					// Cubes
 					pointshadowmapShader->SetMat4("u_Transform", cubeModel);
@@ -891,6 +912,9 @@ namespace VeiM
 					TestRenderer::RenderMesh(m_CubeMesh, *pointshadowmapShader, 0, 0, true);
 
 					pointshadowmapShader->SetMat4("u_Transform", cubeModel * glm::translate(glm::mat4(1.0f), glm::vec3(-3, 0, 8)));
+					TestRenderer::RenderMesh(m_CubeMesh, *pointshadowmapShader, 0, 0, true);
+
+					pointshadowmapShader->SetMat4("u_Transform", cubeModel * glm::translate(glm::mat4(1.0f), glm::vec3(-3, 0, 2)));
 					TestRenderer::RenderMesh(m_CubeMesh, *pointshadowmapShader, 0, 0, true);
 
 					// Backpack
@@ -919,11 +943,11 @@ namespace VeiM
 				litShader->SetFloat("u_NearZ", m_Camera->GetNearClip());
 				litShader->SetFloat("u_FarZ", m_Camera->GetFarClip());
 
-
 				litShader->SetFloat3("u_ViewPos", m_Camera->GetPosition());
 
 				litShader->SetUniformInt("u_Material.diffuse", 0);
 				litShader->SetUniformInt("u_Material.specular", 1);
+				litShader->SetUniformInt("u_Material.normal", 2);
 				litShader->SetFloat("u_Material.shininess", m_Shininess);
 
 				litShader->SetFloat3("u_DirLight.direction", m_DirLightDirection);
@@ -1054,22 +1078,48 @@ namespace VeiM
 				// Floor
 				m_CubeMesh->Tdiffuse = grayTexture;
 				m_CubeMesh->Tspecualr = boxSpecular;
+				m_CubeMesh->Tnormal = defaultNormal;
 				litShader->Bind();
-				litShader->SetMat4("u_Transform", glm::translate(glm::mat4(1.0f), glm::vec3(0.f, -4.f, 0.f)) * glm::scale(glm::mat4(1.0f), glm::vec3(20.f, 1.f, 20.f)));
+				litShader->SetMat4("u_Transform", floorModel);
+				litShader->SetFloat("u_UseNormalMap", (float)bUseNormalMaps);
 				TestRenderer::RenderMesh(m_CubeMesh, *litShader, depthMap, depthCubemap);
 
 				m_CubeMesh->Tdiffuse = boxDiffuse;
 				m_CubeMesh->Tspecualr = boxSpecular;
+				m_CubeMesh->Tnormal = defaultNormal;
 
 				litShader->SetMat4("u_Transform", cubeModel);
+				litShader->SetFloat("u_UseNormalMap", 0.0f);
 				TestRenderer::RenderMesh(m_CubeMesh, *litShader, depthMap, depthCubemap);
 
 				litShader->SetMat4("u_Transform", cubeModel * glm::translate(glm::mat4(1.0f), glm::vec3(5, 3, 5)));
+				litShader->SetFloat("u_UseNormalMap", 0.0f);
 				TestRenderer::RenderMesh(m_CubeMesh, *litShader, depthMap, depthCubemap);
 
 				litShader->SetMat4("u_Transform", cubeModel * glm::translate(glm::mat4(1.0f), glm::vec3(-3, 0, 8)));
+				litShader->SetFloat("u_UseNormalMap", 0.0f);
 				TestRenderer::RenderMesh(m_CubeMesh, *litShader, depthMap, depthCubemap);
 
+				m_CubeMesh->Tdiffuse = brickDiffuse;
+				m_CubeMesh->Tnormal = brickNormal;
+				litShader->SetMat4("u_Transform", cubeModel * glm::translate(glm::mat4(1.0f), glm::vec3(-3, 0, 2)));
+				litShader->SetFloat("u_UseNormalMap", (float)bUseNormalMaps);
+				TestRenderer::RenderMesh(m_CubeMesh, *litShader, depthMap, depthCubemap);
+				m_CubeMesh->Tnormal = defaultNormal;
+
+
+				// Backpack
+				litShader->Bind();
+				litShader->SetMat4("u_Transform", backpackModel);
+				litShader->SetFloat("u_UseNormalMap", (float)bUseNormalMaps);
+				backpackMesh->Draw(*litShader, depthMap, depthCubemap);
+
+				// Coin
+				coinMesh->GetMesh(0)->Tnormal = defaultNormal;
+				litShader->Bind();
+				litShader->SetMat4("u_Transform", coinModel);
+				litShader->SetFloat("u_UseNormalMap", 0.0f);
+				coinMesh->Draw(*litShader, depthMap, depthCubemap);
 
 				lightSourceShader->Bind();
 				lightSourceShader->SetFloat3("u_LightColor", m_PointLightDiffuse);
@@ -1091,15 +1141,6 @@ namespace VeiM
 				lightSourceShader->SetMat4("u_Transform", spotLightModel);
 				TestRenderer::RenderMesh(m_SphereMesh, *lightSourceShader);
 
-				// Backpack
-				litShader->Bind();
-				litShader->SetMat4("u_Transform", backpackModel);
-				backpackMesh->Draw(*litShader, depthMap, depthCubemap);
-
-				// Coin
-				litShader->Bind();
-				litShader->SetMat4("u_Transform", coinModel);
-				coinMesh->Draw(*litShader, depthMap, depthCubemap);
 
 				if (!bUseInstancing)
 				{

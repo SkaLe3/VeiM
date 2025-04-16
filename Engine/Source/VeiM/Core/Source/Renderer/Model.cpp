@@ -12,13 +12,13 @@ namespace VeiM
 	{
 
 		for (unsigned int i = 0; i < m_Meshes.size(); i++)
-			TestRenderer::RenderMesh(m_Meshes[i], shader,shadowMap, shadowCubeMap, noTextures);
+			TestRenderer::RenderMesh(m_Meshes[i], shader, shadowMap, shadowCubeMap, noTextures);
 	}
 
 	void Model::loadModel(fs::path filepath)
 	{
 		Assimp::Importer importerr;
-		const aiScene* scene = importerr.ReadFile(filepath.string(), aiProcess_Triangulate | aiProcess_FlipUVs);
+		const aiScene* scene = importerr.ReadFile(filepath.string(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
 		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 		{
@@ -49,15 +49,20 @@ namespace VeiM
 		std::vector<glm::vec3> positions;
 		std::vector<glm::vec2> uvs;
 		std::vector<glm::vec3> normals;
+		std::vector<glm::vec3> tangents;
+		std::vector<glm::vec3> bitangents;
 		std::vector<uint32> indices;
 		Texture diffuseTex;
 		Texture specualrTex;
+		Texture normalTex;
 
 		positions.resize(mesh->mNumVertices);
 		normals.resize(mesh->mNumVertices);
 		if (mesh->mNumUVComponents[0] > 0)
 		{
 			uvs.resize(mesh->mNumVertices);
+			tangents.resize(mesh->mNumVertices);
+			bitangents.resize(mesh->mNumVertices);
 		}
 
 		indices.resize(mesh->mNumFaces * 3);
@@ -69,6 +74,14 @@ namespace VeiM
 			if (mesh->mTextureCoords[0])
 			{
 				uvs[i] = glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
+			}
+			if (mesh->mTangents)
+			{
+				tangents[i] = glm::vec3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
+			}
+			if (mesh->mBitangents)
+			{
+				bitangents[i] = glm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
 			}
 		}
 		for (int32 f = 0; f < mesh->mNumFaces; f++)
@@ -91,15 +104,22 @@ namespace VeiM
 			std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, StringID("texture_specular"));
 			if (!specularMaps.empty())
 				specualrTex = specularMaps[0];
+
+			std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, StringID("texture_normal"));
+			if (!normalMaps.empty())
+				normalTex = normalMaps[0];
 		}
 		IMesh* newMesh = new IMesh();
 		newMesh->Positions = positions;
 		newMesh->UV = uvs;
 		newMesh->Normals = normals;
+		newMesh->Tangents = tangents;
+		newMesh->Bitangents = bitangents;
 		newMesh->Indices = indices;
 		newMesh->Topology = ETopology::Triangles;
 		newMesh->Tdiffuse = diffuseTex;
 		newMesh->Tspecualr = specualrTex;
+		newMesh->Tnormal = normalTex;
 		newMesh->Finilize();
 		return newMesh;
 	}

@@ -6,12 +6,15 @@
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec2 aUV;
 layout (location = 2) in vec3 aNormal;
+layout (location = 3) in vec3 aTangent;
+layout (location = 4) in vec3 aBitangent;
 
 out VS_OUT{
     vec3 FragPos;
     vec3 Normal;
     vec2 UV;
     vec4 FragPosLightSpace;
+    mat3 TBN;
 } vs_out;
 
 layout (std140) uniform Matrices
@@ -29,6 +32,14 @@ void main() {
     vs_out.UV = aUV;
     vs_out.FragPosLightSpace = u_LightSpaceMatrix * vec4(vs_out.FragPos, 1.0);
     gl_Position = u_ViewProjection * u_Transform * vec4(aPos, 1.0);
+
+    vec3 T = normalize(vec3(u_Transform * vec4(aTangent, 0.0)));
+    vec3 N = normalize(vec3(u_Transform * vec4(aNormal, 0.0)));
+    // re-orthogonalize T with respect to N
+    T = normalize(T - dot(T, N) * N);
+    // then retrieve perpendicular vector B with the cross product of T and N
+    vec3 B = cross(N, T);
+    vs_out.TBN = mat3(T, B, N);
     
 }
 
@@ -46,6 +57,7 @@ in VS_OUT{
     vec3 Normal;
     vec2 UV;
     vec4 FragPosLightSpace;
+    mat3 TBN;
 }gs_in[];
 
 out GS_OUT{
@@ -53,6 +65,7 @@ out GS_OUT{
     vec3 Normal;
     vec2 UV;
     vec4 FragPosLightSpace;
+    mat3 TBN;
 }gs_out;
 
 uniform float u_Time;
@@ -72,7 +85,7 @@ void main() {
             gs_out.Normal   = gs_in[i].Normal;
             gs_out.UV       = gs_in[i].UV;
             gs_out.FragPosLightSpace = gs_in[i].FragPosLightSpace;
-
+            gs_out.TBN = gs_in[i].TBN;
             EmitVertex();
         }
         EndPrimitive();
@@ -89,18 +102,21 @@ void main() {
         gs_out.FragPos = Explode(vec4(gs_in[0].FragPos, 1.0), normal).xyz;
         gs_out.Normal   = gs_in[0].Normal;
         gs_out.FragPosLightSpace = gs_in[0].FragPosLightSpace;
+        gs_out.TBN = gs_in[0].TBN;
         EmitVertex();
         gl_Position = Explode(gl_in[1].gl_Position, normal);
         gs_out.UV = gs_in[1].UV;
         gs_out.FragPos = Explode(vec4(gs_in[1].FragPos, 1.0), normal).xyz;
         gs_out.Normal   = gs_in[1].Normal;
         gs_out.FragPosLightSpace = gs_in[1].FragPosLightSpace;
+        gs_out.TBN = gs_in[1].TBN;
         EmitVertex();
         gl_Position = Explode(gl_in[2].gl_Position, normal);
         gs_out.UV = gs_in[2].UV;
         gs_out.FragPos = Explode(vec4(gs_in[2].FragPos, 1.0), normal).xyz;
         gs_out.Normal   = gs_in[2].Normal;
         gs_out.FragPosLightSpace = gs_in[2].FragPosLightSpace;
+        gs_out.TBN = gs_in[2].TBN;
         EmitVertex();
         EndPrimitive();
     }
@@ -172,6 +188,7 @@ struct SpotLight{
 struct Material{
     sampler2D diffuse;
     sampler2D specular;
+    sampler2D normal;
     float shininess;
 };
 
@@ -183,6 +200,7 @@ in GS_OUT{
     vec3 Normal;
     vec2 UV;
     vec4 FragPosLightSpace;
+    mat3 TBN;
 }fs_in;
 
 in vec3 gs_FragPos;
@@ -200,6 +218,7 @@ uniform SpotLight u_SpotLights[NR_SPOT_LIGHTS];
 
 uniform bool u_UseDepth;
 uniform float u_BiasBase;
+uniform float u_UseNormalMap;
 
 uniform float u_NearZ;
 uniform float u_FarZ;
@@ -215,6 +234,12 @@ float ShadowCalculationPoint(PointLight light,vec3 lightDir);
 void main() {
 
     vec3 norm = normalize(fs_in.Normal);
+    vec3 normalSampled;
+    normalSampled = texture(u_Material.normal, fs_in.UV).rgb; // Obtain in range [0, 1]
+    normalSampled = normalize(normalSampled * 2.0 - vec3(1.0, 1.0, 1.0)); // transform to range [-1, 1]
+    normalSampled = normalize(fs_in.TBN * normalSampled);
+    norm = norm * (1.0 - u_UseNormalMap) + u_UseNormalMap * normalSampled;
+
     vec3 viewDir = normalize(u_ViewPos - fs_in.FragPos);
 
     /* Directional Lighting */
@@ -269,21 +294,46 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 lightDir, vec3 normal )
         }
         shadow /= 9.0;
         if (projCoords.z > 1.0) // Dont cast shadow outside the frustum
-            shadow == 0.0;
+            shadow = 0.0;
         return shadow;
 
 }
 
-float ShadowCalculationPoint(PointLight light, vec3 fragToLight)
+float ShadowCalculationPoint(PointLight light, vec3 fragPos)
 {
     if (!light.castShadows) return 0.0;
 
-        float closestDepth = texture(u_ShadowCubeMap, fragToLight).r;
-        closestDepth *= light.farPlane; // Transform back to [0, u_FarZ] from [0, 1]
-        float currentDepth = length(fragToLight);
-        float bias = 0.05;
-        float shadow = (currentDepth - bias) > closestDepth ? 1.0 : 0.0;
-        return shadow;
+    vec3 sampleOffsetDirections[20] = vec3[]
+    (
+        vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1), 
+        vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
+        vec3( 1,  1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1,  1,  0),
+        vec3( 1,  0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1,  0, -1),
+        vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
+    );  
+    vec3 fragToLight = fragPos - light.position;
+
+    float currentDepth = length(fragToLight);
+    float shadow = 0.0;
+    float bias = 0.05;
+    int samples = 20;
+    float viewDistance = length(u_ViewPos - fragPos);
+    float diskRadius = (1.0 + (viewDistance / light.farPlane)) / 25.0;
+    for (int i = 0; i < samples; ++i)
+    {
+        float closestDepth = texture(u_ShadowCubeMap, fragToLight + sampleOffsetDirections[i] * diskRadius).r;
+        closestDepth *= light.farPlane;
+        if (currentDepth - bias > closestDepth)
+            shadow += 1.0;
+    }
+    shadow /= float(samples);
+
+        //float closestDepth = texture(u_ShadowCubeMap, fragToLight).r;
+        //closestDepth *= light.farPlane; // Transform back to [0, u_FarZ] from [0, 1]
+        //float currentDepth = length(fragToLight);
+        //float bias = 0.05;
+        //float shadow = (currentDepth - bias) > closestDepth ? 1.0 : 0.0;
+    return shadow;
 
 }
 
@@ -341,13 +391,12 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
     vec3 lightDir = normalize(light.position - fragPos);
-    vec3 fragToLight = fragPos - light.position;
 
     float diff = CalcDiffuse(lightDir, normal);
     float spec = CalcSpecular(lightDir, normal, viewDir);
     float attenuation = CalcAttenuation(light.position, fragPos, light.constant, light.linear, light.quadratic);
 
-    float shadow = ShadowCalculationPoint(light, fragToLight);
+    float shadow = ShadowCalculationPoint(light, fragPos);
     return CombineLight(shadow, light.ambient, light.diffuse, light.specular, diff, spec, attenuation);
 }
 

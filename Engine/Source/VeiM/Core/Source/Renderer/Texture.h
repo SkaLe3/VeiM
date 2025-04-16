@@ -24,5 +24,6 @@ namespace VeiM
 	};
 
 	Texture TextureFromFile(const fs::path& filename, ETextureColorSpace colorSpace);
+	Texture GenerateTexture(uint8* data, uint32 width, uint32 height);
 	CubeMap loadCubemap(const std::vector<fs::path>& texturesFaces);
 }
