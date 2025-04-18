@@ -53,7 +53,8 @@ project "VeimEditor"
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.spdlog}",
-		"%{IncludeDir.yaml_cpp}" 
+		"%{IncludeDir.yaml_cpp}" ,
+		"%{IncludeDir.entt}"
     }
 
 	-- Editor Dependencies

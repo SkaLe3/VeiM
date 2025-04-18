@@ -53,7 +53,8 @@ project "Core"
 		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.stb_image}",
 		"%{IncludeDir.assimp}",
-		"%{IncludeDir.assimpCfg}"
+		"%{IncludeDir.assimpCfg}",
+		"%{IncludeDir.entt}"
     }
 
 	defines
