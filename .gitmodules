@@ -19,3 +19,6 @@
 [submodule "Engine/ThirdParty/ImGuizmo"]
 	path = Engine/ThirdParty/ImGuizmo
 	url = https://github.com/SkaLe3/ImGuizmo.git
+[submodule "Engine/ThirdParty/ImNodeEditor"]
+	path = Engine/ThirdParty/ImNodeEditor
+	url = https://github.com/thedmd/imgui-node-editor.git
