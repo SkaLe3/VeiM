@@ -16,3 +16,6 @@
 [submodule "Engine/ThirdParty/assimp"]
 	path = Engine/ThirdParty/assimp
 	url = https://github.com/SkaLe3/assimp.git
+[submodule "Engine/ThirdParty/ImGuizmo"]
+	path = Engine/ThirdParty/ImGuizmo
+	url = https://github.com/SkaLe3/ImGuizmo.git

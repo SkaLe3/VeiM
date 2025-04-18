@@ -19,7 +19,9 @@ project "Core"
 			"%{wks.location}/Engine/ThirdParty/stb_image/**.h",
 			"%{wks.location}/Engine/ThirdParty/stb_image/**cpp",
 			"%{wks.location}/Engine/ThirdParty/glm/glm/**.hpp",
-			"%{wks.location}/Engine/ThirdParty/glm/glm/**.inl"
+			"%{wks.location}/Engine/ThirdParty/glm/glm/**.inl",
+			"%{wks.location}/Engine/ThirdParty/ImGuizmo/ImGuizmo.h",
+			"%{wks.location}/Engine/ThirdParty/ImGuizmo/ImGuizmo.cpp"
     	}	
 	filter "configurations:Debug or Development or Shipping"
 		kind "StaticLib"
@@ -49,6 +51,7 @@ project "Core"
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.stb_image}",
