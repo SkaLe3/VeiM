@@ -3,34 +3,46 @@
 /* ===========================================================
  *                      VERTEX SHADER
    =========================================================== */
+
+/* TODO:
+ * Use space postfixes like _ViewSpace, _ModelSpace, _LightSpace
+ * Calculate light in view space
+
+
+
+
+*/
+
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec2 aUV;
 layout (location = 2) in vec3 aNormal;
 layout (location = 3) in vec3 aTangent;
 layout (location = 4) in vec3 aBitangent;
 
-out VS_OUT{
+struct VertexOutput {
     vec3 FragPos;
     vec3 Normal;
     vec2 UV;
     vec4 FragPosLightSpace;
     mat3 TBN;
-} vs_out;
+};
 
 layout (std140) uniform Matrices
 {
     uniform mat4 u_ViewProjection;    
 };
 
+out VertexOutput gs_in;
+
 uniform mat4 u_Transform;
 uniform mat4 u_LightSpaceMatrix;
 
 
 void main() {
-    vs_out.FragPos = vec3(u_Transform * vec4(aPos, 1.0));
-    vs_out.Normal = mat3(transpose(inverse(u_Transform))) * aNormal; 
-    vs_out.UV = aUV;
-    vs_out.FragPosLightSpace = u_LightSpaceMatrix * vec4(vs_out.FragPos, 1.0);
+    gs_in.FragPos = vec3(u_Transform * vec4(aPos, 1.0));
+    gs_in.Normal = mat3(transpose(inverse(u_Transform))) * aNormal; 
+    gs_in.UV = aUV;
+    gs_in.FragPosLightSpace = u_LightSpaceMatrix * vec4(gs_in.FragPos, 1.0);
     gl_Position = u_ViewProjection * u_Transform * vec4(aPos, 1.0);
 
     vec3 T = normalize(vec3(u_Transform * vec4(aTangent, 0.0)));
@@ -39,7 +51,7 @@ void main() {
     T = normalize(T - dot(T, N) * N);
     // then retrieve perpendicular vector B with the cross product of T and N
     vec3 B = cross(N, T);
-    vs_out.TBN = mat3(T, B, N);
+    gs_in.TBN = mat3(T, B, N);
     
 }
 
@@ -52,21 +64,25 @@ void main() {
 layout (triangles) in;
 layout (triangle_strip, max_vertices = 3) out;
 
-in VS_OUT{
+struct VertexOutput {
     vec3 FragPos;
     vec3 Normal;
     vec2 UV;
     vec4 FragPosLightSpace;
     mat3 TBN;
-}gs_in[];
+};
 
-out GS_OUT{
+struct GeometryOutput {
     vec3 FragPos;
     vec3 Normal;
     vec2 UV;
     vec4 FragPosLightSpace;
     mat3 TBN;
-}gs_out;
+};
+
+in VertexOutput gs_in[];
+out GeometryOutput fs_in;
+
 
 uniform float u_Time;
 
@@ -81,11 +97,11 @@ void main() {
         for (int i = 0; i < 3; ++i)
         {
             gl_Position     = gl_in[i].gl_Position;
-            gs_out.FragPos  = gs_in[i].FragPos;
-            gs_out.Normal   = gs_in[i].Normal;
-            gs_out.UV       = gs_in[i].UV;
-            gs_out.FragPosLightSpace = gs_in[i].FragPosLightSpace;
-            gs_out.TBN = gs_in[i].TBN;
+            fs_in.FragPos  = gs_in[i].FragPos;
+            fs_in.Normal   = gs_in[i].Normal;
+            fs_in.UV       = gs_in[i].UV;
+            fs_in.FragPosLightSpace = gs_in[i].FragPosLightSpace;
+            fs_in.TBN = gs_in[i].TBN;
             EmitVertex();
         }
         EndPrimitive();
@@ -98,25 +114,25 @@ void main() {
         vec3 normal = GetNormal();
 
         gl_Position = Explode(gl_in[0].gl_Position, normal);
-        gs_out.UV = gs_in[0].UV;
-        gs_out.FragPos = Explode(vec4(gs_in[0].FragPos, 1.0), normal).xyz;
-        gs_out.Normal   = gs_in[0].Normal;
-        gs_out.FragPosLightSpace = gs_in[0].FragPosLightSpace;
-        gs_out.TBN = gs_in[0].TBN;
+        fs_in.UV = gs_in[0].UV;
+        fs_in.FragPos = Explode(vec4(gs_in[0].FragPos, 1.0), normal).xyz;
+        fs_in.Normal   = gs_in[0].Normal;
+        fs_in.FragPosLightSpace = gs_in[0].FragPosLightSpace;
+        fs_in.TBN = gs_in[0].TBN;
         EmitVertex();
         gl_Position = Explode(gl_in[1].gl_Position, normal);
-        gs_out.UV = gs_in[1].UV;
-        gs_out.FragPos = Explode(vec4(gs_in[1].FragPos, 1.0), normal).xyz;
-        gs_out.Normal   = gs_in[1].Normal;
-        gs_out.FragPosLightSpace = gs_in[1].FragPosLightSpace;
-        gs_out.TBN = gs_in[1].TBN;
+        fs_in.UV = gs_in[1].UV;
+        fs_in.FragPos = Explode(vec4(gs_in[1].FragPos, 1.0), normal).xyz;
+        fs_in.Normal   = gs_in[1].Normal;
+        fs_in.FragPosLightSpace = gs_in[1].FragPosLightSpace;
+        fs_in.TBN = gs_in[1].TBN;
         EmitVertex();
         gl_Position = Explode(gl_in[2].gl_Position, normal);
-        gs_out.UV = gs_in[2].UV;
-        gs_out.FragPos = Explode(vec4(gs_in[2].FragPos, 1.0), normal).xyz;
-        gs_out.Normal   = gs_in[2].Normal;
-        gs_out.FragPosLightSpace = gs_in[2].FragPosLightSpace;
-        gs_out.TBN = gs_in[2].TBN;
+        fs_in.UV = gs_in[2].UV;
+        fs_in.FragPos = Explode(vec4(gs_in[2].FragPos, 1.0), normal).xyz;
+        fs_in.Normal   = gs_in[2].Normal;
+        fs_in.FragPosLightSpace = gs_in[2].FragPosLightSpace;
+        fs_in.TBN = gs_in[2].TBN;
         EmitVertex();
         EndPrimitive();
     }
@@ -195,13 +211,15 @@ struct Material{
 
 out vec4 FragColor;
 
-in GS_OUT{
+struct GeometryOutput {
     vec3 FragPos;
     vec3 Normal;
     vec2 UV;
     vec4 FragPosLightSpace;
     mat3 TBN;
-}fs_in;
+};
+
+in GeometryOutput fs_in;
 
 in vec3 gs_FragPos;
 in vec3 gs_Normal;
@@ -263,6 +281,10 @@ void main() {
             //Debug shadow cube map
             //float closestDepth = texture(u_ShadowCubeMap, - u_PointLights[0].position + fs_in.FragPos ).r;
             //FragColor = vec4(vec3(closestDepth), 1.0); 
+
+
+            // Debug show light direction
+            //result.xyz = transpose(fs_in.TBN) * -u_DirLight.direction;
 
             FragColor = vec4(result, 1.0); 
 

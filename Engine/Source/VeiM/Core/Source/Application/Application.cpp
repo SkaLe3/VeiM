@@ -386,6 +386,8 @@ namespace VeiM
 		fs::path shadowmapShaderFilename;
 		fs::path pointshadowmapShaderFilename;
 
+		fs::path universalShaderFilename;
+
 		fs::path grayTextureFilename;
 		fs::path boxDiffuseTextureFilename;
 		fs::path boxSpecularTextureFilename;
@@ -434,6 +436,8 @@ namespace VeiM
 			shadowmapShaderFilename = fs::current_path().parent_path().parent_path() / "Content" / "shadowmap.glsl";
 			pointshadowmapShaderFilename = fs::current_path().parent_path().parent_path() / "Content" / "pointshadowmap.glsl";
 
+			universalShaderFilename = Paths::EngineContentDir() / "Shaders" / "UniversalShader.glsl";
+
 			boxDiffuseTextureFilename = fs::current_path().parent_path().parent_path() / "Content" / "T_BoxDiffuse.png";
 			boxSpecularTextureFilename = fs::current_path().parent_path().parent_path() / "Content" / "T_BoxSpecular.png";
 			backpackModelFilename = fs::current_path().parent_path().parent_path() / "Content" / "backpack" / "backpack.obj";
@@ -463,6 +467,8 @@ namespace VeiM
 				shadowmapShaderFilename = Paths::ProjectContentDir() / "shadowmap.glsl";
 				pointshadowmapShaderFilename = Paths::ProjectContentDir() / "pointshadowmap.glsl";
 
+				universalShaderFilename = Paths::EngineContentDir() / "Shaders" / "UniversalShader.glsl";
+
 				boxDiffuseTextureFilename = Paths::ProjectContentDir() / "T_BoxDiffuse.png";
 				boxSpecularTextureFilename = Paths::ProjectContentDir() / "T_BoxSpecular.png";
 				backpackModelFilename = Paths::ProjectContentDir() / "backpack" / "backpack.obj";
@@ -490,6 +496,8 @@ namespace VeiM
 		Shader* instanceShader;
 		Shader* shadowmapShader;
 		Shader* pointshadowmapShader;
+
+		Shader* universalShader;
 
 		Texture grayTexture;
 
@@ -561,6 +569,8 @@ namespace VeiM
 			instanceShader = new Shader(instanceShaderFilename);
 			shadowmapShader = new Shader(shadowmapShaderFilename);
 			pointshadowmapShader = new Shader(pointshadowmapShaderFilename);
+
+			universalShader = new Shader(universalShaderFilename);
 
 			m_CubeMesh = new CubeMesh();
 			m_SphereMesh = new SphereMesh(8, 8);
