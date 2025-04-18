@@ -111,6 +111,7 @@ namespace VeiM
 		bool bCastGlobalShadows = true;
 		bool bCastPointShadows = true;
 		bool bUseSRGB = false;
+		bool bUseNormalMaps = true;
 		int32 m_ShadowMapLevel = 3;
 		uint32 SHADOW_WIDTH = 4096, SHADOW_HEIGHT = 4096;
 		uint32 pSHADOW_WIDTH = 1024, pSHADOW_HEIGHT = 1024;
@@ -124,11 +125,11 @@ namespace VeiM
 		glm::vec3 m_DirLightSpecular = { 1.f, 1.f, 1.f };
 		glm::vec3 m_DirLightDirection = { -0.2f, -1.f, -0.3f };
 
-		glm::vec3 m_PointLightAmbient = { 0.2f, 0.2f, 0.2f };
+		glm::vec3 m_PointLightAmbient = { 0.0f, 0.0f, 0.0f };
 		glm::vec3 m_PointLightDiffuse = { 1.0f, 1.0f, 1.0f };
 		glm::vec3 m_PointLightSpecular = { 1.f, 1.f, 1.f };
 
-		glm::vec3 m_SpotLightAmbient = { 0.2f, 0.2f, 0.2f };
+		glm::vec3 m_SpotLightAmbient = { 0.0f, 0.0f, 0.0f };
 		glm::vec3 m_SpotLightDiffuse = { 1.0f, 1.0f, 1.0f };
 		glm::vec3 m_SpotLightSpecular = { 1.f, 1.f, 1.f };
 

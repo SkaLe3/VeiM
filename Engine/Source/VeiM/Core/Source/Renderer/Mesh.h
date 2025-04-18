@@ -29,6 +29,8 @@ namespace VeiM
 		glm::vec3 Position;
 		glm::vec2 UV;
 		glm::vec3 Normal;
+		glm::vec3 Tangent;
+		glm::vec3 Bitangent;
 	};
 
 	class CORE_API IMesh
@@ -38,6 +40,8 @@ namespace VeiM
 		IMesh(const std::vector<glm::vec3>& positions, const std::vector<uint32>& indices);
 		IMesh(const std::vector<glm::vec3>& positions, const std::vector<glm::vec2>& uv, const std::vector<uint32>& indices);
 		IMesh(const std::vector<glm::vec3>& positions, const std::vector<glm::vec2>& uv, const std::vector<glm::vec3>& normals, const std::vector<uint32>& indices);
+		IMesh(const std::vector<glm::vec3>& positions, const std::vector<glm::vec2>& uv, const std::vector<glm::vec3>& normals, 
+			const std::vector<glm::vec3>& tangents, const std::vector<glm::vec3>& bitangents, const std::vector<uint32>& indices);
 
 
 
@@ -54,6 +58,8 @@ namespace VeiM
 		std::vector<glm::vec3> Positions;
 		std::vector<glm::vec2> UV;
 		std::vector<glm::vec3> Normals;
+		std::vector<glm::vec3> Tangents;
+		std::vector<glm::vec3> Bitangents;
 		// TODO: Add more
 
 		ETopology Topology = ETopology::Triangles;
@@ -61,6 +67,7 @@ namespace VeiM
 
 		Texture Tdiffuse;
 		Texture Tspecualr;
+		Texture Tnormal;
 
 	protected:
 		std::vector<VertexAttributeLayout> m_Layout;

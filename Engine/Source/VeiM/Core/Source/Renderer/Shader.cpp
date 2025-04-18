@@ -1,4 +1,5 @@
 #include "Shader.h"
+#include "Misc/Paths.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -36,8 +37,9 @@ namespace VeiM
 	Shader::Shader(const fs::path& filePath) : m_ShaderPath(filePath)
 	{
 		String source = ReadShaderFile(filePath);
-		auto shaderSources = PreProcess(source);
-		
+		// TODO: Extract includes from runtime loading to editor offline compilation and store actual shaders separately from materials
+		auto shaderSources = PreProcess(source, m_ShaderPath.parent_path());
+
 		{
 			// TODO: Make timer to show how long shader creation took
 			CreateProgram(shaderSources);
@@ -129,6 +131,7 @@ namespace VeiM
 		glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, glm::value_ptr(value));
 	}
 
+
 	String Shader::ReadShaderFile(const fs::path& filePath)
 	{
 		String result;
@@ -155,9 +158,110 @@ namespace VeiM
 		return result;
 	}
 
-	std::unordered_map<GLenum, String> Shader::PreProcess(const String& source)
+
+	bool Shader::ProcessIncludes(String& shaderSource, const fs::path& parentDir, std::vector<fs::path>& includeDirs, std::unordered_set<String>& includedFiles)
+	{
+		String finalSource;
+		bool bSucceed = true;
+
+		std::istringstream stream(shaderSource);
+		String line;
+
+		while (std::getline(stream, line))
+		{
+			if (line.find("#include") == 0)
+			{
+				size_t start = line.find_first_of("\"<");
+				size_t end = line.find_last_of("\">");
+				if (start != String::npos && end != String::npos && start < end)
+				{
+					String includePath = line.substr(start + 1, end - start - 1);
+					fs::path includeFilePath = parentDir / includePath;
+
+					bool bFound = false;
+					// Check in same directory
+					if (fs::exists(fs::absolute(includeFilePath)))
+					{
+						bFound = true;
+					}
+					else // Check in Engine directories
+					{
+						for (const auto& dir : includeDirs)
+						{
+							includeFilePath = dir / includePath;
+							if (fs::exists(fs::absolute(includeFilePath)))
+							{
+								bFound = true;
+								break;
+							}
+						}
+					}
+
+					if (!bFound)
+					{
+						VM_CORE_ERROR("Included shader file not found: {0}", includePath);
+						bSucceed = false;
+						continue;
+					}
+					String content;
+					if (!IncludeFile(includeFilePath, includeDirs, includedFiles, content))
+					{
+						VM_CORE_ERROR("Failed to include <{0}> by path: '{1}'", includePath, includeFilePath.string());
+						bSucceed = false;
+						continue;
+					}
+					finalSource += content;
+
+					continue;
+				}
+			}
+			finalSource += line + '\n';
+		}
+
+		shaderSource = finalSource;
+		return bSucceed;
+	}
+
+
+	bool Shader::IncludeFile(const fs::path& filePath, std::vector<fs::path>& includeDirs, std::unordered_set<String>& includedFiles, String& outSource)
+	{
+		// Avoid circular includes
+		if (includedFiles.find(filePath.string()) != includedFiles.end())
+		{
+			VM_CORE_ERROR("Found circular dependancy or multiple file inclusion");
+			return false;
+		}
+
+		includedFiles.insert(filePath.string());
+		std::unordered_set<String> includedFilesScoped = includedFiles;
+
+		String includeContent = ReadShaderFile(filePath);
+
+		// Do not allow inclusion of complete shaders
+		const char* typeToken = "#type";
+		size_t typeTokenLength = strlen(typeToken);
+		size_t pos = includeContent.find(typeToken, 0);
+		if (pos != String::npos)
+		{
+			VM_CORE_ERROR("Found #type directive in included file");
+			return false;
+		}
+
+		if (!ProcessIncludes(includeContent, filePath.parent_path(), includeDirs, includedFilesScoped))
+		{
+			VM_CORE_ERROR("Failed to Process includes in '{0}", filePath.string());
+			return false;
+		}
+
+		outSource = includeContent;
+		return true;
+	}
+
+	std::unordered_map<GLenum, String> Shader::PreProcess(const String& source, const fs::path& sourceDir)
 	{
 		std::unordered_map<GLenum, String> shaderSources;
+
+		// Process #type
 		const char* typeToken = "#type";
 		size_t typeTokenLength = strlen(typeToken);
 		size_t pos = source.find(typeToken, 0);
@@ -167,7 +271,7 @@ namespace VeiM
 			VM_CORE_ASSERT(eol != String::npos, "Syntax error");
 			size_t begin = pos + typeTokenLength + 1;
 			String type = source.substr(begin, eol - begin);
-			VM_CORE_ASSERT(Utils::ShaderTypeFromString(type) == GL_VERTEX_SHADER || Utils::ShaderTypeFromString(type) == GL_FRAGMENT_SHADER 
+			VM_CORE_ASSERT(Utils::ShaderTypeFromString(type) == GL_VERTEX_SHADER || Utils::ShaderTypeFromString(type) == GL_FRAGMENT_SHADER
 				|| Utils::ShaderTypeFromString(type) == GL_GEOMETRY_SHADER, "Invalid shader type specified");
 
 			size_t nextLinePos = source.find_first_not_of("\r\n", eol);
@@ -176,6 +280,20 @@ namespace VeiM
 
 			shaderSources[Utils::ShaderTypeFromString(type)] = (pos == String::npos) ? source.substr(nextLinePos) : source.substr(nextLinePos, pos - nextLinePos);
 		}
+
+		// Process includes
+		std::vector<fs::path> includeDirs;
+		includeDirs.push_back(Paths::EngineContentDir() / "Shaders" / "Include");
+
+		for (auto& [shaderType, shaderSource] : shaderSources)
+		{
+			std::unordered_set<String> includedFiles;
+			if (!ProcessIncludes(shaderSource, fs::absolute(sourceDir), includeDirs, includedFiles))
+			{
+				VM_CORE_ERROR("Failed to process includes in '{0}'", m_ShaderPath.string());
+			}
+		}
+
 		return shaderSources;
 	}
 
@@ -215,7 +333,7 @@ namespace VeiM
 			glGetProgramInfoLog(m_RendererID, 512, NULL, infoLog);
 			VM_CORE_ERROR("Shader linking failed: Message: {0}", infoLog);
 			VM_CORE_ASSERT(bSuccess);
-			
+
 		}
 		glDeleteShader(shaderIDs[GL_VERTEX_SHADER]);
 		glDeleteShader(shaderIDs[GL_FRAGMENT_SHADER]);

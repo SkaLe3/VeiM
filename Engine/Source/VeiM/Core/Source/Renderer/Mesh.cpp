@@ -40,6 +40,18 @@ namespace VeiM
 		Tspecualr.Id = 0;
 	}
 
+	IMesh::IMesh(const std::vector<glm::vec3>& positions, const std::vector<glm::vec2>& uv, const std::vector<glm::vec3>& normals, const std::vector<glm::vec3>& tangents, const std::vector<glm::vec3>& bitangents, const std::vector<uint32>& indices)
+	{
+		Positions = positions;
+		UV = uv;
+		Normals = normals;
+		Tangents = tangents;
+		Bitangents = bitangents;
+		Indices = indices;
+		Tdiffuse.Id = 0;
+		Tspecualr.Id = 0;
+	}
+
 	IMesh::~IMesh()
 	{
 		glDeleteBuffers(1, &m_VBO);
@@ -66,6 +78,8 @@ namespace VeiM
 			vertexData[i].Position = Positions[i];
 			vertexData[i].UV = (!UV.empty() ? UV[i] : glm::vec2(0.0f));
 			vertexData[i].Normal = (!Normals.empty() ? Normals[i] : glm::vec3(0.0f));
+			vertexData[i].Tangent = (!Tangents.empty() ? Tangents[i] : glm::vec3(1.0f));
+			vertexData[i].Bitangent = (!Bitangents.empty() ? Bitangents[i] : glm::vec3(1.0f));
 		}
 
 		glBindVertexArray(m_VAO);
@@ -83,6 +97,9 @@ namespace VeiM
 		m_Layout.push_back({ 0, 3, offsetof(Vertex, Position) });
 		m_Layout.push_back({ 1, 2, offsetof(Vertex, UV) });
 		m_Layout.push_back({ 2, 3, offsetof(Vertex, Normal) });
+		m_Layout.push_back({ 3, 3, offsetof(Vertex, Tangent) });
+		m_Layout.push_back({ 4, 3, offsetof(Vertex, Bitangent) });
+
 
 		for (const auto& attr : m_Layout)
 		{

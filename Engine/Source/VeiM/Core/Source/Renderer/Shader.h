@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 
 #include <unordered_map>
+#include <unordered_set>
 
 namespace VeiM
 {
@@ -34,7 +35,9 @@ namespace VeiM
 
 	private:
 		String ReadShaderFile(const fs::path& filePath);
-		std::unordered_map<GLenum, String> PreProcess(const String& source);
+		bool ProcessIncludes(String& shaderSource, const fs::path& parentDir, std::vector<fs::path>& includeDirs, std::unordered_set<String>& includedFiles);
+		bool IncludeFile(const fs::path& filePath, std::vector<fs::path>& includeDirs, std::unordered_set<String>& includedFiles, String& outSource);
+		std::unordered_map<GLenum, String> PreProcess(const String& source, const fs::path& sourceDir);
 		void CreateProgram(std::unordered_map<GLenum, String>& sources);
 
 	private:

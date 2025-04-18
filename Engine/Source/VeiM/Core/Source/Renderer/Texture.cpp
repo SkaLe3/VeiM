@@ -58,6 +58,17 @@ namespace VeiM
 		return texture;
 	}
 
+	Texture GenerateTexture(uint8* data, uint32 width, uint32 height)
+	{
+		Texture texture;
+		glGenTextures(1, &texture.Id);
+		glBindTexture(GL_TEXTURE_2D, texture.Id);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		return texture;
+	}
+
 	VeiM::CubeMap loadCubemap(const std::vector<fs::path>& faces)
 	{
 		CubeMap cubemap;
