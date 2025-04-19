@@ -34,9 +34,6 @@ project "VeimEditor"
     	{
     	    "%{wks.location}/Engine/Source/Editor/VeimEditor/**.h",
     	    "%{wks.location}/Engine/Source/Editor/VeimEditor/**.cpp",
-			"%{wks.location}/Engine/ThirdParty/ImNodeEditor/*.h",
-			"%{wks.location}/Engine/ThirdParty/ImNodeEditor/*.cpp",
-			"%{wks.location}/Engine/ThirdParty/ImNodeEditor/*.inl",
 			"%{wks.location}/Engine/Build/Resources/**.rc",
 			"%{wks.location}/Engine/Build/Resources/**.ico",
 			"%{wks.location}/Engine/Source/VeiM/Core/Resources/**.h",
@@ -67,7 +64,8 @@ project "VeimEditor"
 	{ 
 		"Core",									-- Link against the VeiM Engine
 		"DesktopPlatform",
-		"ImGui"
+		"ImGui",
+		"ImNodeEditor"
 	}
 	
 	-- Define Macros
