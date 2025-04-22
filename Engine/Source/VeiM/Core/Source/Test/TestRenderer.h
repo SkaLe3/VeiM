@@ -10,6 +10,18 @@ namespace VeiM
 	class  TestRenderer
 	{
 	public:
+		struct RSettings
+		{
+			uint8 bMainFramebufferDirty : 1 = 0;
+			uint8 bPostProcessFramebufferDirty : 1 = 0;
+			uint8 bHDREnabled : 1 = 0;
+			uint8 bAntiAliasingQuality : 3 = 2;
+
+			float GammaCorrection = 2.2f;
+			float Exposure = 1.0f;
+		};
+		inline static RSettings Settings;
+
 		CORE_API static void Init();
 
 		CORE_API static void RenderMesh(IMesh* mesh, Shader& shader, uint32 shadowmapTexture = 0, uint32 shadowcubemapTexture = 0, bool noTextures = false);
@@ -18,6 +30,8 @@ namespace VeiM
 		CORE_API static void BlitFramebufferToSwapchain(FrameBuffer& framebuffer);
 		CORE_API static void BlitFramebufferTo(FrameBuffer& sourceFB, FrameBuffer& targetFB);
 		CORE_API static void BlitStencil(FrameBuffer& framebufferSource, FrameBuffer& framebufferDestination);
+
+		CORE_API static void UpdatePostprocessShader(Shader& shader);
 
 	};
 }

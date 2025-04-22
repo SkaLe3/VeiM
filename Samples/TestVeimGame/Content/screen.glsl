@@ -16,14 +16,29 @@ out vec4 FragColor;
 in vec2 UV;
 
 uniform sampler2D u_ScreenTexture;
-
+uniform float u_Gamma;
+uniform float u_Exposure = 1.0;
+uniform bool u_UseHDR = false;
 
 
 void main() {
+
+    // Gamma correction + Exposure tone mapping
+    vec3 hdrColor = texture(u_ScreenTexture, UV).rgb;
+    if (u_UseHDR)
+    {
+        // Exposure adjustment
+        vec3 mapped = vec3(1.0) - exp(-hdrColor * u_Exposure);
+        // Gamma correction
+        mapped = pow(mapped, vec3(1.0/u_Gamma));
+        FragColor = vec4(mapped, 1.0);
+    }
+    else
+    {
+        FragColor = vec4(pow(hdrColor, vec3(1.0/u_Gamma)), 1.0);
+    }
+
     // Default
-    vec4 fragColor = texture(u_ScreenTexture, UV);
-    float gamma = 2.2;
-    FragColor= vec4(pow(fragColor.rgb, vec3(1.0/gamma)), 1.0);
     //FragColor = fragColor;
 
     // Invert

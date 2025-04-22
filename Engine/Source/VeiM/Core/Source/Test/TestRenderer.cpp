@@ -119,4 +119,11 @@ namespace VeiM
 		glBlitFramebuffer(0, 0, framebufferSource.Specs.Width, framebufferSource.Specs.Height, 0, 0, framebufferDestination.Specs.Width, framebufferDestination.Specs.Height, GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
 	}
 
+	CORE_API void TestRenderer::UpdatePostprocessShader(Shader& shader)
+	{
+		shader.SetFloat("u_Gamma", Settings.GammaCorrection);
+		shader.SetFloat("u_Exposure", Settings.Exposure);
+		shader.SetBool("u_UseHDR", Settings.bHDREnabled);
+	}
+
 }

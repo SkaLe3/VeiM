@@ -32,16 +32,17 @@ namespace VeiM
 		glCreateFramebuffers(1, &Handle);
 
 		bool multisample = Specs.Samples > 1;
+		GLuint bpc = Specs.bHDR ? GL_RGBA16F : GL_RGBA8;
 
 		// Color texture
 		CreateTexture(multisample, &textureColorBuffer);
 		if (multisample)
 		{
-			glTextureStorage2DMultisample(textureColorBuffer, Specs.Samples, GL_RGB8, Specs.Width, Specs.Height, GL_TRUE);
+			glTextureStorage2DMultisample(textureColorBuffer, Specs.Samples, bpc, Specs.Width, Specs.Height, GL_TRUE);
 		}
 		else
 		{
-			glTextureStorage2D(textureColorBuffer, 1, GL_RGB8, Specs.Width, Specs.Height);
+			glTextureStorage2D(textureColorBuffer, 1, bpc, Specs.Width, Specs.Height);
 			glTextureParameteri(textureColorBuffer, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTextureParameteri(textureColorBuffer, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTextureParameteri(textureColorBuffer, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

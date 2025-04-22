@@ -205,6 +205,7 @@ namespace VeiM
 
 		if (bHasGame)
 		{
+			
 
 			ImGui::Begin("Test Renderer");
 
@@ -215,6 +216,16 @@ namespace VeiM
 			ImGui::Checkbox("Use Instancing", &bUseInstancing);
 			ImGui::Checkbox("Use NormalMaps", &bUseNormalMaps);
 			ImGui::Checkbox("Use SRGB", &bUseSRGB);
+			bool bUseHDR = TestRenderer::Settings.bHDREnabled;
+			if (ImGui::Checkbox("Use HDR", &bUseHDR))
+			{
+				TestRenderer::Settings.bHDREnabled = bUseHDR;
+				TestRenderer::Settings.bMainFramebufferDirty = true;
+			}
+			ImGui::SliderFloat("Exposure", &TestRenderer::Settings.Exposure, 0.1f, 10.f, "%0.1f");
+			ImGui::SliderFloat("Gamma", &TestRenderer::Settings.GammaCorrection, 0.1f, 4.f, "%0.1f");
+
+
 			if (ImGui::SliderInt("Shadow maps level", &m_ShadowMapLevel, 0, 3))
 			{
 				SHADOW_WIDTH = SHADOW_HEIGHT = 512 * glm::pow(2, m_ShadowMapLevel);
@@ -252,14 +263,8 @@ namespace VeiM
 				"MSAA 8x",
 				"MSAA 16x"
 			};
-			static uint32 aaSamples[] = {
-				1,
-				2,
-				4,
-				8,
-				16
-			};
-			static int currentAAIndex = 2; // Default to "MSAA 4x"
+
+			uint8 currentAAIndex = TestRenderer::Settings.bAntiAliasingQuality;
 
 			if (ImGui::BeginCombo("Anti-Aliasing Mode", aaOptions[currentAAIndex]))
 			{
@@ -267,14 +272,17 @@ namespace VeiM
 				{
 					bool isSelected = (currentAAIndex == n);
 					if (ImGui::Selectable(aaOptions[n], isSelected))
-						currentAAIndex = n;
+					{
+						TestRenderer::Settings.bMainFramebufferDirty = 1;
+						TestRenderer::Settings.bAntiAliasingQuality = n;
+						currentAAIndex = TestRenderer::Settings.bAntiAliasingQuality;
+					}
 
 					if (isSelected)
 						ImGui::SetItemDefaultFocus();
 				}
 				ImGui::EndCombo();
 			}
-			samplesNumber = aaSamples[currentAAIndex];
 
 			/* END AA OPTIONS*/
 
@@ -317,7 +325,7 @@ namespace VeiM
 
 			ImGui::SeparatorText("Directional Lighting");
 			ImGui::SliderFloat3("Ambient Color D", glm::value_ptr(m_DirLightAmbient), 0.0f, 1.0f, "%.3f");
-			ImGui::SliderFloat3("Diffuse Color D", glm::value_ptr(m_DirLightDiffuse), 0.0f, 1.0f, "%.3f");
+			ImGui::SliderFloat3("Diffuse Color D", glm::value_ptr(m_DirLightDiffuse), 0.0f, 100.0f, "%.3f");
 			ImGui::SliderFloat3("Specular Color D", glm::value_ptr(m_DirLightSpecular), 0.0f, 1.0f, "%.3f");
 			ImGui::SliderFloat3("Direction D", glm::value_ptr(m_DirLightDirection), -1.0f, 1.0f, "%.2f");
 			ImGui::Checkbox("Cast Shadows D", &bCastGlobalShadows);
@@ -570,7 +578,7 @@ namespace VeiM
 			shadowmapShader = new Shader(shadowmapShaderFilename);
 			pointshadowmapShader = new Shader(pointshadowmapShaderFilename);
 
-			universalShader = new Shader(universalShaderFilename);
+			//universalShader = new Shader(universalShaderFilename);
 
 			m_CubeMesh = new CubeMesh();
 			m_SphereMesh = new SphereMesh(8, 8);
@@ -597,7 +605,7 @@ namespace VeiM
 			FramebufferSpecs fbspecs;
 			fbspecs.Width = 1280;
 			fbspecs.Height = 720;
-			fbspecs.Samples = samplesNumber;
+			fbspecs.Samples = glm::pow(2, TestRenderer::Settings.bAntiAliasingQuality);
 			m_Framebuffer = new FrameBuffer(fbspecs);
 			fbspecs.Samples = 1;
 			m_IntermediateFramebuffer = new FrameBuffer(fbspecs);
@@ -773,10 +781,15 @@ namespace VeiM
 					m_PostProcessFramebuffer->Resize((uint32)m_Width, (uint32)m_Height);
 					m_Camera->SetViewport(m_Width, m_Height);
 				}
-				if (m_Framebuffer->Specs.Samples != samplesNumber)
+				if (TestRenderer::Settings.bMainFramebufferDirty)
 				{
-					m_Framebuffer->Specs.Samples = samplesNumber;
+					m_Framebuffer->Specs.Samples = glm::pow(2, TestRenderer::Settings.bAntiAliasingQuality);
+					m_Framebuffer->Specs.bHDR = TestRenderer::Settings.bHDREnabled;
+					m_IntermediateFramebuffer->Specs.bHDR = m_Framebuffer->Specs.bHDR;
 					m_Framebuffer->Invalidate();
+					m_IntermediateFramebuffer->Invalidate();
+					TestRenderer::Settings.bMainFramebufferDirty = 0;
+					TestRenderer::Settings.bPostProcessFramebufferDirty = 0;
 				}
 
 				m_Camera->Update(m_DeltaTime);
@@ -1194,6 +1207,7 @@ namespace VeiM
 				glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 				screenShader->Bind();
+				TestRenderer::UpdatePostprocessShader(*screenShader);
 				glBindVertexArray(screenVAO);
 				glDisable(GL_DEPTH_TEST);
 				glBindTexture(GL_TEXTURE_2D, m_IntermediateFramebuffer->GetTexture());

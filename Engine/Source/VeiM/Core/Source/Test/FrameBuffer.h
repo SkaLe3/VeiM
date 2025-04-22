@@ -8,7 +8,8 @@ namespace VeiM
 		uint32 Width = 0;
 		uint32 Height = 0;
 		uint32 Samples = 1;
-
+		
+		bool bHDR = false;
 		bool bSRGB = false;
 		bool bSwapShainTarget = false;
 	};

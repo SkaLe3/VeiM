@@ -93,7 +93,6 @@ namespace VeiM
 		FrameBuffer* m_Framebuffer;
 		FrameBuffer* m_IntermediateFramebuffer;
 		FrameBuffer* m_PostProcessFramebuffer;
-		uint32 samplesNumber = 1;
 
 		IMesh* m_CubeMesh;
 		IMesh* m_SphereMesh;
