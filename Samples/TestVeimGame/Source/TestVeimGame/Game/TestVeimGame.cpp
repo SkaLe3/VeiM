@@ -1,5 +1,8 @@
 #include "TestVeiMGame.h"
 
+// Include Module Manager
+// Use Implement game module macro
+
 #ifdef IS_UNIFIED
 #include <Application/EntryPoint.h>
 #include <HAL/PlatformService.h>

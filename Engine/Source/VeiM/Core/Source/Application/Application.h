@@ -19,6 +19,13 @@
 #include "Test/FrameBuffer.h"
 #include "Test/TestRenderer.h"
 #include "Renderer/EditorCamera.h"
+#include "Engine/CoreObject.h"
+
+namespace VeiM
+{
+	class World;
+}
+
 
 struct GLFWwindow;
 
@@ -90,6 +97,12 @@ namespace VeiM
 
 
 		//Temp 
+		ObjectPtr<Object> gameObject;
+		Object* selectedObject;
+
+		ObjectPtr<World> heldWorld;
+
+
 		FrameBuffer* m_Framebuffer;
 		FrameBuffer* m_IntermediateFramebuffer;
 		FrameBuffer* m_PostProcessFramebuffer;

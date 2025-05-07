@@ -15,7 +15,7 @@ namespace VeiM
 	int Main(const std::vector<String>& arguments)
 	{
 		Log::Init();
-
+		StringID::RegisterCommonStrings();
 		VeiM::Application* app = VeiM::CreateApplication(arguments);
 		app->Run();
 		delete app;

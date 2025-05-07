@@ -37,6 +37,7 @@ group "Dependencies"
 	include "ThirdParty/ImNodeEditor"
 	include "ThirdParty/yaml-cpp"
 	include "ThirdParty/assimp"
+	include "ThirdParty/CityHash"
 group ""
 
 group "Engine"

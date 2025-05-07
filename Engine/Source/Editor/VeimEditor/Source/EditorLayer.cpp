@@ -5,10 +5,11 @@
 #include "HAL/PlatformService.h"
 #include "Settings/EditorMisc.h"
 #include "Windows/WindowsUtils.h"
+#include "Engine/Reflection.h"
+#include "Engine/CoreObject.h"
+#include "Engine/ObjectPtr.h"
 
 #include <iostream> // TODO: remove
-
-#include "Test/Base.h"
 
 namespace VeiM
 {
@@ -337,34 +338,41 @@ namespace VeiM
 
 	void EditorLayer::TestClassMetadataDisplay()
 	{
-		const auto& classRegistry = ReflectionSystem::Get().GetClassRegistry();
-		ImGui::Begin("Registered Classes");
-		ImGui::Text("%d", classRegistry.size());
+		std::unordered_map<StringID, ClassDescriptor*> classes = ClassRegistry::GetAllClasses();
 
-		for (const auto& [className, classInfo] : classRegistry)
+		ImGui::Begin("Registered Classes");
+		ImGui::Text("Registered count: %d", classes.size());
+
+		for (const auto& [className, classDescriptor] : classes)
 		{
-			if (ImGui::TreeNode(className.c_str()))
+			if (ImGui::TreeNode(className.ToString().c_str()))
 			{
+				ImGui::Text("Parent: %s", classDescriptor->ParentClass ? classDescriptor->ParentClass->Name.ToString().c_str() : "No Parent");
 				if (ImGui::TreeNode("Properties"))
 				{
-					for (const auto& prop : classInfo.properties)
+					for (const auto& [propName, propDescriptor] : classDescriptor->Properties)
 					{
-						ImGui::Text(prop.c_str());
+						if (ImGui::TreeNode(propName.ToString().data()))
+						{
+							ImGui::Text("Name: %s", propName.ToString().data());
+							ImGui::Text("Type: %s", propDescriptor.GetTypeName());
+							ImGui::Text("Offset: %d", propDescriptor.Offset);
+							ImGui::Text("Size: %d", propDescriptor.Size);
+							ImGui::Text("Type Index: %s", propDescriptor.TypeIndex.name());
+							ImGui::TreePop();
+						}
 					}
+
 					ImGui::TreePop();
 				}
 				if (ImGui::TreeNode("Methods"))
 				{
-					for (const auto& method : classInfo.methods)
-					{
-						ImGui::Text(method.c_str());
-					}
+					ImGui::Text("NOT YET AVAILABLE");
 					ImGui::TreePop();
 				}
 				ImGui::TreePop();
 			}
 		}
-
 
 		ImGui::End();
 	}

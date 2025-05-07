@@ -19,6 +19,13 @@ namespace VeiM
 
 			float GammaCorrection = 2.2f;
 			float Exposure = 1.0f;
+
+			// TODO: Add ViewMode:
+			// Wireframe
+			// Unlit
+			// Lit
+			// Light Only
+			// Light Complexity
 		};
 		inline static RSettings Settings;
 

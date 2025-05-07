@@ -17,12 +17,16 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>		 
 
+#include "Engine/Reflection.h"
+#include "Engine/ObjectPtr.h"
+#include "Engine/CoreObject.h"
+#include "Engine/World.h"
 
-#include "Test/Base.h" // TEmporary
 #include "Renderer/Shader.h"
 #include "Renderer/CubeMesh.h"
 #include "Renderer/SphereMesh.h"
 #include "Renderer/Model.h"
+#include "Renderer/Renderer.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -31,6 +35,47 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <sstream>
+
+// Temporary static functions
+namespace VeiM
+{
+	static void EditorSpawnEntity(StringID entityClass)
+	{
+		g_World->SpawnEntity(ClassRegistry::FindClass(entityClass));
+	}
+
+	void ShowStringIDComboBox(StringID& selectedStrID, std::unordered_map<StringID, ClassDescriptor*>& allClasses)
+	{
+		// Get the current selected item as a string (for ImGui display)
+		const char* currentItem = selectedStrID.Get();
+
+		if (ImGui::BeginCombo("##SpawnClass", currentItem))
+		{
+			bool isSelected = false;
+
+			// Add all items from the map
+			for (const auto& pair : allClasses)
+			{
+				if (!pair.second->IsChildOf(ClassRegistry::FindClass(StringID("Entity"))))
+					continue;
+				const StringID& stringId = pair.first;
+				isSelected = (stringId == selectedStrID);
+
+				if (ImGui::Selectable(stringId.Get(), isSelected))
+				{
+					selectedStrID = stringId;
+				}
+
+				if (isSelected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+
+			ImGui::EndCombo();
+		}
+	}
+}
 
 
 namespace VeiM
@@ -167,6 +212,8 @@ namespace VeiM
 
 		InitGUI();
 #endif
+		ClassRegistry::InitializeReflectionSystem();
+		Renderer::Get()->Startup();
 	}
 
 	Application::~Application()
@@ -205,7 +252,7 @@ namespace VeiM
 
 		if (bHasGame)
 		{
-			
+
 
 			ImGui::Begin("Test Renderer");
 
@@ -350,6 +397,75 @@ namespace VeiM
 			ImGui::SliderFloat("Outer", &m_SpotLightOuter, 1.f, 180.f, "%.0f");
 
 			ImGui::End();
+
+			ImGui::Begin("GC Stats");
+
+			ImGui::Text("Objects Alive:  %d", GarbageCollector::Get().GetObjectsCount());
+			ImGui::Text("As Roots:       %d", GarbageCollector::Get().GetRootObjectsCount());
+			ImGui::Text("Collected Last: %d", GarbageCollector::Get().GetLastCollectedCount());
+			ImGui::Text("StrongPtr cnt:  %d", GarbageCollector::Get().GetStrongPtrRegisteredCount());
+			ImGui::Text("WeakPtr cnt:    %d", GarbageCollector::Get().GetWeakPtrRegisteredCount());
+
+
+			std::unordered_map<StringID, ClassDescriptor*> allClasses = ClassRegistry::GetAllClasses();
+			static StringID selectedClass = StringID("Entity");
+			
+			ShowStringIDComboBox(selectedClass, allClasses);
+			ImGui::SameLine();
+			if (ImGui::Button("Spawn Entity"))
+			{
+				EditorSpawnEntity(selectedClass);
+			}
+
+			
+
+			ImGui::End();
+#if 0
+			if (gameObject.IsValid() && false)
+			{
+
+
+				ClassDescriptor* classDesc = gameObject->GetClass();
+				ImGui::Begin("Level Hierarchy");
+
+				ImGui::Text(classDesc->Name.ToString().data());
+				ImGui::End();
+
+				ImGui::Begin("Details");
+				ImGui::SeparatorText("Structure");
+				if (ImGui::TreeNode(classDesc->Name.ToString().data()))
+				{
+					for (const auto& [propName, propDescriptor] : classDesc->Properties)
+					{
+						if (propDescriptor.Type ==EStringID::ObjectProperty)
+						{
+							
+							Object* componentPtr = propDescriptor.GetAsObjectPtr(gameObject.Get()).Get();
+							ImGui::Text("%s (%s)", componentPtr->GetClass()->Name.ToString().data(), componentPtr->m_Name.ToString().data());
+						}
+					}
+
+					ImGui::TreePop();
+				}
+				ImGui::SeparatorText("Properties");
+				for (const auto& [propName, propDescriptor] : classDesc->Properties)
+				{
+					if (propDescriptor.Type ==EStringID::StringProperty)
+					{
+						String value = propDescriptor.GetValue<String>(gameObject.Get());
+						char nameBuffer[64];
+						size_t length = value.copy(nameBuffer, sizeof(nameBuffer) - 1);
+						nameBuffer[length] = '\0';
+						if (ImGui::InputText(propDescriptor.Name.ToString().data(), nameBuffer, 64))
+						{
+							propDescriptor.SetValue<String>(gameObject.Get(), String(nameBuffer));
+						}
+
+					}
+				}
+				ImGui::End();
+			}
+#endif
 		}
 
 		m_GUIContext->EndFrame();
@@ -357,7 +473,7 @@ namespace VeiM
 #endif
 	void Application::Shutdown()
 	{
-
+		Renderer::Get()->Shutdown();
 	}
 
 
@@ -375,12 +491,6 @@ namespace VeiM
 
 	void Application::Run()
 	{
-
-		UniquePtr<Base> character = Base::Instantiate("GameCharacter");
-		if (character)
-		{
-			character->Start();
-		}
 		TestRenderer::Init();
 		// Compile shaders
 		std::vector<String> cmdArgs = m_Config.CommandLineArgs;
@@ -451,7 +561,7 @@ namespace VeiM
 			backpackModelFilename = fs::current_path().parent_path().parent_path() / "Content" / "backpack" / "backpack.obj";
 			coinMeshFilename = fs::current_path().parent_path().parent_path() / "Content" / "coin" / "Coin.obj";
 
-			
+
 
 			for (int i = 0; i < 6; i++)
 				skyboxFilenames.push_back(fs::current_path().parent_path().parent_path() / "Content" / "skybox" / faces[i]);
@@ -562,12 +672,18 @@ namespace VeiM
 		unsigned int coinMatrixBuffer;
 
 
-		
-		
+
+
 
 
 		if (bHasGame)
 		{
+			//gameObject = ObjectPtr<Object>(ClassRegistry::FindClass(StringID("GameObject"))->ConstructorFunc());
+			//gameObject->MarkAsRoot();
+			heldWorld = World::CreateWorld(EWorldType::Game, StringID("TestWorld"), true);
+			g_World = heldWorld.Get();
+			g_World->InitializeEntities();
+			heldWorld->BeginPlay();
 
 			lightSourceShader = new Shader(lightSourceShaderFilename);
 			litShader = new Shader(LitShaderFilename);
@@ -743,7 +859,8 @@ namespace VeiM
 			}
 
 		}
-
+		String valuePrev;
+		String value;
 		while (!glfwWindowShouldClose(m_Window->GetNativeWindow()) && m_Running)
 		{
 			m_Window->PollEvents();
@@ -752,6 +869,7 @@ namespace VeiM
 			m_DeltaTime = time - m_LastFrameTime;
 			m_LastFrameTime = time;
 
+			g_World->Tick(m_DeltaTime);
 
 			process_input(m_Window->GetNativeWindow());
 
@@ -760,10 +878,17 @@ namespace VeiM
 
 			if (bHasGame)
 			{
-
-				if (character)
+				GarbageCollector::Get().CollectGarbage(false);
+				if (gameObject.IsValid())
 				{
-					character->Update(m_DeltaTime);
+
+					ClassDescriptor* gameObjectClass = gameObject->GetClass();
+					PropertyDescriptor& gameObjectNameProp = gameObjectClass->Properties[StringID("m_NameGO")];
+					value = gameObjectNameProp.GetValue<String>(gameObject.Get());
+					if (value != valuePrev) {
+						VM_CORE_TRACE("New Name: {0}", value);
+					}
+					valuePrev = value;
 				}
 #ifndef VM_WITH_EDITOR
 				int d_width;
@@ -926,7 +1051,7 @@ namespace VeiM
 
 					// Floor
 					pointshadowmapShader->SetMat4("u_Transform", floorModel);
-					TestRenderer::RenderMesh(m_CubeMesh, *pointshadowmapShader, 0,0, true);
+					TestRenderer::RenderMesh(m_CubeMesh, *pointshadowmapShader, 0, 0, true);
 					// Cubes
 					pointshadowmapShader->SetMat4("u_Transform", cubeModel);
 					TestRenderer::RenderMesh(m_CubeMesh, *pointshadowmapShader, 0, 0, true);

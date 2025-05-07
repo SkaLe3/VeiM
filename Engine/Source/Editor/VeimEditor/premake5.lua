@@ -91,6 +91,8 @@ project "VeimEditor"
             "rc /fo " .. engine_int_out .. "/VeiM.rc.res %{wks.location}/Engine/Source/VeiM/Core/Resources/VeiM.rc",
             "rc /fo " .. engine_int_out .."/Default.rc2.res" .. resource_build_options .. " %{wks.location}/Engine/Build/Resources/Default.rc2"
         }
+		-- TODO: Change to use project directory instead of workspace directory
+		-- for correct path in game solution
 
         linkoptions{
             engine_int_out .. "/VeiM.rc.res",

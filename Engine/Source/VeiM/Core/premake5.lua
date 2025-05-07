@@ -57,7 +57,8 @@ project "Core"
 		"%{IncludeDir.stb_image}",
 		"%{IncludeDir.assimp}",
 		"%{IncludeDir.assimpCfg}",
-		"%{IncludeDir.entt}"
+		"%{IncludeDir.entt}",
+		"%{IncludeDir.CityHash}"
     }
 
 	defines
@@ -74,6 +75,7 @@ project "Core"
 		"GLFW",
 		"yaml-cpp",
 		"assimp",
+		"CityHash",
 		"opengl32.lib"
 	}
 
