@@ -6,10 +6,11 @@
 
 namespace VeiM
 {
-	static std::unordered_map<uint32, const char*> g_StringIdTable;
+	
 
 	static std::unordered_map<uint32, const char*>& GetStringIdTable()
 	{
+		static std::unordered_map<uint32, const char*> g_StringIdTable;
 		return g_StringIdTable;
 	}
 
@@ -19,6 +20,7 @@ namespace VeiM
 	{
 		size_t strLength = strlen(str);
 		uint32 hash = CityHash32(str, strLength);
+
 
 		auto it = GetStringIdTable().find(hash);
 		if (it != GetStringIdTable().end())

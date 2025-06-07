@@ -10,10 +10,6 @@
 
 namespace VeiM
 {
-	static void glfw_error_callback(int error, const char* description)
-	{
-		VM_CORE_ERROR("[GLFW] Error({0}) : {1}", error, description);
-	}
 
 	Window::Window(const WindowConfig& config)
 	{
@@ -113,6 +109,12 @@ namespace VeiM
 	}
 
 
+	void Window::SetSize(uint32 width, uint32 height)
+	{
+		m_Data.Width = width;
+		m_Data.Height = height;
+	}
+
 	void Window::SetWindowMode(EWindowMode mode)
 	{
 		EWindowMode currentMode = GetWindowMode();
@@ -164,6 +166,11 @@ namespace VeiM
 		m_Data.CachedOnMinimizeMode = GetWindowMode();
 	}
 
+	void Window::SetCachedMode()
+	{
+		m_Data.Mode = m_Data.CachedOnMinimizeMode;
+	}
+
 	Window::WindowData& Window::GetUserPointer(GLFWwindow* hndl)
 	{
 		return *(WindowData*)glfwGetWindowUserPointer(hndl);
@@ -172,19 +179,9 @@ namespace VeiM
 	// TODO: Make Create function
 	void Window::Init(const WindowConfig& config)
 	{
-		VM_CORE_INFO("Creating Window {0} ({1}, {2})", m_Data.Title, m_Data.Width, m_Data.Height);
-
-		if (s_WindowCount == 0)
-		{
-			int succeed = glfwInit();
-			VM_CORE_ASSERT(succeed, "Could not initialize GLFW"); // TODO: Make verify
-			VM_CORE_INFO("[GLFW] GLFW Init");
-
-			glfwSetErrorCallback(glfw_error_callback);
-		}
-
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 		if (m_Data.CustomTitlebar)
 		{
@@ -200,9 +197,6 @@ namespace VeiM
 		//glfwGetMonitorPos(primaryMonitor, &monitorX, &monitorY);
 
 		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-#if defined(VM_DEBUG)
-		glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
-#endif
 
 		m_Window = glfwCreateWindow(m_Data.Width, m_Data.Height, m_Data.Title.c_str(), nullptr, nullptr);
 		++s_WindowCount;
@@ -210,21 +204,10 @@ namespace VeiM
 		VM_CORE_ASSERT(m_Window, "[GLFW] Failed to create window!");
 
 		glfwShowWindow(m_Window);
-
 		// TODO : Move to graphics context class
 		glfwMakeContextCurrent(m_Window);
-		int gladStatus = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-		VM_CORE_ASSERT(gladStatus, "Failed to initialize Glad!");
 
-		VM_CORE_INFO("OpenGL Info:");
-		VM_CORE_INFO("    Vendor: {0}", (char*)glGetString(GL_VENDOR));
-		VM_CORE_INFO("    Renderer: {0}", (char*)glGetString(GL_RENDERER));
-		VM_CORE_INFO("    Version: {0}", (char*)glGetString(GL_VERSION));
-
-		VM_CORE_ASSERT(GLVersion.major > 4 || (GLVersion.major == 4 && GLVersion.minor >= 5), "VeiM requires OpenGL version 4.5 or higher");
-
-		//SetVSync(true);
-		SetVSync(false);
+		SetVSync(config.VSync);
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		glfwSetWindowAttrib(m_Window, GLFW_RESIZABLE, config.WindowResizeable ? GLFW_TRUE : GLFW_FALSE);
@@ -234,6 +217,7 @@ namespace VeiM
 		SetWindowMode(config.Mode);
 
 		SetRawInput(true);
+
 	}
 
 	void Window::Shutdown()
@@ -256,41 +240,110 @@ namespace VeiM
 
 	void Window::SetEventCallbacks(GLFWwindow* windowHandle)
 	{
+		glfwSetMonitorCallback([](GLFWmonitor* monitor, int event)
+			{
+				Window::WindowData& data = GetUserPointer(Application::Get().GetWindow().GetNativeWindow());
+				data.InputDelegates.MonitorCallback(monitor, event);
+			});
 		glfwSetWindowSizeCallback(windowHandle, [](GLFWwindow* window, int width, int height)
-								  {
-									  Window::WindowData& data = GetUserPointer(window);
-									  data.Width = width;
-									  data.Height = height;
-									  data.EventCallback(std::string("Window resize: ") + std::to_string(data.Width) + " | " + std::to_string(data.Height));
+			{
+				Window::WindowData& data = GetUserPointer(window);
+				WindowSizeEventInternal* newSizeEvent = new WindowSizeEventInternal();
+				newSizeEvent->NativeWindow = window;
+				newSizeEvent->Width = width;
+				newSizeEvent->Height = height;
+				data.EventCallback(newSizeEvent);
+			});
 
-									  // Handling the situation when window mode should changed, but no other callbacks were called
-									  if (glfwGetWindowAttrib(window, GLFW_MAXIMIZED))
-										  Application::Get().GetWindow().SetWindowMode(EWindowMode::WindowedFullscreen);
-									  else if (!glfwGetWindowAttrib(window, GLFW_ICONIFIED))
-										  Application::Get().GetWindow().SetWindowMode(EWindowMode::Windowed);
-								  });
+		glfwSetWindowCloseCallback(windowHandle, [](GLFWwindow* window)
+			{
+				Window::WindowData& data = GetUserPointer(window);
+				WindowCloseEventInternal* newCloseEvent = new WindowCloseEventInternal();
+				newCloseEvent->NativeWindow = window;
+				data.EventCallback(newCloseEvent);
+			});
 
 		glfwSetTitlebarHitTestCallback(m_Window, [](GLFWwindow* window, int x, int y, int* hit)
-									   {
-										   Window::WindowData& data = GetUserPointer(window);
-										   if (data.CustomTitlebar && data.TitlebarHitTest)
-										   {
-											   *hit = data.TitlebarHitTest();
-										   }
-									   });
+			{
+				Window::WindowData& data = GetUserPointer(window);
+				if (data.CustomTitlebar && data.TitlebarHitTest)
+				{
+					*hit = data.TitlebarHitTest();
+				}
+			});
 		glfwSetWindowIconifyCallback(m_Window, [](GLFWwindow* window, int iconified)
-									 {
-										 if (iconified)
-										 {
-											 Window::WindowData& data = GetUserPointer(window);
-											 data.CachedOnMinimizeMode = data.Mode;
-										 }
-										 else
-										 {
-											 Window::WindowData& data = GetUserPointer(window);
-											 Application::Get().GetWindow().SetWindowMode(data.CachedOnMinimizeMode);
-										 }
-									 });
+			{
+				Window::WindowData& data = GetUserPointer(window);
+				data.Mode;
+				WindowIconifyEventInternal* newIconEvent = new WindowIconifyEventInternal();
+				newIconEvent->NativeWindow = window;
+				newIconEvent->Iconified = iconified;
+				data.EventCallback(newIconEvent);
+			});
+
+		glfwSetKeyCallback(m_Window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
+			{
+				Window::WindowData& data = GetUserPointer(window);
+				KeyEventInternal* newKeyEvent = new KeyEventInternal();
+				newKeyEvent->NativeWindow = window;
+				newKeyEvent->Action = action;
+				newKeyEvent->KeyCode = key;
+				newKeyEvent->ScanCode = scancode;
+				data.EventCallback(newKeyEvent);
+				data.InputDelegates.KeyCallback(window, key, scancode, action, mods);
+			});
+
+		glfwSetCharCallback(m_Window, [](GLFWwindow* window, uint32 keycode)
+			{
+				Window::WindowData& data = GetUserPointer(window);
+				KeyTypeEventInternal* newCharEvent = new KeyTypeEventInternal();
+				newCharEvent->NativeWindow = window;
+				newCharEvent->TypeKeyCode = keycode;
+				data.EventCallback(newCharEvent);
+				data.InputDelegates.CharCallback(window, keycode);
+			});
+		glfwSetMouseButtonCallback(m_Window, [](GLFWwindow* window, int32 button, int32 action, int32 mods)
+			{
+				Window::WindowData& data = GetUserPointer(window);
+				MouseButtonEventInternal* newButtonEvent = new MouseButtonEventInternal();
+				newButtonEvent->NativeWindow = window;
+				newButtonEvent->Action = action;
+				newButtonEvent->ButtonCode = button;
+				data.EventCallback(newButtonEvent);
+				data.InputDelegates.MouseButtonCallback(window, button, action, mods);
+			});
+		glfwSetScrollCallback(m_Window, [](GLFWwindow* window, double xOffset, double yOffset)
+			{
+				Window::WindowData& data = GetUserPointer(window);
+				MouseScrollEventInternal* newScrollEvent = new MouseScrollEventInternal();
+				newScrollEvent->NativeWindow = window;
+				newScrollEvent->XOffset = xOffset;
+				newScrollEvent->YOffset = yOffset;
+				data.EventCallback(newScrollEvent);
+				data.InputDelegates.ScrollCallback(window, xOffset, yOffset);
+			});
+		glfwSetCursorPosCallback(m_Window, [](GLFWwindow* window, double xPos, double yPos)
+			{
+				Window::WindowData& data = GetUserPointer(window);
+				MouseMoveEventInternal* newMoveEvent = new MouseMoveEventInternal();
+				newMoveEvent->NativeWindow = window;
+				newMoveEvent->XPos = xPos;
+				newMoveEvent->YPos = yPos;
+				data.EventCallback(newMoveEvent);
+				data.InputDelegates.CursorPosCallback(window, xPos, yPos);
+			});
+		glfwSetWindowFocusCallback(m_Window, [](GLFWwindow* window, int focused)
+			{
+				Window::WindowData& data = GetUserPointer(window);
+				data.InputDelegates.WindowFocusCallback(window, focused);
+			});
+		glfwSetCursorEnterCallback(m_Window, [](GLFWwindow* window, int entered)
+		{
+			Window::WindowData& data = GetUserPointer(window);
+			data.InputDelegates.CursorEnterCallback(window, entered);
+		});
+
+		// Use refresh callback to draw while resizing
 	}
 
 }

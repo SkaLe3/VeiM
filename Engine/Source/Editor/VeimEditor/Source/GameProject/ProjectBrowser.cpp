@@ -103,9 +103,9 @@ namespace VeiM
 		Application::Get().Close();
 	}
 
-	ProjectBrowser::ProjectBrowser()
+	ProjectBrowser::ProjectBrowser(Widget* parent) : Widget(parent)
 	{
-		m_ProjectBrowserHandler = MakeShared<ProjectBrowserHandler>();
+		m_ProjectBrowserHandler = CreateWidget<ProjectBrowserHandler>(this);
 
 		UI::Utils::SetCharArrayData(m_CurrentProjectLocation, 256, "");
 		UI::Utils::SetCharArrayData(m_CurrentProjectName, 256, "");
@@ -127,6 +127,8 @@ namespace VeiM
 
 	bool ProjectBrowser::OnGUI()
 	{
+		Widget::OnGUI();
+
 		if (!m_bOpen)
 			return false;
 
@@ -150,6 +152,7 @@ namespace VeiM
 		ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGui::ColorConvertFloat4ToU32(ImGui::GetStyleColorVec4(ImGuiCol_TitleBg)));
 
 		ImGui::Begin("Project Browser", &m_bOpen, windowFlags);
+		UpdateStatus();
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 3));
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(16, 10));
 		RenderContentViewSection(m_Mode);

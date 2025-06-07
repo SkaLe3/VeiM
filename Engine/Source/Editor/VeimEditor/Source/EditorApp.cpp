@@ -3,6 +3,8 @@
 #include "Misc/Paths.h"
 
 #include "EditorLayer.h"
+#include "Engine/Classes/Editor/EditorEngine.h"
+#include "Editor/Editor.h"
 
 namespace VeiM
 {
@@ -15,13 +17,13 @@ namespace VeiM
 
 		}
 
-		~VeiMEditor()
+		virtual ~VeiMEditor()
 		{
 
 		}
 	};
 
-	Application* CreateApplication(const std::vector<String>& arguments)
+	Application* CreateApplication(const std::vector<String>& arguments, const VeiM::String& name, const VeiM::String& title)
 	{
 		ApplicationSpecification specs;
 
@@ -33,7 +35,7 @@ namespace VeiM
 		specs.WndConfig.Title = "VeiM Editor";
 		specs.WndConfig.Width = 800;
 		specs.WndConfig.Height = 600;
-		specs.WndConfig.VSync = true;
+		specs.WndConfig.VSync = false;
 		specs.WndConfig.CustomTitlebar = true;
 		specs.WndConfig.WindowResizeable = true;
 		specs.WndConfig.IconPath = "UI/Icons/VeiM_Logo.png";

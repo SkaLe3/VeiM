@@ -6,13 +6,15 @@
 #include "Engine/WeakObjectPtr.h"
 #include "Engine/WorldSettings.h"
 #include "Engine/EngineTypes.h"
-
+#include "Utils/Math.h"
 #include <vector>
 
 // World.h
 namespace VeiM
 {
-	extern class World* g_World;
+	using namespace Math;
+
+	extern CORE_API class World* g_World;
 
 	enum class EWorldType : uint8
 	{
@@ -41,7 +43,6 @@ namespace VeiM
 		ServiceEntity* GetServiceByClass(ClassDescriptor* serviceClass) const; // Not type safe
 		template<typename T>
 		T* GetServiceByClass() const { return CastObject<T>(GetServiceByClass(T::StaticClass())); }
-
 		Level* GetCurrentLevel() const;
 		WorldSettings* GetSettings();
 		std::vector<WeakObjectPtr<Controller>>& GetControllers();
@@ -50,10 +51,8 @@ namespace VeiM
 		void SetGlobalGameState(GlobalGameState* newGGS);
 		GlobalGameState* GetGlobalGameState() const;
 		template<typename T>
-		T* GetGlobalGameState() const
-		{
-			return CastObject<T>(GetGlobalGameState());
-		}
+		T* GetGlobalGameState() const { return CastObject<T>(GetGlobalGameState()); }
+		Entity* GetEntityByName(StringID name);
 
 		void Tick(float deltaTime);
 		void RunTickGroup(ETickGroup group);
@@ -70,7 +69,8 @@ namespace VeiM
 
 		bool DestroyEntity(Entity* entity);
 		bool RemoveEntity(Entity* entity);
-		Entity* SpawnEntity(ClassDescriptor* spawnClass);
+		Entity* SpawnEntity(ClassDescriptor* spawnClass, const Transform& transform = Transform::Identity, bool bOverrideRootScale = false, StringID entityName = StringID(EStringID::None));
+		Entity* SpawnEntity(ClassDescriptor* spawnClass, const glm::vec3& location = Math::Utils::ZeroVector, const glm::vec3& rotation = Math::Utils::OnesVector, bool bOverrideRootScale = false, StringID entityName = StringID(EStringID::None));
 		void InitializeEntities();
 
 		void BeginPlay();
@@ -104,7 +104,9 @@ namespace VeiM
 		void Serialize(serializer);
 
 #endif
+		virtual void Duplicate(Object* sourceObj, Object* destintationObj) override;
 		static World* CreateWorld(const EWorldType worldType, StringID name, bool bAddToRoot);
+		static World* GetDuplicateForEditorPlay(World* editorWorld);
 	public:
 		ObjectPtr<Level> CurrentLevel; 
 		std::unordered_set<ObjectPtr<ServiceEntity>> LevelServices;
@@ -125,7 +127,7 @@ namespace VeiM
 		uint8 m_bHasBegunPlay : 1;
 		uint8 m_bMarkedAllPendingKill : 1;
 
-		ObjectPtr<GlobalGameState> m_GlobalGameState; // TODO: Register
+		ObjectPtr<GlobalGameState> m_GlobalGameState;
 		std::vector<WeakObjectPtr<Controller>> m_Controllers;
 		PhysicsScene* m_PScene;
 		TimerManager* m_TimerManager;

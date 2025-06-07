@@ -49,10 +49,10 @@ namespace VeiM
 		void RegisterComponent();
 		void UnregisterComponent();
 		bool IsRegistered() const { return m_bRegistered; }
-		virtual void Destroy();
+		virtual void Destroy(bool bPropagate = false);
 
 		virtual void OnCreated();
-		virtual void OnDetroyed(bool detroyInChain);
+		virtual void OnDestroyed(bool bPropagate);
 
 #if 0
 		class RenderScene* GetScene() const;
@@ -62,10 +62,12 @@ namespace VeiM
 		virtual void OnEntityVisualsChanged() { MarkRenderStateDirty(); }
 
 		// Owner management
+		void SetOwner(Entity* owner);
 		Entity* GetOwner() const;
 		template<typename T> 
 		T* GetOwner() const { return CastObject<T>(GetOwner()); }
 		virtual World* GetWorld() const override final { return m_WorldCached ? m_WorldCached : GetWorldInternal(); }
+
 
 		bool HasTag(StringID tag) const;
 		bool HasBegunPlay() const { return m_bHasBegunPlay; }
@@ -73,6 +75,8 @@ namespace VeiM
 		bool IsActive() const { return m_bIsActive; }
 		void SetActive(bool active);
 		void ToggleActive() { SetActive(!IsActive()); }
+
+		virtual void UpdateWorldTransform(){}
 
 		/* Object */
 		virtual void StartDestroy() override;

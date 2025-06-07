@@ -4,6 +4,7 @@
 #include "Widgets/Titlebar.h"
 #include "ThirdParty/EditorWindows.h"
 #include "GameProject/ProjectBrowser.h"
+#include "LevelEditor/LevelEditor.h"
 
 #include <glm/glm.hpp>
 
@@ -11,14 +12,28 @@
 
 namespace VeiM
 {
-	class EditorLayer : public Layer
+	extern class EditorLayer* g_EditorLayer;
+
+	class EditorLayer : public Layer, public Widget
 	{
 	public:
 		EditorLayer();
 		void OnAttach() override;
 		void OnDetach() override;
-		void OnUpdate(float deltaTime) override;
-		void OnGUI() override;
+		virtual void OnUpdateGUI() override;
+		virtual bool OnGUI() override;
+
+		virtual bool OnKeyType(const InputKeyTypeEvent& keyTypeEvent) override;
+		virtual bool OnKeyDown(const InputKeyEvent& keyEvent)  override;
+		virtual bool OnKeyUp(const InputKeyEvent& keyEvent)  override;
+		virtual bool OnMouseUp(const InputMouseEvent& mouseEvent)  override;
+		virtual bool OnMouseDown(const InputMouseEvent& mouseEvent)  override;
+		virtual bool OnMouseDoubleClick(const InputMouseEvent& mouseEvent)  override;
+		virtual bool OnMouseMove(const InputMouseEvent& mouseEvent)  override;
+		virtual bool OnMouseWheel(const InputMouseEvent& mouseEvent)  override;
+
+		virtual void OnFinishInput() override;
+
 
 		void ImGuiWindowMenu();
 		void ImGuiWindowsRender();
@@ -27,29 +42,23 @@ namespace VeiM
 		void ThemeEditorRender(); // TODO: Move somewhere
 		void CreateTitleBar();
 
+		void Close();
+		static EditorLayer& Get() { return *g_EditorLayer; }
 	private:
-		void TestClassMetadataDisplay();
+		void RenderClassRegistry();
+		void RenderGCInfo();
 
 	private:
-		std::shared_ptr<UI::TitleBar> m_TitleBar;
+		SharedPtr<UI::TitleBar> m_TitleBar;
 		float m_WindowBorderSize = 1.0f; // TODO: Put in private struct called EditorStyle or something similar
 		float m_MinWinSizeX = 100.0f;
-		bool show_demo_window = false;
-		bool show_another_window = false;
-		bool m_ThemeEditor = false;
+		bool m_bOpenThemeEditor = false;
+		bool m_bOpenGCInfo = true;
+		bool m_bOpenClassRegistry = false;
 		ImGuiWindows m_ImGuiWindows;
 
-		// Temp
 		UniquePtr<ProjectBrowser> m_ProjectBrowser;
-		glm::vec2 m_ViewportBounds[2];
-		glm::vec2 m_ViewportSize;
-
-		bool m_bViewportFocused = false;
-		bool m_bViewportHovered = false;
-
-
-		// Temp
-
+		UniquePtr<LevelEditor> m_LevelEditor;
 
 	};
 }

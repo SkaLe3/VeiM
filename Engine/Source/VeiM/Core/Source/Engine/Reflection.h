@@ -3,17 +3,30 @@
 #include "Types/StringID.h"
 
 #include "Engine/ObjectPtr.h"
+#include "Engine/WeakObjectPtr.h"
 #include "Engine/SoftObjectPtr.h"
 
 #include <functional>
 #include <typeindex>
+#include <type_traits>
+#include <map>
 
-template<typename T>
+
+template <typename T>
 concept HasGetMethod = requires(T t) { t.Get(); };
 
 // Reflection.h
 namespace VeiM
 {
+
+
+	template <typename T>
+	struct is_object_ptr : std::false_type {};
+	template <typename U>
+	struct is_object_ptr<ObjectPtr<U>> : std::true_type {};
+	template <typename T>
+	concept ObjectPtrType = is_object_ptr<std::remove_cvref_t<T>>::value;
+
 	//  Add Serialization support for property descriptor, but not yet
 
 	class Object;
@@ -37,14 +50,14 @@ namespace VeiM
 #endif
 
 
-//  Add to PropertyDescriptor, but not yet
-// 	template<typename T>
-// 	static PropertyType DeducePropertyType() {
-// 		if constexpr (std::is_same_v<T, bool>) return PropertyType::Bool;
-// 		else if constexpr (std::is_integral_v<T>) return PropertyType::Int;
-// 		else if constexpr (std::is_floating_point_v<T>) return PropertyType::Float;
-// 		// ... other type mappings
-// 	}
+	//  Add to PropertyDescriptor, but not yet
+	// 	template<typename T>
+	// 	static PropertyType DeducePropertyType() {
+	// 		if constexpr (std::is_same_v<T, bool>) return PropertyType::Bool;
+	// 		else if constexpr (std::is_integral_v<T>) return PropertyType::Int;
+	// 		else if constexpr (std::is_floating_point_v<T>) return PropertyType::Float;
+	// 		// ... other type mappings
+	// 	}
 
 	struct CORE_API PropertyDescriptor
 	{
@@ -99,6 +112,41 @@ namespace VeiM
 			}
 
 			*reinterpret_cast<T*>(reinterpret_cast<char*>(instance) + Offset) = value;
+		}
+
+		void CopyValue(void* source, void* destination) const
+		{
+			static const std::unordered_map<std::type_index, std::function<void(const PropertyDescriptor*, void*, void*)>> copyFuncs = {
+	   {typeid(bool), [](const PropertyDescriptor* prop, void* src, void* dst) {
+		   prop->SetValue<bool>(dst, prop->GetValue<bool>(src));
+	   }},
+	   {typeid(int), [](const PropertyDescriptor* prop, void* src, void* dst) {
+		   prop->SetValue<int>(dst, prop->GetValue<int>(src));
+	   }},
+	   {typeid(float), [](const PropertyDescriptor* prop, void* src, void* dst) {
+		   prop->SetValue<float>(dst, prop->GetValue<float>(src));
+	   }},
+	   {typeid(String), [](const PropertyDescriptor* prop, void* src, void* dst) {
+		   prop->SetValue<String>(dst, prop->GetValue<String>(src));
+	   }},
+	   {typeid(StringID), [](const PropertyDescriptor* prop, void* src, void* dst) {
+		   prop->SetValue<StringID>(dst, prop->GetValue<StringID>(src));
+	   }},
+				// Add more types
+			};
+
+			auto it = copyFuncs.find(TypeIndex);
+			if (it != copyFuncs.end()) {
+				it->second(this, source, destination);
+			}
+			else {
+				VM_ASSERT(false, "Unsupported type in CopyValue");
+			}
+		}
+
+		void CopyContainer(void* source, void* destination) const
+		{
+			// Implement
 		}
 
 		ObjectPtr<Object> GetAsObjectPtr(void* instance) const
@@ -171,6 +219,9 @@ namespace VeiM
 		std::unordered_map<StringID, PropertyDescriptor> Properties;
 		std::function<Object* ()> ConstructorFunc;
 		const ClassDescriptor* ParentClass;
+#ifdef VM_WITH_EDITOR
+		String DebugName;
+#endif
 
 		template<typename T>
 		static ClassDescriptor* Get()
@@ -253,6 +304,25 @@ namespace VeiM
 			std::unordered_map<StringID, ClassDescriptor*> result = GetRegistry();
 			return result;
 		}
+		template <typename T>
+		static std::map<StringID, ClassDescriptor*, StringIDComparator> GetAllClassesOfClass()
+		{
+			return GetAllClassesOfClass(T::StaticClass());
+		}
+
+		static std::map<StringID, ClassDescriptor*, StringIDComparator> GetAllClassesOfClass(ClassDescriptor* baseClass)
+		{
+			std::unordered_map<StringID, ClassDescriptor*>& allClasses = GetRegistry();
+			std::map<StringID, ClassDescriptor*, StringIDComparator> classesMap;
+			for (auto& classRecord : allClasses)
+			{
+				if (classRecord.second->IsChildOf(baseClass))
+				{
+					classesMap.insert(classRecord);
+				}
+			}
+			return classesMap;
+		}
 	};
 
 	// Container handler for std::vector
@@ -270,10 +340,14 @@ namespace VeiM
 			return &container[index];
 		}
 
-		static void MarkReferencedObjects(std::vector<T>& container, GarbageCollector& gc) {
-			if constexpr (HasGetMethod<T>) {
-				for (auto& item : container) {
-					if (item.Get()) {
+		static void MarkReferencedObjects(std::vector<T>& container, GarbageCollector& gc)
+		{
+			if constexpr (ObjectPtrType<T>)
+			{
+				for (auto& item : container)
+				{
+					if (item.Get())
+					{
 						gc.MarkReachable(item.Get());
 					}
 				}
@@ -309,10 +383,14 @@ namespace VeiM
 			}
 		}
 
-		static void MarkReferencedObjects(std::unordered_map<K, V>& container, GarbageCollector& gc) {
-			if constexpr (HasGetMethod<V>) {
-				for (auto& [key, value] : container) {
-					if (value.Get()) {
+		static void MarkReferencedObjects(std::unordered_map<K, V>& container, GarbageCollector& gc)
+		{
+			if constexpr (HasGetMethod<V> && ObjectPtrType<V>)
+			{
+				for (auto& [key, value] : container)
+				{
+					if (value.Get())
+					{
 						gc.MarkReachable(value.Get());
 					}
 				}
@@ -349,6 +427,12 @@ private: \
 public: \
 	static void RegisterProperties(VeiM::ClassDescriptor* classDesc);
 
+#ifdef VM_WITH_EDITOR
+	#define REFLECTION_DECLARE_DEBUG_NAME(DNAME) s_ClassDescriptor->DebugName = String(#DNAME);
+#else
+#define REFLECTION_DECLARE_DEBUG_NAME(DNAME)
+#endif
+
 #define IMPLEMENT_CLASS(Class) \
 	VeiM::ClassDescriptor* Class::s_ClassDescriptor = nullptr; \
 	namespace \
@@ -365,6 +449,7 @@ public: \
 		{ \
 			s_ClassDescriptor = new VeiM::ClassDescriptor(); \
 			s_ClassDescriptor->Name = VeiM::StringID(#Class); \
+			REFLECTION_DECLARE_DEBUG_NAME(Class) \
 			s_ClassDescriptor->ParentClass = Super::StaticClass(); \
 			s_ClassDescriptor->ConstructorFunc = []() -> VeiM::Object* {return new Class(); }; \
 			VeiM::ClassRegistry::RegisterClass(s_ClassDescriptor); \
@@ -377,6 +462,10 @@ public: \
 	// TODO: Consider using GetClass instead of passing it
 #define REGISTER_PROPERTY(Class, PropType, PropName) \
 	{ \
+		constexpr bool bIsBasicProperty = VeiM::EStringID::PropType != VeiM::EStringID::VectorProperty && VeiM::EStringID::PropType != VeiM::EStringID::MapProperty; \
+		static_assert(bIsBasicProperty, \
+		"Invalid property registration: 'REGISTER_PROPERTY' cannot be used for container types (VectorProperty/MapProperty). " \
+		"Instead, use 'REGISTER_VECTOR_PROPERTY' for vectors or 'REGISTER_MAP_PROPERTY' for maps."	); \
 		VeiM::PropertyDescriptor prop; \
 		prop.Name = VeiM::StringID(#PropName); \
 		prop.Type = VeiM::EStringID::PropType; \
@@ -401,14 +490,14 @@ public: \
 	}
 
 	// Vector property registration
-#define REGISTER_VECTOR_PROPERTY(Class, ElementType, PropName) \
+#define REGISTER_VECTOR_PROPERTY(Class, InElementType, PropName) \
 	{ \
 		using VectorType = decltype(Class::PropName); \
 		using ElementT = typename VectorType::value_type; \
 		VeiM::PropertyDescriptor prop; \
 		prop.Name = VeiM::StringID(#PropName); \
 		prop.Type = VeiM::EStringID::VectorProperty; \
-		prop.ElementType = VeiM::EStringID::ElementType; \
+		prop.ElementType = VeiM::EStringID::InElementType; \
 		prop.Offset = offsetof(Class, PropName); \
 		prop.Size = sizeof(Class::PropName); \
 		prop.bIsContainer = true; \
@@ -427,8 +516,8 @@ public: \
 			return VeiM::ContainerHandler<VectorType>::GetElementPtr(container, index); \
 		}; \
 		\
-		if constexpr (VeiM::EStringID::ElementType == VeiM::EStringID::ObjectProperty || \
-			VeiM::EStringID::ElementType == VeiM::EStringID::SoftObjectProperty) { \
+		if constexpr (VeiM::EStringID::InElementType == VeiM::EStringID::ObjectProperty || \
+			VeiM::EStringID::InElementType == VeiM::EStringID::SoftObjectProperty) { \
 			prop.MarkReferencedObjects = [](void* instance, VeiM::GarbageCollector& gc) { \
 				auto& container = *reinterpret_cast<VectorType*>( \
 					reinterpret_cast<char*>(instance) + offsetof(Class, PropName)); \

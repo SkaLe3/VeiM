@@ -16,6 +16,7 @@ project "Core"
     	{
         	"%{wks.location}/Engine/Source/VeiM/Core/Source/**.h",
         	"%{wks.location}/Engine/Source/VeiM/Core/Source/**.cpp",
+			"%{wks.location}/Engine/Source/VeiM/Core/Source/**.inl",
 			"%{wks.location}/Engine/ThirdParty/stb_image/**.h",
 			"%{wks.location}/Engine/ThirdParty/stb_image/**cpp",
 			"%{wks.location}/Engine/ThirdParty/glm/glm/**.hpp",
@@ -29,6 +30,7 @@ project "Core"
 		{
 			"%{wks.location}/Engine/Source/VeiM/Core/Source/**.h",
 			"%{wks.location}/Engine/Source/VeiM/Core/Source/**.cpp",
+			"%{wks.location}/Engine/Source/VeiM/Core/Source/**.inl",
 			"%{wks.location}/Engine/ThirdParty/stb_image/**.h",
 			"%{wks.location}/Engine/ThirdParty/stb_image/**cpp",
 			"%{wks.location}/Engine/ThirdParty/glm/glm/**.hpp",
@@ -39,7 +41,9 @@ project "Core"
 			"Source/ImGui/**.h",
 			"Source/ImGui/**.cpp",
 			"Source/UI/**.h",
-			"Source/UI/**.cpp" 
+			"Source/UI/**.cpp",
+			"Source/Engine/Classes/Editor/**.h",
+			"Source/Engine/Classes/Editor/**.cpp"
 		}
 	filter {}
 
@@ -47,6 +51,7 @@ project "Core"
     {
         "%{wks.location}/Engine/Source/VeiM/Core/Source",
 		"%{wks.location}/Engine/ThirdParty",
+		"%{wks.location}/Engine/Source/Editor/VeimEditor/Source",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.GLFW}",

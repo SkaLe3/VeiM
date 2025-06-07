@@ -115,14 +115,14 @@ namespace VeiM
 		{
 			if (m_Ptr)
 			{
-				m_Ptr->UnregisterWeakPtr(reinterpret_cast<void**>(&m_Ptr));
+				UnregisterWithGC();
 			}
 
 			m_Ptr = ptr;
 
 			if (m_Ptr)
 			{
-				m_Ptr->RegisterWeakPtr(reinterpret_cast<void**>(&m_Ptr));
+				RegisterWithGC();
 			}
 
 			return *this;
@@ -153,6 +153,7 @@ namespace VeiM
 		void Invalidate() {
 			m_Ptr = nullptr;
 		}
+		operator T* () const { return Get(); }
 
 		// Comparison operators
 		bool operator==(const WeakObjectPtr& other) const { return m_Ptr == other.m_Ptr; }

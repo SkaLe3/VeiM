@@ -1,9 +1,12 @@
 #include "Renderer.h"
 #include "Renderer/RenderScene.h"
 
+#include <Glad/glad.h>
+
 namespace VeiM
 {
 	static Renderer* s_RendererInstance;
+
 
 	Renderer* Renderer::Get()
 	{	
@@ -13,6 +16,7 @@ namespace VeiM
 	void Renderer::Startup()
 	{
 		s_RendererInstance = new Renderer();
+
 	}
 
 	void Renderer::Shutdown()

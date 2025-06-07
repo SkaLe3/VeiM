@@ -143,11 +143,11 @@ namespace VeiM
 			return *m_Ptr;
 		}
 
+		operator T* () const { return Get(); }
+
 		// Comparison operators
 		bool operator==(const ObjectPtr& other) const { return m_Ptr == other.m_Ptr; }
 		bool operator!=(const ObjectPtr& other) const { return m_Ptr != other.m_Ptr; }
-		bool operator==(const T* other) const { return m_Ptr == other; }
-		bool operator!=(const T* other) const { return m_Ptr != other; }
 		bool operator==(std::nullptr_t) const { return m_Ptr == nullptr; }
 		bool operator!=(std::nullptr_t) const { return m_Ptr != nullptr; }
 

@@ -19,6 +19,10 @@ namespace VeiM
 		{
 			auto& children = m_CreatorMap[creator];
 			children.erase(std::remove(children.begin(), children.end(), obj), children.end());
+			if (children.empty())
+			{
+				m_CreatorMap.erase(creator);
+			}
 		}
 		std::vector<Object*> GetObjectsWithCreator(Object* creator)
 		{

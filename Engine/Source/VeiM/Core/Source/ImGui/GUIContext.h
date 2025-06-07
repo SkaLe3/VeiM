@@ -5,6 +5,15 @@
 
 #include "UI/Theme.h"
 
+
+extern void(*g_CustomMouseButtonCallback)(void*, int, int, int);
+extern void(*g_CustomMouseScrollCallback)(void*, double, double);
+extern void(*g_CustomKeyCallback)(void*, int, int, int, int);
+extern void(*g_CustomWindowFocusCallback)(void*, int);
+extern void(*g_CustomCursorPosCallback)(void*, double, double);
+extern void(*g_CustomCursorEnterCallback)(void*, int);
+extern void(*g_CustomCharCallback)(void*, unsigned int);
+
 namespace VeiM
 {
 	struct GUIDebug
@@ -51,6 +60,24 @@ namespace VeiM
 
 		bool m_bBlockEvents = true;
 
-
+	public:
+		inline void SetGUICustomCallbacks(
+			void(*mouseButton)(void*, int, int, int) = nullptr,
+			void(*scroll)(void*, double, double) = nullptr,
+			void(*key)(void*, int, int, int, int) = nullptr,
+			void(*focus)(void*, int) = nullptr,
+			void(*cursorPos) (void*, double, double) = nullptr,
+			void(*cursorEnter)(void*, int) = nullptr,
+			void(*charCallback) (void*, unsigned int) = nullptr
+		) {
+			g_CustomMouseButtonCallback = mouseButton;
+			g_CustomMouseScrollCallback = scroll;
+			g_CustomKeyCallback = key;
+			g_CustomWindowFocusCallback = focus;
+			g_CustomCursorPosCallback = cursorPos;
+			g_CustomCursorEnterCallback = cursorEnter;
+			g_CustomCharCallback = charCallback;
+		}
 	};
 }
+

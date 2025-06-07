@@ -1,8 +1,9 @@
 #pragma once
+#include "CoreDefines.h"
 
 namespace VeiM
 {
-	//bool g_IsEditor = false;
+	extern CORE_API bool g_IsEditor;
 
 	// Config* g_Config = nullptr;
 	 
@@ -14,5 +15,5 @@ namespace VeiM
 	 
 	// Editor per project settings
 	// Other inis
-
+	extern CORE_API bool g_Exiting;
 }

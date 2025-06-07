@@ -8,7 +8,14 @@
 #include <locale>
 #include <codecvt>
 
-extern VeiM::Application* VeiM::CreateApplication(const std::vector<VeiM::String>& arguments);
+#if !IS_UNIFIED
+static VeiM::String s_AppName = "DefaultApp"; 
+static VeiM::String s_AppTitle = "Default App";
+#endif
+
+
+
+extern VeiM::Application* VeiM::CreateApplication(const std::vector<VeiM::String>& arguments, const VeiM::String& name, const VeiM::String& title );
 
 namespace VeiM
 {
@@ -16,7 +23,7 @@ namespace VeiM
 	{
 		Log::Init();
 		StringID::RegisterCommonStrings();
-		VeiM::Application* app = VeiM::CreateApplication(arguments);
+		VeiM::Application* app = VeiM::CreateApplication(arguments, s_AppName, s_AppTitle);
 		app->Run();
 		delete app;
 

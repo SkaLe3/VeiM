@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Logging/Log.h"
+#include "Types/Delegate.h"
 
 #include <glm/glm.hpp>
 
@@ -15,10 +16,21 @@ struct GLFWwindow;
 
 namespace VeiM
 {
+	DECLARE_EVENT_2p(ForwardInput_WindowFocusDelegate, void*, int);
+	DECLARE_EVENT_2p(ForwardInput_CursorEnterDelegate, void*, int);
+	DECLARE_EVENT_3p(ForwardInput_CursorPosDelegate, void*, double, double);
+	DECLARE_EVENT_4p(ForwardInput_MouseButtonDelegate, void*, int, int, int);
+	DECLARE_EVENT_3p(ForwardInput_ScrollDelegate, void*, double, double);
+	DECLARE_EVENT_5p(ForwardInput_KeyDelegate, void*, int, int, int, int);
+	DECLARE_EVENT_2p(ForwardInput_CharDelegate, void*, unsigned int);
+	DECLARE_EVENT_2p(ForwardInput_MonitorDelegate, void*, int);
+	
+	class InputEventInternal;
+
 	static uint8 s_WindowCount = 0;
 
 	// TODO: change name to EventCallbackFN
-	using WindowEventCallback = std::function<void(const std::string&)>;
+	using WindowEventCallback = std::function<void(InputEventInternal*)>;
 	using TitlebarHitTestCallback = std::function<bool()>;
 
 	// TODO: Make enum helper class and macros to convert enums to strings	
@@ -93,10 +105,13 @@ namespace VeiM
 		GLFWwindow* GetNativeWindow() const;
 		bool HasCustomTitlebar() const { return m_Data.CustomTitlebar; }
 
+		void SetSize(uint32 width, uint32 height);
 		void SetWindowMode(EWindowMode mode);
 		void UpdateCachedMode();
+		void SetCachedMode();
 		EWindowMode GetChachedMode() const { return m_Data.CachedOnMinimizeMode; }
 		EWindowMode GetWindowMode() const { return m_Data.Mode; }
+
 
 	private:
 		void Init(const WindowConfig& config);
@@ -105,29 +120,44 @@ namespace VeiM
 		void SetIcon(std::filesystem::path iconPath);
 		void SetEventCallbacks(GLFWwindow* windowHandle);
 
-
-
+	public:
+		struct ForwardInputDelegates
+		{
+			ForwardInput_WindowFocusDelegate WindowFocusCallback;
+			ForwardInput_CursorEnterDelegate CursorEnterCallback;
+			ForwardInput_CursorPosDelegate CursorPosCallback;
+			ForwardInput_MouseButtonDelegate MouseButtonCallback;
+			ForwardInput_ScrollDelegate ScrollCallback;
+			ForwardInput_KeyDelegate KeyCallback;
+			ForwardInput_CharDelegate CharCallback;
+			ForwardInput_MonitorDelegate MonitorCallback;
+		};
+		Window::ForwardInputDelegates& GetForwardInputDelegates() { return m_Data.InputDelegates; }
 	private:
 		struct WindowData
 		{
-			std::string Title = "VeiM Engine";
-			uint32_t Width = 1280;
-			uint32_t Height = 720;
+			String Title = "VeiM Engine";
+			uint32 Width = 1280;
+			uint32 Height = 720;
 			bool VSync = true;
 			bool CustomTitlebar = true;
+			bool RawInputEnabled = false;
 
 			EWindowMode Mode = EWindowMode::Windowed;
 			EWindowMode CachedOnMinimizeMode = EWindowMode::Windowed;
 
-			WindowEventCallback EventCallback = [](const std::string&) {};
+			WindowEventCallback EventCallback = [](InputEventInternal*) {};
 			TitlebarHitTestCallback TitlebarHitTest = []() { return false; };
+
+			ForwardInputDelegates InputDelegates;
 		};
 		WindowData m_Data;
 		static WindowData& GetUserPointer(GLFWwindow* hndl);
 
 		GLFWwindow* m_Window;
-		// TODO: Graphics context
 
 		static inline uint8 s_WindowCount = 0;
+
+
 	};
 }

@@ -9,39 +9,45 @@
 #include "Engine/CoreObject.h"
 #include "Engine/ObjectPtr.h"
 
-#include <iostream> // TODO: remove
+#include "Editor/Editor.h"
+#include "Engine/Classes/Editor/EditorEngine.h"
+#include "Engine/World.h"
+#include "Engine/Level.h"
+#include "Engine/Entity.h"
 
+#include "LevelEditor/LevelEditorWidgets.h"
+#include "Engine/CoreObjectStatics.h"
 namespace VeiM
 {
-	EditorLayer::EditorLayer() : Layer("EditorLayer")
-	{
+	EditorLayer* g_EditorLayer;
 
+
+	EditorLayer::EditorLayer()
+		: Layer("EditorLayer")
+		, Widget(nullptr)
+	{
+		g_EditorLayer = this;
 	}
 
 
 	void EditorLayer::OnAttach()
 	{
 		CreateTitleBar();
-		Application::Get().GetWindow().SetTitlebarHitTestCallback([this]() { return m_TitleBar->IsHovered(); });
-
-
-
-
-
+		Application::Get().GetWindow().SetTitlebarHitTestCallback([this]() { return g_IsRunning ? m_TitleBar->IsHovered() : false; });
 		EditorMisc::Get().OnInit();
-		std::vector<String> cmdArgs = Application::Get().GetConfig().CommandLineArgs;
 
-		bool bOpenProject = std::any_of(cmdArgs.begin(), cmdArgs.end(), [](const String& item)
-			{
-				std::filesystem::path path(item);
-				return path.has_extension() && path.extension() == ".vmproject";
-			});
-
+		String projectFilePath;
+		String gameName;
+		bool bOpenProject = Application::Get().ParseProjectFilePath(projectFilePath, gameName);
 
 		if (!bOpenProject)
 		{
-			m_ProjectBrowser = MakeUnique<ProjectBrowser>();
+			m_ProjectBrowser = CreateWidget<ProjectBrowser>(this);
 			m_ProjectBrowser->Open();
+		}
+		else
+		{
+			m_LevelEditor = CreateWidget<LevelEditor>(this);
 		}
 	}
 
@@ -51,12 +57,7 @@ namespace VeiM
 
 	}
 
-	void EditorLayer::OnUpdate(float deltaTime)
-	{
-
-	}
-
-	void EditorLayer::OnGUI()
+	void EditorLayer::OnUpdateGUI()
 	{
 		ImGui::SetCurrentContext(GUIContext::GetImGuiContext());
 		// We are using the ImGuiWindowFlags_NoDocking flag to make parent window not dockable into, 
@@ -83,11 +84,24 @@ namespace VeiM
 		ImGui::PushStyleColor(ImGuiCol_Border, UI::Theme::Get().EditorColors.Border);
 		ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4{ 0.0f, 0.0f, 0.0f, 0.0f });
 		ImGui::Begin("DockSpaceWindow", nullptr, window_flags);
+		UpdateStatus();
 		ImGui::PopStyleColor(3);
 		ImGui::PopStyleVar(3);
 
 		m_TitleBar->OnGUI();
-		ImGui::SetCursorPosY(m_TitleBar->GetHeight());
+		if (m_LevelEditor)
+		{
+			float toolbarSize = 32;
+			float toolBarPos = m_TitleBar->GetHeight();
+			float dockspacePos = toolBarPos + toolbarSize;
+			ImGui::SetCursorPosY(toolBarPos);
+			m_LevelEditor->OnToolBar(toolbarSize);
+			ImGui::SetCursorPosY(dockspacePos);
+		}
+		else
+		{
+			ImGui::SetCursorPosY(m_TitleBar->GetHeight());
+		}
 
 
 		// Dockspace
@@ -124,42 +138,72 @@ namespace VeiM
 		}
 		ImGui::End();
 
+		OnGUI();
+	}
 
-		if (m_ProjectBrowser)
+	bool EditorLayer::OnGUI()
+	{
+		Widget::OnGUI();
+
+		if (!m_ProjectBrowser)
 		{
-			m_ProjectBrowser->OnGUI();
-		}
-		else
-		{
-			// Render
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
-			ImGui::Begin("Viewport");
-			auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
-			auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
-			auto viewportOffset = ImGui::GetWindowPos();
-			m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
-			m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
-
-			m_bViewportFocused = ImGui::IsWindowFocused();
-			m_bViewportHovered = ImGui::IsWindowHovered();
-			Application::Get().GetGUIContext()->BlockEvents(!m_bViewportHovered);
-
-			ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-			m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
-			Application::Get().ViewportResize(m_ViewportSize.x, m_ViewportSize.y);
-			ImGui::Image(reinterpret_cast<void*>(Application::Get().DebugGetFramebuffer()->GetTexture()), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-			//ImGui::Image(reinterpret_cast<void*>(Application::Get().DebugGetFramebufferTexture()), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-			ImGui::End();
-			ImGui::PopStyleVar();
-			TestClassMetadataDisplay();
+			RenderGCInfo();
+			RenderClassRegistry();
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 			ImGui::Begin("Directional Light shadow map");
-			viewportPanelSize = ImGui::GetContentRegionAvail();
+			UpdateStatus();
+			ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 			ImGui::Image(reinterpret_cast<void*>(Application::Get().DebugGetFramebufferTexture()), ImVec2{ viewportPanelSize.x, viewportPanelSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 			ImGui::End();
 			ImGui::PopStyleVar();
 		}
+		return true;
+	}
+
+	bool EditorLayer::OnKeyType(const InputKeyTypeEvent& keyTypeEvent)
+	{
+		return Widget::OnKeyType(keyTypeEvent);
+	}
+
+	bool EditorLayer::OnKeyDown(const InputKeyEvent& keyEvent)
+	{
+		return Widget::OnKeyDown(keyEvent);
+	}
+
+	bool EditorLayer::OnKeyUp(const InputKeyEvent& keyEvent)
+	{
+		return Widget::OnKeyUp(keyEvent);
+	}
+
+	bool EditorLayer::OnMouseUp(const InputMouseEvent& mouseEvent)
+	{
+		return Widget::OnMouseUp(mouseEvent);
+	}
+
+	bool EditorLayer::OnMouseDown(const InputMouseEvent& mouseEvent)
+	{
+		return Widget::OnMouseDown(mouseEvent);
+	}
+
+	bool EditorLayer::OnMouseDoubleClick(const InputMouseEvent& mouseEvent)
+	{
+		return Widget::OnMouseDoubleClick(mouseEvent);
+	}
+
+	bool EditorLayer::OnMouseMove(const InputMouseEvent& mouseEvent)
+	{
+		return Widget::OnMouseMove(mouseEvent);
+	}
+
+	bool EditorLayer::OnMouseWheel(const InputMouseEvent& mouseEvent)
+	{
+		return Widget::OnMouseWheel(mouseEvent);
+	}
+
+	void EditorLayer::OnFinishInput()
+	{
+		Widget::OnFinishInput();
 	}
 
 	void EditorLayer::ImGuiWindowMenu()
@@ -189,37 +233,33 @@ namespace VeiM
 		if (m_ImGuiWindows.StyleEditor)
 		{
 			ImGui::Begin("Dear ImGui Style Editor", &m_ImGuiWindows.StyleEditor);
+			UpdateStatus();
 			ImGui::ShowStyleEditor();
 			ImGui::End();
 		}
 		//if (m_ImGuiWindows.UserGuide) { ImGui::ShowUserGuide(&m_ImGuiWindows.UserGuide); }
-
-
-
-
-
 	}
 
 	void EditorLayer::ThemeEditorRender()
 	{
-		if (!m_ThemeEditor)
+		if (!m_bOpenThemeEditor)
 			return;
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowTitleAlign, ImVec2(0.5f, 0.5f));
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.f, 6.f));
-		ImGui::Begin("Theme Editor", &m_ThemeEditor);
+		ImGui::Begin("Theme Editor", &m_bOpenThemeEditor);
+		UpdateStatus();
 		ImGui::PopStyleVar();
 		UI::Theme::Editor();
 		Application::Get().GetGUIContext()->UpdateTheme();
 
 		ImGui::End();
 		ImGui::PopStyleVar();
-
 	}
 
 	void EditorLayer::CreateTitleBar()
 	{
-		m_TitleBar = std::make_shared<UI::TitleBar>("VeiM Engine");
+		m_TitleBar = MakeShared<UI::TitleBar>("VeiM Engine");
 		m_TitleBar->SetMenubarCallback([this]()
 			{
 				UI::ShiftCursorY(2);
@@ -229,7 +269,9 @@ namespace VeiM
 				{
 					ImGui::PopStyleVar();
 					ImGui::Spacing();
+					ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
 					ImGui::SeparatorText("Level");
+					ImGui::PopStyleColor();
 					ImGui::Spacing();
 
 					ImGui::Indent(10.f);
@@ -244,7 +286,9 @@ namespace VeiM
 					ImGui::Unindent(10.f);
 
 					ImGui::Spacing();
+					ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
 					ImGui::SeparatorText("Project");
+					ImGui::PopStyleColor();
 					ImGui::Spacing();
 
 					ImGui::Indent(10.f);
@@ -255,11 +299,13 @@ namespace VeiM
 					ImGui::Unindent(10.f);
 
 					ImGui::Spacing();
+					ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
 					ImGui::SeparatorText("Exit");
+					ImGui::PopStyleColor();
 					ImGui::Spacing();
 					if (ImGui::MenuItem("Exit", NULL, false))
 					{
-						Application::Get().Close();
+						Close();
 					}
 					ImGui::EndMenu();
 
@@ -300,12 +346,36 @@ namespace VeiM
 				{
 					ImGui::PopStyleVar();
 					ImGui::Spacing();
-					ImGui::Separator();
+					ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+					ImGui::SeparatorText("GUI");
+					ImGui::PopStyleColor();
 					ImGui::Spacing();
+					ImGui::Indent(10.f);
 					ImGuiWindowMenu();
-					ImGui::MenuItem("Theme Editor", "", &m_ThemeEditor);
+					ImGui::MenuItem("Theme Editor", "", &m_bOpenThemeEditor);
+					ImGui::Unindent(10.f);
+
 					ImGui::Spacing();
-					ImGui::Separator();
+					ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+					ImGui::SeparatorText("Level Editor");
+					ImGui::PopStyleColor();
+					ImGui::Spacing();
+
+					ImGui::Indent(10.f);
+					m_LevelEditor->OnWindowMenu();
+					ImGui::Unindent(10.f);
+
+					ImGui::Spacing();
+					ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+					ImGui::SeparatorText("Debug");
+					ImGui::PopStyleColor();
+					ImGui::Spacing();
+
+					ImGui::Indent(10.f);
+					ImGui::MenuItem("GC Info", "", &m_bOpenGCInfo);
+					ImGui::MenuItem("Class Registry", "", &m_bOpenClassRegistry);
+					ImGui::Unindent(10.f);
+
 					ImGui::EndMenu();
 
 				}
@@ -336,11 +406,20 @@ namespace VeiM
 	}
 
 
-	void EditorLayer::TestClassMetadataDisplay()
+	void EditorLayer::Close()
 	{
-		std::unordered_map<StringID, ClassDescriptor*> classes = ClassRegistry::GetAllClasses();
+		g_Editor->CloseEditor();
+	}
 
-		ImGui::Begin("Registered Classes");
+
+	void EditorLayer::RenderClassRegistry()
+	{
+		if (!m_bOpenClassRegistry)
+			return;
+		static std::unordered_map<StringID, ClassDescriptor*> classes = ClassRegistry::GetAllClasses();
+
+		ImGui::Begin("Class Registry");
+		UpdateStatus();
 		ImGui::Text("Registered count: %d", classes.size());
 
 		for (const auto& [className, classDescriptor] : classes)
@@ -362,7 +441,6 @@ namespace VeiM
 							ImGui::TreePop();
 						}
 					}
-
 					ImGui::TreePop();
 				}
 				if (ImGui::TreeNode("Methods"))
@@ -373,7 +451,61 @@ namespace VeiM
 				ImGui::TreePop();
 			}
 		}
+		ImGui::End();
+	}
 
+	void EditorLayer::RenderGCInfo()
+	{
+		if (!m_bOpenGCInfo)
+			return;
+
+		ImGui::Begin("GC Stats", &m_bOpenGCInfo);
+		float availWidthWindow = ImGui::GetContentRegionAvail().x;
+		uint32 statCount = 0;
+		statCount = GarbageCollector::Get().GetObjectsCount();
+		ImGui::Text("Objects Alive:"); ImGui::SameLine(availWidthWindow - ImGui::CalcTextSize(std::to_string(statCount).data()).x); ImGui::Text("%d", statCount);
+		statCount = GarbageCollector::Get().GetRootObjectsCount();
+		ImGui::Text("As Roots:"); ImGui::SameLine(availWidthWindow - ImGui::CalcTextSize(std::to_string(statCount).data()).x); ImGui::Text("%d", statCount);
+		statCount = GarbageCollector::Get().GetStrongPtrRegisteredCount();
+		ImGui::Text("StrongPtr:"); ImGui::SameLine(availWidthWindow - ImGui::CalcTextSize(std::to_string(statCount).data()).x); ImGui::Text("%d", statCount);
+		statCount = GarbageCollector::Get().GetWeakPtrRegisteredCount();
+		ImGui::Text("WeakPtr:"); ImGui::SameLine(availWidthWindow - ImGui::CalcTextSize(std::to_string(statCount).data()).x); ImGui::Text("%d", statCount);
+		statCount = GarbageCollector::Get().GetLastCollectedCount();
+		ImGui::Text("Collected Last Collection (non 0):"); ImGui::SameLine(availWidthWindow - ImGui::CalcTextSize(std::to_string(statCount).data()).x); ImGui::Text("%d", statCount);
+		ImGui::Text(" Name");
+
+		ImGui::SameLine(availWidthWindow - ImGui::CalcTextSize("Type").x);
+		ImGui::Text("%s", "Type");
+
+		if (ImGui::Button("Collect"))
+		{
+			GarbageCollector::Get().CollectGarbage(true);
+		}
+
+		if (ImGui::BeginListBox("##GCObjectsList", ImVec2(-FLT_MIN, -FLT_MIN)))
+		{
+			std::unordered_set<Object*>& gcObjects = GarbageCollector::Get().Debug_GetAllObjects();
+			float availWidth = ImGui::GetContentRegionAvail().x;
+			for (Object* gcObject : gcObjects)
+			{
+				const char* typeName = gcObject->GetClass()->Name.Get();
+				float typeNameLength = ImGui::CalcTextSize(typeName).x;
+				ImGui::TextUnformatted(gcObject->GetName().data());
+
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::BeginTooltip();
+					ImGui::Text("Creator: %s", gcObject->GetCreator() ? gcObject->GetCreator()->GetName().data() : "null");
+					ImGui::EndTooltip();
+				}
+
+				ImGui::SameLine(availWidth - typeNameLength);
+				ImGui::TextDisabled("%s", typeName);
+
+
+			}
+			ImGui::EndListBox();
+		}
 		ImGui::End();
 	}
 

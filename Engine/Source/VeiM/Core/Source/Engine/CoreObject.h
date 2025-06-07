@@ -37,7 +37,8 @@ namespace VeiM
 			FLAG_GARBAGE = 1 << 3,
 			FLAG_TRANSIENT = 1 << 4,
 			FLAG_ASSET = 1 << 5,
-			FLAG_PROTOTYPE = 1 << 6
+			FLAG_PROTOTYPE = 1 << 6,
+			FLAG_ALL = FLAG_None | FLAG_PENDING_KILL | FLAG_ROOT | FLAG_INITIALIZING | FLAG_GARBAGE | FLAG_TRANSIENT | FLAG_ASSET | FLAG_PROTOTYPE
 		};
 
 	public:
@@ -67,6 +68,7 @@ namespace VeiM
 		Object* GetCreator() const { return m_Creator.Get(); }
 		void SetCreator(Object* newCreator);
 		String GetName() const { return m_Name.ToString(); }
+		StringID GetNameID() const { return m_Name; }
 
 		Object* GetCreatorAs(ClassDescriptor* targetClass) const;
 		template <typename T>
@@ -102,6 +104,7 @@ namespace VeiM
 		/* Object Flag management */
 		void SetFlags(uint32 flags) { m_Flags = flags; }
 		void SetFlag(Flags flag) { m_Flags |= flag; }
+		Flags GetFlags() { return (Flags)m_Flags; }
 		void ClearFlag(Flags flag) { m_Flags &= ~flag; }
 		bool HasFlag(Flags flag) const { return (m_Flags & flag) != 0; }
 
@@ -113,6 +116,10 @@ namespace VeiM
 		bool IsPendingKill() const { return HasFlag(FLAG_PENDING_KILL); }
 		void MarkPendingKill();
 
+		Object* DuplicateObject(Object* sourceObj, Object* objCreator, StringID objName, ClassDescriptor* objClass);
+		void ResolveObjectReferences(Object* sourceRoot, Object* destRoot){}
+		virtual void Duplicate(Object* sourceObj, Object* destintationObj) {}
+
 		virtual void StartDestroy() {}
 		virtual void FinishDestroy(){}
 
@@ -122,11 +129,13 @@ namespace VeiM
 #endif
 
 		// Add Writing to config
+		void CopyProperties(Object* sourceObj, Object* destObj);
 	protected:
 		virtual void OnMarkPendingKill() { /* Override in derived */ }
 
 	private:
 		Object* CreateComponent_Internal(Object* owner, StringID name, ClassDescriptor* instanceType);
+
 
 	private:
 	public: // Public for debug
@@ -141,6 +150,7 @@ namespace VeiM
 		template <typename T> friend class SoftObjectPtr;
 		friend class GarbageCollector;
 		friend class AssetManager;
+		friend class Component;
 	};
 
 

@@ -1,7 +1,9 @@
 #include "GarbageCollector.h"
 #include "Engine/CoreObject.h"
+#include "Engine/ObjectCreatorSystem.h"
 #include "Engine/WeakObjectPtr.h"
 #include "Engine/Reflection.h"
+#include "Engine/Engine.h"
 
 namespace VeiM
 {
@@ -56,7 +58,7 @@ namespace VeiM
 	{
 		if (!s_Instance) 
 		{
-			VM_CORE_INFO("[GC] Garbage Collector Created");
+			VM_CORE_TRACE("[GC] Garbage Collector Created");
 			s_Instance = new GarbageCollector();
 			s_Instance->m_LastCollectionTime = std::chrono::steady_clock::now();
 		}
@@ -76,6 +78,7 @@ namespace VeiM
 		FinalizeCollection();
 
 		m_LastCollectionTime = std::chrono::steady_clock::now();
+		g_Engine->NotifyGCRunThisFrame();
 	}
 
 	void GarbageCollector::MarkPhase()
@@ -119,10 +122,20 @@ namespace VeiM
 		return PointerRegistry::s_WeakPtrLocations.size();
 	}
 
+	std::unordered_set<Object*>& GarbageCollector::Debug_GetAllObjects()
+	{
+		return m_Objects;
+	}
+
 	void GarbageCollector::SweepPhase()
 	{
 		for (auto* obj : m_Objects) {
-			if (!obj->m_bIsMarkedForGC && !obj->IsPendingKill() && !obj->IsRoot() && !obj->HasFlag(Object::FLAG_INITIALIZING)) {
+			if (obj->IsPendingKill())
+			{
+				m_PendingKillObjects.push_back(obj);
+			}
+			else if (!obj->m_bIsMarkedForGC && !obj->IsPendingKill() && !obj->IsRoot() && !obj->HasFlag(Object::FLAG_INITIALIZING)) 
+			{
 
 				obj->MarkPendingKill();
 				obj->StartDestroy();
@@ -130,11 +143,14 @@ namespace VeiM
 
 				// Invalidate any weak pointers to this object
 				auto weakIt = PointerRegistry::s_WeakPtrLocations.find(obj);
-				if (weakIt != PointerRegistry::s_WeakPtrLocations.end()) {
-					for (void* ptrLoc : weakIt->second) {
+				if (weakIt != PointerRegistry::s_WeakPtrLocations.end()) 
+				{
+					for (void* ptrLoc : weakIt->second) 
+					{
 						// Call Invalidate() on each weak pointer
 						auto** ptrToWeakPtr = static_cast<void**>(ptrLoc);
-						if (*ptrToWeakPtr) {
+						if (*ptrToWeakPtr) 
+						{
 							// This is a bit hacky - need to use a type-safe approach,
 							reinterpret_cast<WeakObjectPtr<Object>*>(*ptrToWeakPtr)->Invalidate();
 						}
@@ -143,11 +159,14 @@ namespace VeiM
 
 				// Invalidate any strong pointers to this object
 				auto stronIt = PointerRegistry::s_StrongPtrLocations.find(obj);
-				if (stronIt != PointerRegistry::s_StrongPtrLocations.end()) {
-					for (void* ptrLoc : stronIt->second) {
+				if (stronIt != PointerRegistry::s_StrongPtrLocations.end()) 
+				{
+					for (void* ptrLoc : stronIt->second) 
+					{
 						// Call Invalidate() on each weak pointer
 						auto** ptrToStrongPtr = static_cast<void**>(ptrLoc);
-						if (*ptrToStrongPtr) {
+						if (*ptrToStrongPtr) 
+						{
 							// This is a bit hacky - need to use a type-safe approach,
 							reinterpret_cast<ObjectPtr<Object>*>(ptrToStrongPtr)->Invalidate();
 						}
@@ -160,7 +179,8 @@ namespace VeiM
 	void GarbageCollector::PrepareCollection()
 	{
 		// Reset marking state
-		for (auto* obj : m_Objects) {
+		for (auto* obj : m_Objects) 
+		{
 			obj->m_bIsMarkedForGC = false;
 		}
 	}
@@ -183,6 +203,7 @@ namespace VeiM
 			obj->ClearFlag(Object::FLAG_PENDING_KILL);
 			obj->SetFlag(Object::FLAG_GARBAGE);
 			obj->FinishDestroy();
+			obj->GetCreatorSystem().RemoveObject(obj, obj->GetCreator());
 			delete obj; // This will call UnregisterObject through Object destructor
 			processedCount++;
 		}

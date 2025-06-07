@@ -109,6 +109,7 @@ project "VeimEditor"
 
 	-- Debug Configuration
 	filter "configurations:Debug"
+		defines "VM_DEBUG"
 		kind "None"
 		runtime "Debug"
 		symbols "on"
@@ -116,6 +117,7 @@ project "VeimEditor"
 	
 	-- Debug Editor Configuration
 	filter "configurations:Debug_Editor"
+		defines "VM_DEBUG"
 		defines 		{"VM_WITH_EDITOR"}
 		runtime 		"Debug"
 		symbols 		"on"
@@ -123,6 +125,7 @@ project "VeimEditor"
 
 	-- Development Configuration
 	filter "configurations:Development"
+		defines "VM_DEVELOPMENT"
 		kind 			"None"
 		runtime 		"Release"
 		optimize 		"on"
@@ -130,6 +133,7 @@ project "VeimEditor"
 
 	-- Development Editor Configuration
 	filter "configurations:Development_Editor"
+		defines "VM_DEVELOPMENT"
 		defines 		{"VM_WITH_EDITOR"}
 		runtime 		"Release"
 		optimize 		"on"
@@ -137,6 +141,7 @@ project "VeimEditor"
 
 	-- Shipping Configuration
 	filter "configurations:Shipping"
+		defines "VM_SHIPPING"
 		kind 			"None"
 		runtime 		"Release"
 		optimize 		"on"

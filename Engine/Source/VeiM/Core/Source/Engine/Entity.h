@@ -5,21 +5,24 @@
 
 #include "Engine/Reflection.h"
 #include "Engine/CoreObject.h"
+#include "Engine/CoreObjectStatics.h"
 #include "Engine/Component.h"
 #include "Engine/SceneComponent.h"
-#include "Engine/InputComponent.h"
 #include "Engine/EngineTypes.h"
-
+#include "Types/Delegate.h"
 
 #include <glm/glm.hpp>
 
 // Entity.h
 namespace VeiM
 {
+	DECLARE_EVENT_1p(EntityEndPlayDelegate, Entity*);
+
 
 	class World;
 	class WorldSettings;
 	class GlobalGameState; // GameInstance
+	class InputComponent;
 
 
 	class CORE_API Entity : public Object
@@ -37,38 +40,63 @@ namespace VeiM
 
 		String GetLabel() const;
 
-		// TODO: Implement next block
-#if 0
 		/* Input */
-		virtual void EnableInput(class PlayerController* playerController);
-		virtual void DisableInput(class PlayerController* playerController);
-		virtual void CreateInputComponent(ClassDescriptor* inputComponentClass); //Not type safe. Here InputComponent
+		virtual void EnableInput(class Controller* playerController);
+		virtual void DisableInput(class Controller* playerController);
+		virtual void CreateInputComponent(ClassDescriptor* inputComponentClass);
 		/* ----- */
 
 		/* General */
-		const Transform& GetTransform() const { return RootComponent ? RootComponent->GetTransform() : Transform::Identity; }
+		FORCEINLINE const Transform& GetTransform() const { return RootComponent ? RootComponent->GetTransform() : Transform::Identity; }
 		void SetTransform(const Transform& newTransform);
-#endif
 		const glm::vec3 GetForwardVector() const;
 		const glm::vec3 GetUpVector() const;
 		const glm::vec3 GetRightVector() const;
-#if 0
+		SceneComponent* GetDefaultAttachComponent() { return RootComponent.Get(); }
 
-		virtual void GetBounds() const; // Not implemented yet, ignore
-		void SetLocation(const glm::vec3& newLocation);
-		void SetRotation(const glm::quat& newRotation);
-		void SetScale(const glm::vec3 newScale);
+		bool SetLocation(const glm::vec3& newLocation);
+		bool SetRotation(const glm::vec3& newRotation);
+		bool SetRotation(const glm::quat& newRotation);
+		bool SetScale(const glm::vec3 newScale);
+		bool SetLocationAndRotation(const glm::vec3& newLocation, const glm::vec3& newRotation);
+		bool SetLocationAndRotation(const glm::vec3& newLocation, const glm::quat& newRotation);
+
+		void AddWorldLocation(const glm::vec3& deltaLocation);
+		void AddWorldRotation(const glm::vec3& deltaRotation);
+		void AddWorldRotation(const glm::quat& deltaRotation);
+		void AddWorldTransform(const Transform& deltaTransform);
+		void AddWorldTransformKeepScale(const Transform& deltaTransform);
+
+		void AddLocalLocation(const glm::vec3& deltaLocation);
+		void AddLocalRotation(const glm::vec3& deltaRotation);
+		void AddLocalRotation(const glm::quat& deltaRotation);
+		void AddLocalTransform(const Transform& deltaTransform);
+
+		void SetRelativeLocation(const glm::vec3& newLocation);
+		void SetRelativeRotation(const glm::vec3& newRotation);
+		void SetRelativeRotation(const glm::quat& newRotation);
+		void SetRelativeScale(const glm::vec3& newScale);
+		void SetRelativeTransform(const Transform& newTransform);
+
+		glm::vec3 GetScale() const;
+		glm::vec3 GetLocation() const;
+		
+		glm::vec3 GetRelativeScale() const;
+
+		float GetDistanceTo(const Entity* otherEntity) const;
+		float GetSquaredDistanceTo(const Entity* otherEntity) const;
+		float GetDotProductTo(const Entity* otherEntity) const;
 		/* ------- */
-#endif	
 
+		bool IsHidden() const;
 		virtual void SetHiddenInGame(bool bHidden);
-		// void SetEnableCollistion(bool bEnabled); + getter
+		
 
-		Component* AddComponent(ClassDescriptor* componentClass); // Not type safe
-		bool AttachToComponent(SceneComponent* parent); //TODO: Add rules for attachment
-		bool AttachToEntity(Entity* parent);
-		void DetachFromEntity();
-		void DetachAllSceneComponents(SceneComponent* parent);
+		Component* AddComponent(ClassDescriptor* componentClass,bool bManualAttach, const Transform& relativeTransform, StringID name = StringID(EStringID::None)); // Not type safe
+		bool AttachToComponent(SceneComponent* parent, const AttachmentTransformRules& rules);
+		bool AttachToEntity(Entity* parent, const AttachmentTransformRules& rules);
+		void DetachFromEntity(const AttachmentTransformRules& rules);
+		void DetachAllSceneComponents(SceneComponent* parent, const AttachmentTransformRules& rules);
 		void GetAttachedEntities(std::vector<Entity*>& outEntities);
 
 		SceneComponent* GetRootComponent() const { return RootComponent.Get(); }
@@ -99,7 +127,7 @@ namespace VeiM
 		void RegisterAllComponents();
 		void UnregisterAllComponents();
 		void ProcessComponentRegistration(Component* component);
-		void OnSpawnInitialize();
+		void OnSpawnInitialize(const Transform& transform, bool bOverrideRootScale);
 		void PostConstruction();
 
 		virtual void RegisterTickFunction(bool bRegister);
@@ -112,7 +140,6 @@ namespace VeiM
 		Entity* GetOwner() const;
 		template<typename T>
 		T* GetOwner() const { return CastObject<T>(GetOwner()); }
-
 		Level* GetLevel() const;
 		WorldSettings* GetWorldSettings() const;
 		virtual World* GetWorld() const override final;
@@ -120,12 +147,11 @@ namespace VeiM
 		template<typename T>
 		T* GetGlobalGameState() const { return CastObject<T>(GetGlobalGameState()); }
 		// Add TimerManager getter - not yet
-
 		virtual Component* GetComponentByClass(ClassDescriptor* componentClass) const; // Not type safe
 		template<typename T>
 		T* GetComponentByClass() const { return CastObject<T>(GetComponentByClass(T::StaticClass())); }
+		virtual Component* GetComponentByName(StringID name) const;
 		// TODO: Add Getter by Tag
-
 		const std::unordered_set<ObjectPtr<Component>>& GetComponents() const { return m_OwnedComponents; }
 		void GetComponents(std::vector<Component*>& outComponents) const;
 		template <typename T>
@@ -133,12 +159,13 @@ namespace VeiM
 		const std::vector<ObjectPtr<Component>> GetRuntimeComponents() const { return m_RuntimeComponents; }
 
 
-		void MarkComponentsRenderStateDirty();
+		void UpdateComponentsVisibility();
 		//void UpdateComponentsTransforms() ? - Yes, to update positions and stuff for render and physics
 		void MarkComponentsAsPendingKill();
 		inline bool IsDying() const { return m_bDying; }
 		void SetDying(bool bDying) { m_bDying = bDying; }
 
+		virtual void PreInitializeComponents();
 		void InitializeComponents();
 		void UninitializeComponents();
 
@@ -156,7 +183,9 @@ namespace VeiM
 		virtual void EndPlay();
 
 	public:
+		EntityEndPlayDelegate OnEndPlay;
 		virtual void MarkReferencedObjects(GarbageCollector& gc) override;
+		virtual void Duplicate(Object* sourceObj, Object* destintationObj) override;
 	private:
 		std::unordered_set<ObjectPtr<Component>> m_OwnedComponents;
 		std::vector<ObjectPtr<Component>> m_RuntimeComponents;   // TODO: Remove if not needed
@@ -169,11 +198,13 @@ namespace VeiM
 	public:
 		EntityTickFunction DefaultEntityTick;
 		float TimeScale; // Multiplied by global scale in world settings
+		int32 ControllerIndex;
 		int32 InputPriority;
 		std::vector<StringID> Tags;
 
 		/* Add Delegates*/
 
+		uint8 bBlockInput : 1;
 	private:
 		uint8 m_bHidden : 1; // Hide in runtime
 		uint8 m_bInitialized : 1;
@@ -186,13 +217,14 @@ namespace VeiM
 
 #ifdef VM_WITH_EDITOR
 	public:
+		virtual bool IsHiddenInEditor() const;
+
 		void SetLabel(const String& newLabel);
 		Guid GetGuid() const { return m_Guid; }
 		void SetGuid(Guid guid) { m_Guid = guid; }
 		uint8 bHiddenInEditor : 1;
 	protected:
 		Guid m_Guid;
-
 	private:
 		String m_Label;
 #endif

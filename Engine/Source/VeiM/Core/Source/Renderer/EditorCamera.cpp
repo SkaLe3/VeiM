@@ -55,10 +55,11 @@ namespace VeiM
 
 	void EditorCamera::InputMouse(const glm::vec2& delta)
 	{
+		VM_CORE_TRACE("Camera Input: [{} , {}]", delta.x, delta.y);
 		glm::vec2 movement = delta * m_MouseSensitivity;
 		m_Yaw += movement.x;
 		m_Pitch += movement.y;
-
+		VM_CORE_TRACE("Yaw: {} | Pitch: {}", m_Yaw, m_Pitch);
 		if (m_Pitch > 90.0f)  m_Pitch = 90.0f;
 		if (m_Pitch < -90.0f) m_Pitch = -90.0f;
 	}
@@ -66,7 +67,7 @@ namespace VeiM
 
 	void EditorCamera::InputScroll(const glm::vec2& delta)
 	{
-		m_MovementSpeed = glm::clamp(m_MovementSpeed + delta.y * 1.0f, 1.0f, 25.0f);
+		m_MovementSpeed = glm::clamp(m_MovementSpeed + delta.y * 120.0f, 1.0f, 25.0f);
 	}
 
 	void EditorCamera::InputPan(const glm::vec2& delta)

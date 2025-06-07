@@ -8,7 +8,7 @@ namespace VeiM
 	class Time
 	{
 	public:
-		static float GetTime();
+		static double GetTime();
 	};
 
 

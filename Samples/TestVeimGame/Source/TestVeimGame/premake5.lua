@@ -139,6 +139,7 @@ project "TestVeimGame"
 		symbols  "on"
 		defines  "VM_DEBUG"
 		defines { "GAME_PRIMARY_EXPORTS" }
+		defines {"VM_WITH_EDITOR"}
 		targetsuffix "-%{cfg.platform}-Debug"
 		debugcommand (engine_root_dir .. "/Engine/Binaries/Win64/Debug_Editor/VeimEditor-Win64-Debug.exe")
 		debugargs { "%{wks.location}/TestVeimGame.vmproject" }
@@ -159,6 +160,7 @@ project "TestVeimGame"
         symbols  "on"
 		defines  "VM_DEVELOPMENT"
 		defines { "GAME_PRIMARY_EXPORTS" }
+		defines {"VM_WITH_EDITOR"}
 		debugcommand (engine_root_dir .. "/Engine/Binaries/Win64/Development_Editor/VeimEditor.exe")
 		debugargs { "%{wks.location}/TestVeimGame.vmproject" }
 

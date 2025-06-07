@@ -11,7 +11,6 @@ namespace VeiM
 	{
 		SetFlag(FLAG_INITIALIZING);
 		GarbageCollector::Get().RegisterObject(this);
-		ClearFlag(FLAG_INITIALIZING);
 	}
 
 
@@ -30,7 +29,8 @@ namespace VeiM
 		Entity* ownerEntity = CastObject<Entity>(this);
 		if (ownerEntity)
 		{
-			ownerEntity->AddOwnedComponent(CastObject<Component>(createdComponent));
+			Component* component = CastObject<Component>(createdComponent);
+			ownerEntity->AddOwnedComponent(component);
 		}
 
 		return createdComponent;
@@ -145,7 +145,7 @@ namespace VeiM
 			GarbageCollector::Get().RemoveRoot(this);
 		}
 	}
-
+		
 	void Object::MarkPendingKill()
 	{
 		if (!IsPendingKill())
@@ -156,9 +156,69 @@ namespace VeiM
 		}
 	}
 
+	Object* Object::DuplicateObject(Object* sourceObj, Object* objCreator, StringID objName, ClassDescriptor* objClass)
+	{
+		if (!sourceObj || !objClass)
+		{
+			VM_CORE_ERROR("[Object] Failed to duplicate object: Invalid source or class");
+			return nullptr;
+		}
+		if (GetClass() != objClass)
+		{
+			VM_CORE_ERROR("[Object] DuplicateObject type mismatch: Caller '{0}' - source Object '{1}'", GetClass()->Name.ToString(), objClass->Name.ToString());
+			return nullptr;
+		}
+
+
+		Object* duplicateObj;
+		duplicateObj = ClassRegistry::FindClass(objClass->Name)->ConstructorFunc();
+		duplicateObj->SetCreator(objCreator);
+		duplicateObj->m_Name = objName;
+		duplicateObj->SetFlags((Object::Flags)sourceObj->GetFlags() & (Object::Flags::FLAG_ALL & ~Object::Flags::FLAG_ROOT));
+
+		VM_CORE_TRACE("[Object] Duplicated Object of class: '{0}'. Creator class: '{1}'", objClass->Name.Get(), (objCreator != nullptr ? objCreator->GetClass()->Name.Get() : "nullptr"));
+
+		CopyProperties(sourceObj, duplicateObj);
+		duplicateObj->MarkAsRoot();
+		Duplicate(sourceObj, duplicateObj);
+		duplicateObj->UnmarkAsRoot();
+		return duplicateObj;
+	}
+
 	Object* Object::CreateComponent_Internal(Object* owner, StringID name, ClassDescriptor* instanceType)
 	{
 		return nullptr;
+	}
+
+	void Object::CopyProperties(Object* sourceObj, Object* destObj)
+	{
+		if (!sourceObj || !destObj || sourceObj->GetClass() != destObj->GetClass())
+		{
+			VM_CORE_WARN("[Object] Cannot copy properties: Invalid objects or mismatched classes");
+			return;
+		}
+		const auto* classDesc = sourceObj->GetClass();
+		while (classDesc)
+		{
+			for (auto& [propName, prop] : classDesc->Properties)
+			{
+				if (prop.Type == EStringID::ObjectProperty || prop.Type == EStringID::SoftObjectProperty)
+				{
+					// These will be handled in a post-duplication phase
+					continue;
+				}
+				else if (!prop.IsContainerType())
+				{
+					prop.CopyValue(sourceObj, destObj);
+				}
+				else
+				{
+					// TODO: Add containers
+				}
+				
+			}
+			classDesc = classDesc->ParentClass;
+		}
 	}
 
 #if 0

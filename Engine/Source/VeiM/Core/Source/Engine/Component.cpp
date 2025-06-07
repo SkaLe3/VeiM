@@ -8,7 +8,7 @@ namespace VeiM
 {
 	IMPLEMENT_CLASS(Component)
 
-	Component::Component()
+		Component::Component()
 		:m_bRegistered(false),
 		m_bRenderStateCreated(false),
 		m_bPhysicsStateCreated(false),
@@ -21,7 +21,8 @@ namespace VeiM
 		m_bDying(false),
 		m_bTicksRegistered(false),
 		m_OwnerCached(nullptr),
-		m_WorldCached(nullptr)
+		m_WorldCached(nullptr),
+		bCreatedNatively(true)
 	{
 		m_Creator = GetCreatorAs<Entity>();
 
@@ -152,8 +153,8 @@ namespace VeiM
 		m_WorldCached = nullptr;
 	}
 
-	void Component::Destroy()
-	{
+	void Component::Destroy(bool bPropagate)
+{
 		if (m_bDying)
 		{
 			return;
@@ -180,7 +181,7 @@ namespace VeiM
 				owner->SetRootComponent(nullptr);
 			}
 		}
-		OnDetroyed(false);
+		OnDestroyed(false);
 		MarkPendingKill();
 	}
 
@@ -189,7 +190,7 @@ namespace VeiM
 		m_bCreated = true;
 	}
 
-	void Component::OnDetroyed(bool detroyInChain)
+	void Component::OnDestroyed(bool detroyInChain)
 	{
 		m_bCreated = false;
 	}
@@ -200,10 +201,21 @@ namespace VeiM
 		return (owner ? owner->GetLevel() : GetCreatorAs<Level>());
 	}
 
+	void Component::SetOwner(Entity* owner)
+	{
+		m_OwnerCached = owner;
+	}
+
 	Entity* Component::GetOwner() const
 	{
-		return m_OwnerCached;
-		//return GetCreatorAs<Entity>();
+		if (m_OwnerCached)
+		{
+ 			return m_OwnerCached;
+		}
+		else
+		{
+			return GetCreatorAs<Entity>();
+		}
 	}
 
 	bool Component::HasTag(StringID tag) const
@@ -234,7 +246,7 @@ namespace VeiM
 		Unregister();
 		if (m_bCreated)
 		{
-			OnDetroyed(true);
+			OnDestroyed(true);
 		}
 		m_WorldCached = nullptr;
 
@@ -248,6 +260,8 @@ namespace VeiM
 	void Component::OnRegister()
 	{
 		m_bRegistered = true;
+
+		UpdateWorldTransform();
 
 		Entity* owner = GetOwner();
 		if (!m_WorldCached->IsGameWorld() || m_OwnerCached == nullptr || m_OwnerCached->IsInitialized())// Don't activate for editor world;
@@ -333,7 +347,6 @@ namespace VeiM
 		if (!m_bRegistered)
 		{
 			OnRegister();
-			VM_CORE_ASSERT(m_bRegistered, "Register attempt when registered flag is true");// Add name printing
 		}
 		// Render State
 		// Physics State
@@ -346,7 +359,6 @@ namespace VeiM
 		if (m_bRegistered)
 		{
 			OnUnregister();
-			VM_CORE_ASSERT(m_bRegistered, "Unregister attempt when registered flag is false");// Add name printing
 		}
 	}
 

@@ -37,6 +37,7 @@ namespace VeiM
 					return "Engine ?";
 				}
 			}
+			return "???";
 		}
 	};
 
@@ -151,7 +152,7 @@ namespace VeiM
 	}
 
 
-	ProjectBrowserHandler::ProjectBrowserHandler()
+	ProjectBrowserHandler::ProjectBrowserHandler(Widget* parent) : Widget(parent)
 	{
 		m_CurrentSelectedProjectPath = "";
 		UI::Utils::SetCharArrayData(m_SearchQuery, 128, "");
@@ -159,7 +160,7 @@ namespace VeiM
 		OnUpdateProjects();
 	}
 
-	void ProjectBrowserHandler::OnGUI()
+	bool ProjectBrowserHandler::OnGUI()
 	{
 		int32 tilesInLine = 7;
 
@@ -192,6 +193,7 @@ namespace VeiM
 		}
 		ImGui::PopStyleVar();
 		ImGui::EndChild();
+		return true;
 	}
 
 	bool ProjectBrowserHandler::HasProjects() const

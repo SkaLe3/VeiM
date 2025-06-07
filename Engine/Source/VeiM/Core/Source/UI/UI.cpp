@@ -476,6 +476,36 @@ namespace VeiM::UI
 		return str;
 	}
 
+	glm::vec2 Utils::GetNormalizedNextWidgetPos()
+	{
+		// Get the current window's position (screen space)
+		ImVec2 window_screen_pos = ImGui::GetWindowPos();
+
+		// Get the cursor position (relative to the current window)
+		ImVec2 cursor_window_pos = ImGui::GetCursorPos();
+
+		// Convert to screen space
+		ImVec2 widget_screen_pos = ImVec2(
+			window_screen_pos.x + cursor_window_pos.x,
+			window_screen_pos.y + cursor_window_pos.y
+		);
+
+		// Get main viewport info
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImVec2 viewport_pos = viewport->Pos;
+		ImVec2 viewport_size = viewport->Size;
+
+		// Calculate normalized position (0..1)
+		float rel_x = (widget_screen_pos.x - viewport_pos.x) / viewport_size.x;
+		float rel_y = (widget_screen_pos.y - viewport_pos.y) / viewport_size.y;
+
+		// Clamp to [0, 1] range (in case window is outside main viewport)
+		rel_x = glm::clamp(rel_x, 0.0f, 1.0f);
+		rel_y = glm::clamp(rel_y, 0.0f, 1.0f);
+
+		return glm::vec2(rel_x, rel_y);
+	}
+
 	void CondEnableWidget(const std::function<void()>& action, bool isEnabled)
 	{
 		if (!isEnabled)

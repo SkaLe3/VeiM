@@ -13,6 +13,8 @@ namespace VeiM
 
 	public:
 		World* OwningWorld;
+
+		// View Info
 	private:
 	};
 }

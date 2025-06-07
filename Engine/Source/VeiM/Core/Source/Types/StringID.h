@@ -63,6 +63,13 @@ namespace VeiM
 
 		static bool s_CommonStringsRegistered;
 	};
+
+
+	struct StringIDComparator {
+		bool operator()(const StringID& a, const StringID& b) const {
+			return a.ToString() < b.ToString();
+		}
+	};
 }
 
 namespace std 

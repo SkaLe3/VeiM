@@ -13,6 +13,7 @@
 #include "Logging/Log.h"
 #include "Project/ModuleManager.h"
 #include "Types/StringID.h"
+#include "Misc/Globals.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>		 
@@ -21,12 +22,24 @@
 #include "Engine/ObjectPtr.h"
 #include "Engine/CoreObject.h"
 #include "Engine/World.h"
+#include "Engine/GameEngine.h"
+#include "Engine/CoreObjectStatics.h"
 
 #include "Renderer/Shader.h"
 #include "Renderer/CubeMesh.h"
 #include "Renderer/SphereMesh.h"
 #include "Renderer/Model.h"
 #include "Renderer/Renderer.h"
+
+#include "Input/Input.h"
+#include "Input/Events.h"
+#include "HAL/PlatformInput.h"
+#include "RenderInterface/RenderInterfaceBase.h"
+
+#ifdef VM_WITH_EDITOR
+#include "Editor/Editor.h"
+#include "Engine/Classes/Editor/EditorEngine.h"
+#endif
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -39,48 +52,21 @@
 // Temporary static functions
 namespace VeiM
 {
-	static void EditorSpawnEntity(StringID entityClass)
-	{
-		g_World->SpawnEntity(ClassRegistry::FindClass(entityClass));
-	}
+	CORE_API bool g_IsRunning = false;
 
-	void ShowStringIDComboBox(StringID& selectedStrID, std::unordered_map<StringID, ClassDescriptor*>& allClasses)
-	{
-		// Get the current selected item as a string (for ImGui display)
-		const char* currentItem = selectedStrID.Get();
-
-		if (ImGui::BeginCombo("##SpawnClass", currentItem))
-		{
-			bool isSelected = false;
-
-			// Add all items from the map
-			for (const auto& pair : allClasses)
-			{
-				if (!pair.second->IsChildOf(ClassRegistry::FindClass(StringID("Entity"))))
-					continue;
-				const StringID& stringId = pair.first;
-				isSelected = (stringId == selectedStrID);
-
-				if (ImGui::Selectable(stringId.Get(), isSelected))
-				{
-					selectedStrID = stringId;
-				}
-
-				if (isSelected)
-				{
-					ImGui::SetItemDefaultFocus();
-				}
-			}
-
-			ImGui::EndCombo();
-		}
-	}
 }
 
 
 namespace VeiM
 {
 	UniquePtr<EditorCamera> m_Camera;
+#ifdef VM_WITH_EDITOR
+	GLFWwindow* focusedWnd = nullptr;
+
+	bool s_EditorCameraEnabled = true;
+	double s_mx = 0;
+	double s_my = 0;
+
 
 	bool firstMouse = true;
 	float lastX = 0;
@@ -92,38 +78,42 @@ namespace VeiM
 	bool switched = false;
 	bool pan = false;
 
-	void process_input(GLFWwindow* window)
+	void process_input(bool bDownRight, bool bUpRight, bool bDownMiddle, bool bUpMiddle)
 	{
-		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS)
+		if (s_EditorCameraEnabled)
 		{
-			if (!cursorHidden)
-				switched = true;
-			cursorHidden = true;
+			switched = true;
+			if (bDownRight)
+			{
+				cursorHidden = true;
+			}
+			if (bUpRight)
+			{
+				cursorHidden = false;
+			}
+			if (bDownMiddle)
+			{
+				pan = true;
+			}
+			if (bUpMiddle)
+			{
+				pan = false;
+			}
 		}
-		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_RELEASE)
+		if (cursorHidden && switched)
 		{
-			if (cursorHidden)
-				switched = true;
-			cursorHidden = false;
+			glfwSetInputMode(focusedWnd, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		}
-		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_3) == GLFW_PRESS)
+		else if (switched)
 		{
-			pan = true;
+			glfwSetInputMode(focusedWnd, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		}
-		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_3) == GLFW_RELEASE)
-		{
-			pan = false;
-		}
-		if (switched)
-		{
-			if (cursorHidden)
-				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-			else
-				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-			switched = false;
-			firstMouse = true;
-		}
-
+		switched = false;
+		firstMouse = true;
+	}
+	void process_movement()
+	{
+		GLFWwindow* window = focusedWnd;
 		if (!cursorHidden)
 			return;
 		glm::vec3 direction = { 0.f, 0.f, 0.f };
@@ -146,39 +136,43 @@ namespace VeiM
 		m_Camera->InputKey(Application::Get().GetDeltaTime(), direction);
 	}
 
-	void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+	void mouse_callback(double xposIn, double yposIn)
 	{
-		float xpos = static_cast<float>(xposIn);
-		float ypos = static_cast<float>(yposIn);
+		static bool  justEnabled = true;
+		if (!s_EditorCameraEnabled && !switched)
+		{
+			cursorHidden = true;
+			if (justEnabled)
+			{
+				glfwSetInputMode(Application::Get().GetWindow().GetNativeWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+				ImGuiIO& io = ImGui::GetIO();
+				io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
+				s_mx = ImGui::GetMousePos().x;
+				s_mx = ImGui::GetMousePos().y;
+			}
+			justEnabled = false;
+		}
+
 
 		if (firstMouse)
 		{
-			lastX = xpos;
-			lastY = ypos;
+			xposIn = 0;
+			yposIn = 0;
 			firstMouse = false;
 		}
 
-		float xoffset = xpos - lastX;
-		float yoffset = ypos - lastY; // reversed since y-coordinates go from bottom to top
-		lastX = xpos;
-		lastY = ypos;
-
 		if (pan)
 		{
-			m_Camera->InputPan({ xoffset, yoffset });
+			m_Camera->InputPan({ xposIn, yposIn });
 		}
 		else
 			if (cursorHidden)
-				m_Camera->InputMouse({ xoffset, yoffset });
+				m_Camera->InputMouse({ xposIn, yposIn });
+
 	}
 
-	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-	{
-		m_Camera->InputScroll({ xoffset, yoffset });
-	}
-
+#endif
 }
-
 
 namespace VeiM
 {
@@ -188,32 +182,16 @@ namespace VeiM
 	{
 		VM_CORE_ASSERT(!s_Instance, "Application already exists!");
 		s_Instance = this;
-
 		PlatformService::SetCurrentWorkingDirectoryToBaseDir();
 
+		IKey::Initialize();
+		InitRenderer();
 
-		m_Window = std::make_unique<Window>(applicationSpecification.WndConfig);  // TODO: Make static function Create() or smth
-		m_Window->SetEventCallback([this](const std::string& inf) { Application::OnEvent(inf); });
-		// Temp
-		glfwSetCursorPosCallback(m_Window->GetNativeWindow(), mouse_callback);
-		glfwSetScrollCallback(m_Window->GetNativeWindow(), scroll_callback);
+		m_Window = MakeUnique<Window>(applicationSpecification.WndConfig);  // TODO: Make static function Create() or smth
+		m_Window->SetEventCallback([this](InputEventInternal* inputEvent) { Application::OnEvent(inputEvent); });
 
+		g_IsRunning = true;
 
-#ifdef VM_WITH_EDITOR
-
-		std::vector<String> cmdArgs = m_Config.CommandLineArgs;
-		if (!cmdArgs.empty())
-		{
-			Paths::SetProjectFilePath(cmdArgs[0]);
-			ModuleManager::Get().SetGameBianariesDir(Paths::ProjectDir() / "Binaries" / "Win64");
-			ModuleManager::Get().LoadModule(Paths::GetProjectFilePath().stem().wstring());
-			ModuleManager::Get().LoadModule(Paths::GetProjectFilePath().stem().wstring());
-		}
-
-		InitGUI();
-#endif
-		ClassRegistry::InitializeReflectionSystem();
-		Renderer::Get()->Startup();
 	}
 
 	Application::~Application()
@@ -231,23 +209,56 @@ namespace VeiM
 		return TEXT("Shipping");
 #endif
 	}
+
 #ifdef VM_WITH_EDITOR
 
+	bool Application::ParseProjectFilePath(String& outProjectFilePath, String& outGameName)
+	{
+		std::vector<String>& cmdArgs = m_Config.CommandLineArgs;
 
+		return std::any_of(cmdArgs.begin(), cmdArgs.end(), [&](const String& item)
+			{
+				std::filesystem::path path(item);
+				bool hasProjectFilePath = path.has_extension() && path.extension() == ".vmproject";
+				if (hasProjectFilePath)
+				{
+					outProjectFilePath = path.string();
+					outGameName = path.stem().string();
+				}
+				return hasProjectFilePath;
+			});
+	}
 
 	void Application::InitGUI()
 	{
 		m_GUIContext = new GUIContext();
+		m_GUIContext->SetGUICustomCallbacks(
+			[](void* wnd, int button, int action, int mods)
+			{if (wnd == Application::Get().GetWindow().GetNativeWindow())return; MouseButtonEventInternal* be = new MouseButtonEventInternal(); be->NativeWindow = (GLFWwindow*)wnd; be->Action = action, be->ButtonCode = button; Application::Get().OnEvent(be); },
+			[](void* wnd, double a, double b)
+			{if (wnd == Application::Get().GetWindow().GetNativeWindow())return; MouseScrollEventInternal* se = new MouseScrollEventInternal(); se->NativeWindow = (GLFWwindow*)wnd; se->XOffset = a; se->YOffset = b;  Application::Get().OnEvent(se); },
+			[](void* wnd, int key, int scancode, int action, int mods)
+			{if (wnd == Application::Get().GetWindow().GetNativeWindow())return; KeyEventInternal* ke = new KeyEventInternal(); ke->NativeWindow = (GLFWwindow*)wnd; ke->Action = action; ke->KeyCode = key; ke->ScanCode = scancode; Application::Get().OnEvent(ke); },
+			[](void* wnd, int a)
+			{},
+			[](void* wnd, double x, double y)
+			{if (wnd == Application::Get().GetWindow().GetNativeWindow())return; MouseMoveEventInternal* me = new MouseMoveEventInternal(); me->NativeWindow = (GLFWwindow*)wnd; me->XPos = x; me->YPos = y; Application::Get().OnEvent(me); },
+			[](void* wnd, int a)
+			{},
+			[](void* wnd, unsigned int c)
+			{if (wnd == Application::Get().GetWindow().GetNativeWindow())return; KeyTypeEventInternal* ce = new KeyTypeEventInternal();  ce->NativeWindow = (GLFWwindow*)wnd; ce->TypeKeyCode = c; Application::Get().OnEvent(ce); }
+		);
 		PushOverlay(m_GUIContext);
 	}
 
 	void Application::RenderGUI()
 	{
+
 		m_GUIContext->BeginFrame();
 		m_GUIContext->EnableDocking(*m_Window);
 		{
 			for (Layer* layer : m_LayerStack)
-				layer->OnGUI();
+				layer->OnUpdateGUI();
 		}
 
 		if (bHasGame)
@@ -398,99 +409,481 @@ namespace VeiM
 
 			ImGui::End();
 
-			ImGui::Begin("GC Stats");
-
-			ImGui::Text("Objects Alive:  %d", GarbageCollector::Get().GetObjectsCount());
-			ImGui::Text("As Roots:       %d", GarbageCollector::Get().GetRootObjectsCount());
-			ImGui::Text("Collected Last: %d", GarbageCollector::Get().GetLastCollectedCount());
-			ImGui::Text("StrongPtr cnt:  %d", GarbageCollector::Get().GetStrongPtrRegisteredCount());
-			ImGui::Text("WeakPtr cnt:    %d", GarbageCollector::Get().GetWeakPtrRegisteredCount());
-
-
-			std::unordered_map<StringID, ClassDescriptor*> allClasses = ClassRegistry::GetAllClasses();
-			static StringID selectedClass = StringID("Entity");
-			
-			ShowStringIDComboBox(selectedClass, allClasses);
-			ImGui::SameLine();
-			if (ImGui::Button("Spawn Entity"))
-			{
-				EditorSpawnEntity(selectedClass);
-			}
-
-			
-
-			ImGui::End();
-#if 0
-			if (gameObject.IsValid() && false)
-			{
-
-
-				ClassDescriptor* classDesc = gameObject->GetClass();
-				ImGui::Begin("Level Hierarchy");
-
-				ImGui::Text(classDesc->Name.ToString().data());
-				ImGui::End();
-
-				ImGui::Begin("Details");
-				ImGui::SeparatorText("Structure");
-				if (ImGui::TreeNode(classDesc->Name.ToString().data()))
-				{
-					for (const auto& [propName, propDescriptor] : classDesc->Properties)
-					{
-						if (propDescriptor.Type ==EStringID::ObjectProperty)
-						{
-							
-							Object* componentPtr = propDescriptor.GetAsObjectPtr(gameObject.Get()).Get();
-							ImGui::Text("%s (%s)", componentPtr->GetClass()->Name.ToString().data(), componentPtr->m_Name.ToString().data());
-						}
-					}
-
-					ImGui::TreePop();
-				}
-				ImGui::SeparatorText("Properties");
-				for (const auto& [propName, propDescriptor] : classDesc->Properties)
-				{
-					if (propDescriptor.Type ==EStringID::StringProperty)
-					{
-						String value = propDescriptor.GetValue<String>(gameObject.Get());
-						char nameBuffer[64];
-						size_t length = value.copy(nameBuffer, sizeof(nameBuffer) - 1);
-						nameBuffer[length] = '\0';
-						if (ImGui::InputText(propDescriptor.Name.ToString().data(), nameBuffer, 64))
-						{
-							propDescriptor.SetValue<String>(gameObject.Get(), String(nameBuffer));
-						}
-
-					}
-				}
-				ImGui::End();
-			}
-#endif
 		}
 
 		m_GUIContext->EndFrame();
 	}
 #endif
-	void Application::Shutdown()
+
+	void Application::Startup()
 	{
-		Renderer::Get()->Shutdown();
+#ifdef VM_WITH_EDITOR
+		g_IsEditor = true;
+		std::vector<String> cmdArgs = m_Config.CommandLineArgs;
+		if (!cmdArgs.empty())
+		{
+			Paths::SetProjectFilePath(cmdArgs[0]);
+			ModuleManager::Get().SetGameBianariesDir(Paths::ProjectDir() / "Binaries" / "Win64");
+			ModuleManager::Get().LoadModule(Paths::GetProjectFilePath().stem().wstring());
+			ModuleManager::Get().LoadModule(Paths::GetProjectFilePath().stem().wstring());
+		}
+
+		InitGUI();
+#endif
+		ClassRegistry::InitializeReflectionSystem();
+
+		if (!g_IsEditor)
+		{
+			g_Engine = NewObject<GameEngine>(nullptr, StringID("GameEngine"));
+
+			VM_CORE_INFO("[Engine] Created GameEngine");
+		}
+		else
+		{
+#ifdef VM_WITH_EDITOR
+			g_Engine = NewObject<Engine>(ClassRegistry::FindClass(StringID("EditorEngine")), nullptr, StringID("EditorEngine"));
+			// g_Editor is assigned in EditorEngine::Init()
+#endif
+		}
+		g_Engine->Init();
+		g_Engine->Start();
+
+		Renderer::Get()->Startup();
 	}
 
 
+	void Application::Shutdown()
+	{
+		ShutdownRenderer();
+		Renderer::Get()->Shutdown();
+
+		g_IsRunning = false;
+	}
+
+
+
+	VeiM::ModifierState Application::GetModifiers()
+	{
+		return *m_Modifiers;
+	}
+
+	const glm::vec2& Application::GetCursorPos()
+	{
+		return m_CursorPos;
+	}
+
+	const glm::vec2& Application::GetLastCursorPos()
+	{
+		return m_LastCursorPos;
+	}
+
+	void Application::ProcessInputEvents()
+	{
+		std::vector<InputEventInternal*> events(m_InputEvents);
+		m_InputEvents.clear();
+		for (int32 i = 0; i < events.size(); i++)
+		{
+			ProcessInputEvent(events[i]);
+			delete events[i];
+		}
+	}
+
+	void Application::ProcessInputEvent(InputEventInternal* inputEvent)
+	{
+		if (!m_Modifiers)
+		{
+			m_Modifiers = MakeUnique<ModifierState>();
+		}
+
+		if (!inputEvent || !inputEvent->NativeWindow)
+		{
+			return;
+		}
+#ifdef VM_WITH_EDITOR
+		focusedWnd = inputEvent->NativeWindow; // DELETE
+#endif
+		switch (inputEvent->EventType)
+		{
+		case EInputEventType::KeyInput:
+		{
+			KeyEventInternal* currentEvent = static_cast<KeyEventInternal*>(inputEvent);
+
+			bool bIsLockKey = false;
+			bool bLockActive = false;
+			if (currentEvent->KeyCode == (int32)EKeyCode::CapsLock || currentEvent->KeyCode == (int32)EKeyCode::NumLock)
+			{
+				bIsLockKey = true;
+				if (currentEvent->KeyCode == (int32)EKeyCode::CapsLock)
+				{
+					bLockActive = m_Modifiers->IsCapsLocked();
+				}
+				else if (currentEvent->KeyCode == (int32)EKeyCode::NumLock)
+				{
+					bLockActive = m_Modifiers->IsNumLocked();
+				}
+			}
+
+
+			switch (currentEvent->Action)
+			{
+			case GLFW_RELEASE:
+			{
+				const bool bKeyState = (bIsLockKey && bLockActive);  // Not lock key: false | Lock key: save current state
+				m_Modifiers->UpdateFromKeyEvent(currentEvent->KeyCode, bKeyState);
+				const bool result = OnKeyUp(currentEvent->KeyCode, currentEvent->ScanCode);
+			}
+			break;
+			case GLFW_PRESS:
+			{
+				const bool bKeyState = !bIsLockKey || (bIsLockKey && !bLockActive); // Not lock key: true | Lock key: opposite state 
+				m_Modifiers->UpdateFromKeyEvent(currentEvent->KeyCode, bKeyState);
+				const bool result = OnKeyDown(currentEvent->KeyCode, currentEvent->ScanCode, false);
+			}
+			break;
+			case GLFW_REPEAT:
+			{
+				const bool result = OnKeyDown(currentEvent->KeyCode, currentEvent->ScanCode, true);
+			}
+			break;
+			return;
+			}
+		}
+		break;
+		case EInputEventType::CharInput:
+		{
+			KeyTypeEventInternal* currentEvent = static_cast<KeyTypeEventInternal*>(inputEvent);
+			const bool result = OnKeyType(currentEvent->TypeKeyCode);
+			return;
+		}
+		break;
+		case EInputEventType::MouseButtonInput:
+		{
+			MouseButtonEventInternal* currentEvent = static_cast<MouseButtonEventInternal*>(inputEvent);
+			bool bMouseUp = currentEvent->Action == GLFW_RELEASE ? true : false;
+			bool bDoubleClick = false;
+			if (!bMouseUp)
+			{
+				static double lastClickTime = 0.0;
+				double currentTime = Time::GetTime();
+				constexpr double doubleClickThreshold = 0.25;
+				if (currentTime - lastClickTime <= doubleClickThreshold)
+				{
+					bDoubleClick = true;
+					lastClickTime = 0.0;
+				}
+				else
+				{
+					lastClickTime = currentTime;
+				}
+			}
+			double xpos, ypos;
+			glfwGetCursorPos(inputEvent->NativeWindow, &xpos, &ypos);
+			bool result;
+			if (bMouseUp)
+			{
+				result = OnMouseUp(currentEvent->ButtonCode, { xpos, ypos });
+			}
+			else if (bDoubleClick)
+			{
+				result = OnMouseDoubleClick(currentEvent->ButtonCode, { xpos, ypos });
+			}
+			else
+			{
+				result = OnMouseDown(currentEvent->ButtonCode, { xpos, ypos });
+			}
+		}
+		break;
+		case EInputEventType::MouseMoveInput:
+		{
+			MouseMoveEventInternal* currentEvent = static_cast<MouseMoveEventInternal*>(inputEvent);
+			// TODO: Add wrapping handling
+			m_CursorPos = { currentEvent->XPos, currentEvent->YPos };
+			const bool result = OnMouseMove(currentEvent->XPos, currentEvent->YPos);
+			m_LastCursorPos = m_CursorPos;
+		}
+		break;
+		case EInputEventType::MouseScrollInput:
+		{
+			MouseScrollEventInternal* currentEvent = static_cast<MouseScrollEventInternal*>(inputEvent);
+			const float spinFactor = 1 / 120.0f;
+			double xpos, ypos;
+			glfwGetCursorPos(inputEvent->NativeWindow, &xpos, &ypos);
+
+			const bool result = OnMouseWheel(currentEvent->YOffset * spinFactor, { xpos, ypos });
+		}
+		break;
+		case EInputEventType::WindowSizeInput:
+		{
+			WindowSizeEventInternal* currentEvent = static_cast<WindowSizeEventInternal*>(inputEvent);
+			const bool result = OnSizeChanged(currentEvent->Width, currentEvent->Height);
+		}
+		break;
+		case EInputEventType::WindowCloseInput:
+		{
+			WindowCloseEventInternal* currentEvent = static_cast<WindowCloseEventInternal*>(inputEvent);
+			const bool result = OnClose();
+		}
+		break;
+		case EInputEventType::WindowIconifyInput:
+		{
+			WindowIconifyEventInternal* currentEvent = static_cast<WindowIconifyEventInternal*>(inputEvent);
+			if (currentEvent->Iconified)
+			{
+				OnMinimized();
+			}
+			else
+			{
+				OnRestored();
+			}
+		}
+		break;
+		case EInputEventType::InvalidInput:
+		default:
+			break;
+		}
+
+	}
+
+	void Application::FinishInput()
+	{
+		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); it++)
+		{
+			(*it)->OnFinishInput();
+		}
+	}
+
+	bool Application::OnKeyType(const uint32 character)
+	{
+		InputKeyTypeEvent keyTypeEvent(GetModifiers(), character, false);
+		return HandleKeyTypeEvent(keyTypeEvent);
+	}
+
+	bool Application::OnKeyDown(const int32 keyCode, const int32 scanCode, const bool bRepeat)
+	{
+		const Key key = KeyInputManager::Get().GetKeyFromKeyCode(keyCode);
+		InputKeyEvent keyEvent(GetModifiers(), key, keyCode, scanCode, bRepeat);
+		return HandleKeyDownEvent(keyEvent);
+	}
+
+	bool Application::OnKeyUp(const int32 keyCode, const int32 scanCode)
+	{
+		const Key key = KeyInputManager::Get().GetKeyFromKeyCode(keyCode);
+		InputKeyEvent keyEvent(GetModifiers(), key, keyCode, scanCode, false);
+		return HandleKeyUpEvent(keyEvent);
+	}
+
+	bool Application::OnMouseUp(const int32 button, const glm::vec2& cursorPos)
+	{
+		Key Key = KeyInputManager::Get().GetKeyFromKeyCode(button);
+		InputMouseEvent mouseEvent(GetModifiers(), cursorPos, GetLastCursorPos(), m_PressedButtons, Key, 0);
+		return HandleMouseUpEvent(mouseEvent);
+	}
+
+	bool Application::OnMouseDown(const int32 button, const glm::vec2& cursorPos)
+	{
+		Key key = KeyInputManager::Get().GetKeyFromKeyCode(button);
+		InputMouseEvent mouseEvent(GetModifiers(), cursorPos, GetLastCursorPos(), m_PressedButtons, key, 0);
+		return HandleMouseDownEvent(mouseEvent);
+	}
+
+	bool Application::OnMouseDoubleClick(const int32 button, const glm::vec2& cursorPos)
+	{
+		Key key = KeyInputManager::Get().GetKeyFromKeyCode(button);
+		InputMouseEvent mouseEvent(GetModifiers(), cursorPos, GetLastCursorPos(), m_PressedButtons, key, 0);
+		return HandleMouseDoubleClickEvent(mouseEvent);
+	}
+
+	bool Application::OnMouseMove(const int32 x, const int32 y)
+	{
+		const glm::vec2 cursorPos = { x, y };
+		const glm::vec2 lastCursorPos = GetLastCursorPos();
+		bool result = true;
+		if (cursorPos != lastCursorPos)
+		{
+			InputMouseEvent mouseEvent(GetModifiers(), cursorPos, lastCursorPos, m_PressedButtons, IKey::Invalid, 0);
+			result = HandleMouseMoveEvent(mouseEvent);
+		}
+		return result;
+	}
+
+	bool Application::OnMouseWheel(const float offset, const glm::vec2& cursorPos)
+	{
+		InputMouseEvent mouseEvent(GetModifiers(), cursorPos, cursorPos, m_PressedButtons, IKey::Invalid, offset);
+		return HandleMouseWheelEvent(mouseEvent);
+	}
+
+	bool Application::OnSizeChanged(const int32 width, const int32 height)
+	{
+		// Handling the situation when window mode should be changed, but no other callbacks were called
+		if (glfwGetWindowAttrib(GetWindow().GetNativeWindow(), GLFW_MAXIMIZED))
+			Application::Get().GetWindow().SetWindowMode(EWindowMode::WindowedFullscreen);
+		else if (!glfwGetWindowAttrib(GetWindow().GetNativeWindow(), GLFW_ICONIFIED))
+			Application::Get().GetWindow().SetWindowMode(EWindowMode::Windowed);
+
+		Application::Get().GetWindow().SetSize(width, height);
+		// TODO: propagate to imgui
+		return true;
+	}
+
+	bool Application::OnClose()
+	{
+		Close();
+		return true;
+	}
+
+	bool Application::OnMinimized()
+	{
+		GetWindow().UpdateCachedMode();
+		return true;
+	}
+
+	bool Application::OnRestored()
+	{
+		GetWindow().SetCachedMode();
+		return true;
+	}
+
+	bool Application::HandleKeyTypeEvent(const InputKeyTypeEvent& keyTypeEvent)
+	{
+		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); it++)
+		{
+			if ((*it)->OnKeyType(keyTypeEvent))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	bool Application::HandleKeyDownEvent(const InputKeyEvent& keyEvent)
+	{
+		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); it++)
+		{
+			if ((*it)->OnKeyDown(keyEvent))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	bool Application::HandleKeyUpEvent(const InputKeyEvent& keyEvent)
+	{
+		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); it++)
+		{
+			if ((*it)->OnKeyUp(keyEvent))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	bool Application::HandleMouseDownEvent(const InputMouseEvent& mouseEvent)
+	{
+#ifdef VM_WITH_EDITOR
+		if (mouseEvent.GetButton() == IKey::ButtonRight) process_input(true, false, false, false);
+		if (mouseEvent.GetButton() == IKey::ButtonMiddle) process_input(false, false, true, false);
+#endif
+
+		m_PressedButtons.insert(mouseEvent.GetButton());
+		// Maybe check for imgui drag/drog and skip event if it is active
+
+		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); it++)
+		{
+			if ((*it)->OnMouseDown(mouseEvent))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	bool Application::HandleMouseUpEvent(const InputMouseEvent& mouseEvent)
+	{
+#ifdef VM_WITH_EDITOR
+		if (mouseEvent.GetButton() == IKey::ButtonRight) process_input(false, true, false, false);
+		if (mouseEvent.GetButton() == IKey::ButtonMiddle) process_input(false, false, false, true);
+#endif
+		m_PressedButtons.erase(mouseEvent.GetButton());
+
+		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); it++)
+		{
+			if ((*it)->OnMouseUp(mouseEvent))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+
+
+	bool Application::HandleMouseDoubleClickEvent(const InputMouseEvent& mouseEvent)
+	{
+		m_PressedButtons.insert(mouseEvent.GetButton());
+		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); it++)
+		{
+			if ((*it)->OnMouseDoubleClick(mouseEvent))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	bool Application::HandleMouseMoveEvent(const InputMouseEvent& mouseEvent)
+	{
+		if (s_EditorCameraEnabled)
+			mouse_callback(mouseEvent.GetOffset().x, mouseEvent.GetOffset().y);
+
+		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); it++)
+		{
+			if ((*it)->OnMouseMove(mouseEvent))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	bool Application::HandleMouseWheelEvent(const InputMouseEvent& mouseEvent)
+	{
+#ifdef VM_WITH_EDITOR
+		if (cursorHidden)
+			m_Camera->InputScroll({ 0.f, mouseEvent.GetWheelOffset() });
+		if (mouseEvent.GetWheelOffset() == 0)
+		{
+			return false;
+		}
+#endif
+		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); it++)
+		{
+			if ((*it)->OnMouseWheel(mouseEvent))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 
 	Application& Application::Get()
 	{
 		return *s_Instance;
 	}
 
-	void Application::OnEvent(const std::string& inf)
+
+
+
+	void Application::OnEvent(InputEventInternal* newInput)
 	{
-		// TODO: Dispatch events, change string to event type
-		VM_CORE_INFO(inf);
+		m_InputEvents.push_back(newInput);
 	}
 
 	void Application::Run()
 	{
+		Startup();
+
 		TestRenderer::Init();
 		// Compile shaders
 		std::vector<String> cmdArgs = m_Config.CommandLineArgs;
@@ -540,70 +933,40 @@ namespace VeiM
 				"nz.png"
 		};
 
-		VM_CORE_TRACE("VAlue: {0}", VM_GAME);
+
+		grayTextureFilename = Paths::EngineContentDir() / "Mess" / "T_Gray.png";
+		lightSourceShaderFilename = Paths::EngineContentDir() / "Mess" / "lightsource.glsl";
+		LitShaderFilename = Paths::EngineContentDir() / "Mess" / "Lit.glsl";
+		borderShaderFilename = Paths::EngineContentDir() / "Mess" / "border.glsl";
+		screenShaderFilename = Paths::EngineContentDir() / "Mess" / "screen.glsl";
+		skyboxShaderFilename = Paths::EngineContentDir() / "Mess" / "skybox.glsl";
+		instanceShaderFilename = Paths::EngineContentDir() / "Mess" / "instancing.glsl";
+		shadowmapShaderFilename = Paths::EngineContentDir() / "Mess" / "shadowmap.glsl";
+		pointshadowmapShaderFilename = Paths::EngineContentDir() / "Mess" / "pointshadowmap.glsl";
+
+		universalShaderFilename = Paths::EngineContentDir() / "Mess" / "Shaders" / "UniversalShader.glsl";
+
+		boxDiffuseTextureFilename = Paths::EngineContentDir() / "Mess" / "T_BoxDiffuse.png";
+		boxSpecularTextureFilename = Paths::EngineContentDir() / "Mess" / "T_BoxSpecular.png";
+		backpackModelFilename = Paths::EngineContentDir() / "Mess" / "backpack" / "backpack.obj";
+		coinMeshFilename = Paths::EngineContentDir() / "Mess" / "coin" / "Coin.obj";
+
+		brickDiffuseFilename = Paths::EngineContentDir() / "Mess" / "brick" / "T_BrickDiffuse.jpg";
+		brickNormalFilename = Paths::EngineContentDir() / "Mess" / "brick" / "T_BrickNormal.jpg";
+
+		for (int i = 0; i < 6; i++)
+			skyboxFilenames.push_back(Paths::EngineContentDir() / "Mess" / "skybox" / faces[i]);
+
+		for (int i = 0; i < 6; i++)
+			skyboxSFilenames.push_back(Paths::EngineContentDir() / "Mess" / "skybox2" / facesstylized[i]);
+
 		if (IsRunningGame())
 		{
-			// TODO: User ProjectContentDir, but make sure to get correct path for unified build
-			grayTextureFilename = fs::current_path().parent_path().parent_path() / "Content" / "T_Gray.png";
-			lightSourceShaderFilename = fs::current_path().parent_path().parent_path() / "Content" / "lightsource.glsl";
-			LitShaderFilename = fs::current_path().parent_path().parent_path() / "Content" / "Lit.glsl";
-			borderShaderFilename = fs::current_path().parent_path().parent_path() / "Content" / "border.glsl";
-			screenShaderFilename = fs::current_path().parent_path().parent_path() / "Content" / "screen.glsl";
-			skyboxShaderFilename = fs::current_path().parent_path().parent_path() / "Content" / "skybox.glsl";
-			instanceShaderFilename = fs::current_path().parent_path().parent_path() / "Content" / "instancing.glsl";
-			shadowmapShaderFilename = fs::current_path().parent_path().parent_path() / "Content" / "shadowmap.glsl";
-			pointshadowmapShaderFilename = fs::current_path().parent_path().parent_path() / "Content" / "pointshadowmap.glsl";
-
-			universalShaderFilename = Paths::EngineContentDir() / "Shaders" / "UniversalShader.glsl";
-
-			boxDiffuseTextureFilename = fs::current_path().parent_path().parent_path() / "Content" / "T_BoxDiffuse.png";
-			boxSpecularTextureFilename = fs::current_path().parent_path().parent_path() / "Content" / "T_BoxSpecular.png";
-			backpackModelFilename = fs::current_path().parent_path().parent_path() / "Content" / "backpack" / "backpack.obj";
-			coinMeshFilename = fs::current_path().parent_path().parent_path() / "Content" / "coin" / "Coin.obj";
-
-
-
-			for (int i = 0; i < 6; i++)
-				skyboxFilenames.push_back(fs::current_path().parent_path().parent_path() / "Content" / "skybox" / faces[i]);
-
-			for (int i = 0; i < 6; i++)
-				skyboxSFilenames.push_back(fs::current_path().parent_path().parent_path() / "Content" / "skybox2" / facesstylized[i]);
-
 			bHasGame = true;
 		}
-		else
+		else if (!cmdArgs.empty())
 		{
-			if (!cmdArgs.empty())
-			{
-				grayTextureFilename = Paths::ProjectContentDir() / "T_Gray.png";
-				lightSourceShaderFilename = Paths::ProjectContentDir() / "lightsource.glsl";
-				LitShaderFilename = Paths::ProjectContentDir() / "Lit.glsl";
-				borderShaderFilename = Paths::ProjectContentDir() / "border.glsl";
-				screenShaderFilename = Paths::ProjectContentDir() / "screen.glsl";
-				skyboxShaderFilename = Paths::ProjectContentDir() / "skybox.glsl";
-				instanceShaderFilename = Paths::ProjectContentDir() / "instancing.glsl";
-				shadowmapShaderFilename = Paths::ProjectContentDir() / "shadowmap.glsl";
-				pointshadowmapShaderFilename = Paths::ProjectContentDir() / "pointshadowmap.glsl";
-
-				universalShaderFilename = Paths::EngineContentDir() / "Shaders" / "UniversalShader.glsl";
-
-				boxDiffuseTextureFilename = Paths::ProjectContentDir() / "T_BoxDiffuse.png";
-				boxSpecularTextureFilename = Paths::ProjectContentDir() / "T_BoxSpecular.png";
-				backpackModelFilename = Paths::ProjectContentDir() / "backpack" / "backpack.obj";
-				coinMeshFilename = Paths::ProjectContentDir() / "coin" / "Coin.obj";
-
-				brickDiffuseFilename = Paths::ProjectContentDir() / "brick" / "T_BrickDiffuse.jpg";
-				brickNormalFilename = Paths::ProjectContentDir() / "brick" / "T_BrickNormal.jpg";
-
-				for (int i = 0; i < 6; i++)
-					skyboxFilenames.push_back(Paths::ProjectContentDir() / "skybox" / faces[i]);
-
-				for (int i = 0; i < 6; i++)
-					skyboxSFilenames.push_back(Paths::ProjectContentDir() / "skybox2" / facesstylized[i]);
-
-
-				bHasGame = true;
-			}
+			bHasGame = true;
 		}
 
 		Shader* lightSourceShader;
@@ -678,13 +1041,6 @@ namespace VeiM
 
 		if (bHasGame)
 		{
-			//gameObject = ObjectPtr<Object>(ClassRegistry::FindClass(StringID("GameObject"))->ConstructorFunc());
-			//gameObject->MarkAsRoot();
-			heldWorld = World::CreateWorld(EWorldType::Game, StringID("TestWorld"), true);
-			g_World = heldWorld.Get();
-			g_World->InitializeEntities();
-			heldWorld->BeginPlay();
-
 			lightSourceShader = new Shader(lightSourceShaderFilename);
 			litShader = new Shader(LitShaderFilename);
 			borderShader = new Shader(borderShaderFilename);
@@ -699,7 +1055,7 @@ namespace VeiM
 			m_CubeMesh = new CubeMesh();
 			m_SphereMesh = new SphereMesh(8, 8);
 
-			backpackMesh = new Model(backpackModelFilename);
+			//backpackMesh = new Model(backpackModelFilename);
 			coinMesh = new Model(coinMeshFilename);
 			skyboxMesh = new SkyBoxCube();
 			skyboxMesh->Finilize();
@@ -861,35 +1217,17 @@ namespace VeiM
 		}
 		String valuePrev;
 		String value;
-		while (!glfwWindowShouldClose(m_Window->GetNativeWindow()) && m_Running)
+		while (m_Running)
 		{
-			m_Window->PollEvents();
-
-			float time = Time::GetTime();
-			m_DeltaTime = time - m_LastFrameTime;
-			m_LastFrameTime = time;
-
-			g_World->Tick(m_DeltaTime);
-
-			process_input(m_Window->GetNativeWindow());
+			Tick();
 
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate(m_DeltaTime);
 
 			if (bHasGame)
 			{
-				GarbageCollector::Get().CollectGarbage(false);
-				if (gameObject.IsValid())
-				{
 
-					ClassDescriptor* gameObjectClass = gameObject->GetClass();
-					PropertyDescriptor& gameObjectNameProp = gameObjectClass->Properties[StringID("m_NameGO")];
-					value = gameObjectNameProp.GetValue<String>(gameObject.Get());
-					if (value != valuePrev) {
-						VM_CORE_TRACE("New Name: {0}", value);
-					}
-					valuePrev = value;
-				}
+
 #ifndef VM_WITH_EDITOR
 				int d_width;
 				int d_height;
@@ -1003,8 +1341,9 @@ namespace VeiM
 					// Backpack
 
 					shadowmapShader->SetMat4("u_Transform", backpackModel);
+#ifdef DRAW_BACKPACK_MODEL
 					backpackMesh->Draw(*shadowmapShader, 0, 0, true);
-
+#endif
 					// Coin
 
 					shadowmapShader->SetMat4("u_Transform", coinModel);
@@ -1068,8 +1407,9 @@ namespace VeiM
 					// Backpack
 
 					pointshadowmapShader->SetMat4("u_Transform", backpackModel);
+#ifdef DRAW_BACKPACK_MODEL
 					backpackMesh->Draw(*pointshadowmapShader, 0, 0, true);
-
+#endif
 					// Coin
 
 					pointshadowmapShader->SetMat4("u_Transform", coinModel);
@@ -1260,8 +1600,9 @@ namespace VeiM
 				litShader->Bind();
 				litShader->SetMat4("u_Transform", backpackModel);
 				litShader->SetFloat("u_UseNormalMap", (float)bUseNormalMaps);
+#ifdef DRAW_BACKPACK_MODEL
 				backpackMesh->Draw(*litShader, depthMap, depthCubemap);
-
+#endif
 				// Coin
 				coinMesh->GetMesh(0)->Tnormal = defaultNormal;
 				litShader->Bind();
@@ -1359,6 +1700,36 @@ namespace VeiM
 
 
 
+	void Application::Tick()
+	{
+		m_Window->PollEvents();
+
+		double time = Time::GetTime();
+		m_DeltaTime = time - m_LastFrameTime;
+		m_LastFrameTime = time;
+
+		ProcessInputEvents();
+#ifdef VM_WITH_EDITOR
+		process_movement();
+#endif
+		// Delta time
+		g_Engine->ResetRunGCFlag();
+		GarbageCollector::Get().CollectGarbage(false);
+		// 
+		// RenderScene - startframe | for scene in Renderer::Get().GetScenes
+		CalculateTime();
+
+		FinishInput();
+
+		// update layers
+		g_Engine->Tick(m_DeltaTime);
+		// gui update
+		// 
+		// RenderScene - EndFrame | for scene in Renderer::Get().GetScenes
+		// 
+		// swap buffers
+	}
+
 	void Application::PushLayer(Layer* layer)
 	{
 		m_LayerStack.PushLayer(layer);
@@ -1371,4 +1742,69 @@ namespace VeiM
 		overlay->OnAttach();
 	}
 
+	void Application::Close()
+	{
+		m_Running = false;
+	}
+
+	CORE_API float g_AvgFPS = 0.0f;
+	CORE_API float g_AvgMS = 0.0f;
+
+	CORE_API void CalculateTime()
+	{
+		static double lastTime = 0.0;
+		double currentTime = Time::GetTime();
+		float frameTime = (float)((currentTime - lastTime) * 1000.0);
+
+		g_AvgMS = g_AvgMS * 0.75f + frameTime * 0.25f;
+		lastTime = currentTime;
+		g_AvgFPS = 1000.f / g_AvgMS;
+	}
+
 }
+
+#if IS_UNIFIED
+
+#include <HAL/PlatformService.h>
+
+namespace VeiM
+{
+	class GameApplication : public Application
+	{
+	public:
+		GameApplication(const ApplicationSpecification& appSpecs)
+			: Application(appSpecs)
+		{
+
+		}
+
+		~GameApplication()
+		{
+
+		}
+	};
+
+	Application* CreateApplication(const std::vector<String>& arguments, const VeiM::String& name, const VeiM::String& title)
+	{
+		ApplicationSpecification specs;
+
+		specs.AppConfig.Name = name;
+		specs.AppConfig.EnableConsole = true;
+		specs.AppConfig.CommandLineArgs = arguments;
+
+		specs.WndConfig.Title = title;
+		specs.WndConfig.Width = 1280;
+		specs.WndConfig.Height = 720;
+		specs.WndConfig.VSync = false;
+		specs.WndConfig.CustomTitlebar = false;
+		specs.WndConfig.WindowResizeable = true;
+		specs.WndConfig.Mode = EWindowMode::Fullscreen;
+		// TODO: Make default icon
+
+
+		Application* app = new GameApplication(specs);
+		return app;
+	}
+}
+
+#endif

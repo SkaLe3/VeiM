@@ -39,8 +39,6 @@ project "Template_Example"
 
     }
 
-	defines {"VM_GAME=1"}
-
 	-- Game Dependencies
     links {"Core"}										-- Link against the VeiM Engine
 
@@ -140,6 +138,8 @@ project "Template_Example"
 		runtime  "Debug"
 		symbols  "on"
 		defines  "VM_DEBUG"
+		defines { "GAME_PRIMARY_EXPORTS" }
+		defines {"VM_WITH_EDITOR"}
 		targetsuffix "-%{cfg.platform}-Debug"
 		debugcommand (engine_root_dir .. "/Engine/Binaries/Win64/Debug_Editor/VeimEditor-Win64-Debug.exe")
 		debugargs { "\"%{wks.location}Template_Example.vmproject\"" }
@@ -159,6 +159,8 @@ project "Template_Example"
 		optimize "on"
         symbols  "on"
 		defines  "VM_DEVELOPMENT"
+		defines { "GAME_PRIMARY_EXPORTS" }
+		defines {"VM_WITH_EDITOR"}
 		debugcommand (engine_root_dir .. "/Engine/Binaries/Win64/Development_Editor/VeimEditor.exe")
 		debugargs { "\"%{wks.location}Template_Example.vmproject\"" }
 

@@ -18,7 +18,6 @@ namespace VeiM
 	GUIContext::GUIContext()
 		:Layer("ImGuiLayer")
 	{
-
 	}
 
 	void GUIContext::OnAttach()
@@ -46,7 +45,7 @@ namespace VeiM
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
 		//io.ConfigViewportsNoAutoMerge = true;
-		//io.ConfigViewportsNoTaskBarIcon = true;
+		io.ConfigViewportsNoTaskBarIcon = true;
 
 		float fontSize = 16.0f;
 		fs::path fontPath = Paths::EngineContentDir() / "UI/Fonts";
@@ -93,9 +92,21 @@ namespace VeiM
 		Application& app = Application::Get();
 		GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
 		// Setup Platform/Renderer backends
-		ImGui_ImplGlfw_InitForOpenGL(window, true);
+		ImGui_ImplGlfw_InitForOpenGL(window, false);
 		ImGui_ImplOpenGL3_Init("#version 410");
 
+#if 1
+		Window::ForwardInputDelegates& delegates = Application::Get().GetWindow().GetForwardInputDelegates();
+
+		delegates.WindowFocusCallback.AddStatic([](void* wnd, int focused) {ImGui_ImplGlfw_WindowFocusCallback((GLFWwindow*)wnd, focused); });
+		delegates.CursorEnterCallback.AddStatic([](void* wnd, int entered) {ImGui_ImplGlfw_CursorEnterCallback((GLFWwindow*)wnd, entered); });
+		delegates.CursorPosCallback.AddStatic([](void* wnd, double x, double y) {ImGui_ImplGlfw_CursorPosCallback((GLFWwindow*)wnd, x, y); });
+		delegates.MouseButtonCallback.AddStatic([](void* wnd, int button, int action, int mods) {ImGui_ImplGlfw_MouseButtonCallback((GLFWwindow*)wnd, button, action, mods); });
+		delegates.ScrollCallback.AddStatic([](void* wnd, double xoffset, double yoffset) {ImGui_ImplGlfw_ScrollCallback((GLFWwindow*)wnd, xoffset, yoffset); });
+		delegates.KeyCallback.AddStatic([](void* wnd, int keycode, int scancode, int actin, int mods) {ImGui_ImplGlfw_KeyCallback((GLFWwindow*)wnd, keycode, scancode, actin, mods); });
+		delegates.CharCallback.AddStatic([](void* wnd, unsigned int c) {ImGui_ImplGlfw_CharCallback((GLFWwindow*)wnd, c); });
+		delegates.MonitorCallback.AddStatic([](void* mon, int a) {ImGui_ImplGlfw_MonitorCallback((GLFWmonitor*)mon, a); });
+#endif
 		// Load Fonts
 		// - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
 		// - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple.
@@ -140,6 +151,12 @@ namespace VeiM
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
+		if (!s_EditorCameraEnabled)
+		{
+			ImGuiIO& io = ImGui::GetIO();
+			io.MouseClicked[0] = false;
+
+		}
 	}
 
 	void GUIContext::EndFrame()
@@ -159,7 +176,8 @@ namespace VeiM
 		//  For this specific demo app we could also call glfwMakeContextCurrent(window) directly)
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
-			GLFWwindow* backup_current_context = glfwGetCurrentContext();
+			GLFWwindow* backup_current_context;
+			backup_current_context = glfwGetCurrentContext();
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
 			glfwMakeContextCurrent(backup_current_context);
@@ -168,6 +186,7 @@ namespace VeiM
 		// Present Main Platform Window
 		if (main_is_minimized)
 			std::this_thread::sleep_for(std::chrono::milliseconds(5));
+		
 	}
 
 	ImGuiContext* GUIContext::GetImGuiContext()
@@ -291,3 +310,11 @@ namespace VeiM
 	}
 
 }
+
+void(*g_CustomMouseButtonCallback)(void*, int, int, int) = nullptr;
+void(*g_CustomMouseScrollCallback)(void*, double, double) = nullptr;
+void(*g_CustomKeyCallback)(void*, int, int, int, int) = nullptr;
+void(*g_CustomWindowFocusCallback)(void*, int) = nullptr;
+void(*g_CustomCursorPosCallback)(void*, double, double) = nullptr;
+void(*g_CustomCursorEnterCallback)(void*, int) = nullptr;
+void(*g_CustomCharCallback)(void*, unsigned int) = nullptr;

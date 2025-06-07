@@ -22,8 +22,7 @@ namespace VeiM
 
 		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 		{
-			VM_CORE_ASSERT(false);
-			VM_CORE_ERROR("[ASSIMP] {0}", importerr.GetErrorString());
+			VM_CORE_ASSERT(false, "[ASSIMP] {}", importerr.GetErrorString());
 			return;
 		}
 		m_Directory = filepath.parent_path();

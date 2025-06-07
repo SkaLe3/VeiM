@@ -43,7 +43,6 @@ namespace VeiM
 
 		void MarkReachable(Object* obj);
 
-
 		void SetCollectionThreshold(size_t min) { m_CollectionThreshold = min; }
 		void SetAutomaticCollectionInterval(float seconds) { m_AutomaticCollectionIntervalSeconds = seconds; }
 
@@ -53,20 +52,16 @@ namespace VeiM
 		uint32 GetStrongPtrRegisteredCount();
 		uint32 GetWeakPtrRegisteredCount();
 
-
+		std::unordered_set<Object*>& Debug_GetAllObjects();
 	private:
 		void MarkPhase();
 		void SweepPhase();
-
 		void MarkRoots();
-
 		void ProcessMark(Object* obj);
-
 		void PrepareCollection();
 		void FinalizeCollection();
 
 		bool ShouldCollect() const;
-
 	public:
 		template <typename T>
 		void MarkReachableArray(const std::vector<T>& objects);

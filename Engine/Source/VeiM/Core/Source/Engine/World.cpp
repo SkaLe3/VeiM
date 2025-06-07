@@ -7,18 +7,31 @@
 #include "Engine/ServiceEntity.h"
 #include "Engine/TickManager.h"
 #include "Engine/TimerManager.h"
+#include "Engine/Engine.h"
 
 namespace VeiM
 {
-	IMPLEMENT_CLASS(World)
+	IMPLEMENT_CLASS(World);
 
-	World* g_World;
+	CORE_API World* g_World = nullptr;
 
+
+	void World::RegisterProperties(ClassDescriptor* classDesc)
+	{
+		Super::RegisterProperties(classDesc);
+		REGISTER_PROPERTY(World, ObjectProperty, CurrentLevel);
+		REGISTER_PROPERTY(World, ObjectProperty, m_GlobalGameState);
+	}
 
 	World::World() :
 		bInitialized(false),
 		bTickable(true),
-		bWasInitialized(false)
+		bWasInitialized(false),
+		bEntitiesInitialized(false),
+		bInTick(false),
+		bIsDying(false),
+		m_bHasBegunPlay(false),
+		m_bMarkedAllPendingKill(false) 
 		// Audio device handle
 	{
 		m_TimerManager = new TimerManager;
@@ -73,6 +86,19 @@ namespace VeiM
 		return m_GlobalGameState.Get();
 	}
 
+	Entity* World::GetEntityByName(StringID name)
+	{
+		std::vector<ObjectPtr<Entity>>& entities = CurrentLevel->Entities;
+		for (auto& entityPtr : entities)
+		{
+			if (entityPtr && entityPtr->GetNameID() == name)
+			{
+				return entityPtr.Get();
+			}
+		}
+		return nullptr;
+	}
+
 	void World::Tick(float deltaTime)
 	{
 		bInTick = true;
@@ -104,6 +130,11 @@ namespace VeiM
 		{
 			TickManager::Get().EndFrame();
 		}
+
+		if (g_Engine->HasRunGCThisFrame())
+		{
+			CleanupEntities();
+		}
 	}
 
 	void World::RunTickGroup(ETickGroup group)
@@ -133,7 +164,7 @@ namespace VeiM
 				{
 					for (SceneComponent* sceneComponent : sceneComponents)
 					{
-						attachedEntity->DetachAllSceneComponents(sceneComponent); // TODO: Add detachment rules
+						attachedEntity->DetachAllSceneComponents(sceneComponent, AttachmentTransformRules::TransformWorld);
 					}
 				}
 			}
@@ -143,8 +174,7 @@ namespace VeiM
 		SceneComponent* rootComponent = entity->GetRootComponent();
 		if (rootComponent && rootComponent->GetParent() != nullptr)
 		{
-			Entity* parentEntity = rootComponent->GetParent()->GetOwner();
-			entity->DetachFromEntity(); // TODO: add detachment rules
+			entity->DetachFromEntity(AttachmentTransformRules::TransformWorld);
 		}
 
 		RemoveEntity(entity);
@@ -168,7 +198,7 @@ namespace VeiM
 		return false;
 	}
 
-	Entity* World::SpawnEntity(ClassDescriptor* spawnClass)
+	Entity* World::SpawnEntity(ClassDescriptor* spawnClass, const Transform& transform, bool bOverrideRootScale, StringID entityName)
 	{
 		if (!spawnClass->IsChildOf(Entity::StaticClass()))
 		{
@@ -181,7 +211,6 @@ namespace VeiM
 			return nullptr;
 		}
 
-		StringID entityName = StringID(EStringID::None);
 		Entity* entity = NewObject<Entity>(spawnClass, CurrentLevel.Get(), entityName);
 
 #ifdef VM_WITH_EDITOR
@@ -190,9 +219,17 @@ namespace VeiM
 #endif
 
 		CurrentLevel->AddEntity(entity);
-		entity->OnSpawnInitialize();
+		entity->OnSpawnInitialize(transform, bOverrideRootScale);
 
 		return entity;
+	}
+
+	VeiM::Entity* World::SpawnEntity(ClassDescriptor* spawnClass, const glm::vec3& location, const glm::vec3& rotation, bool bOverrideRootScale, StringID entityName /*= StringID(EStringID::None)*/)
+	{
+		Transform transform;
+		transform.Translation = location;
+		transform.Rotation = glm::quat(glm::radians(rotation));
+		return SpawnEntity(spawnClass, transform, bOverrideRootScale, entityName);
 	}
 
 	void World::InitializeEntities()
@@ -209,7 +246,7 @@ namespace VeiM
 	{
 		for (ObjectPtr<ServiceEntity> service : LevelServices)
 		{
-			service->StartPlay();	
+			service->StartPlay();
 		}
 		GetSettings()->NotifyBeginPlay();
 		// PhysicsScene beginplay
@@ -239,9 +276,33 @@ namespace VeiM
 		m_bHasBegunPlay = bBegun;
 	}
 
+	static String GetWorldTypeString(EWorldType inWorldType)
+	{
+		switch (inWorldType)
+		{
+		case VeiM::EWorldType::Game:
+			return "Game";
+			break;
+		case VeiM::EWorldType::Editor:
+			return "Editor";
+			break;
+		case VeiM::EWorldType::EditorPlay:
+			return "EditorPlay";
+			break;
+		case VeiM::EWorldType::EditorTool:
+			return "EditorTool";
+			break;
+		default:
+			return "Unknown";
+			break;
+		}
+	}
+
 	void World::InitializeNewWorld()
 	{
-		CurrentLevel = NewObject<Level>(this, StringID("CurrentLevel"));
+
+		StringID levelName = StringID((GetWorldTypeString(WorldType) + "Level").data());
+		CurrentLevel = NewObject<Level>(this, levelName);
 		CurrentLevel->OwningWorld = this;
 		SharedPtr<WorldSettings> worldSettings = MakeShared<WorldSettings>();
 		CurrentLevel->SetWorldSettings(worldSettings);
@@ -254,10 +315,8 @@ namespace VeiM
 		if (bInitialized) return;
 
 		CreatePhysicsScene();
-		// Renderer::Get().CreateScene(this); // Scene constructor will set itself to world's field
+
 		CurrentLevel->OwningWorld = this;
-		// Set Gravity for physics scene
-		// Create collision handler
 		bInitialized = true;
 		bWasInitialized = true;
 	}
@@ -401,15 +460,44 @@ namespace VeiM
 		Super::FinishDestroy();
 	}
 
-	void World::RegisterProperties(ClassDescriptor* classDesc)
+	void World::Duplicate(Object* sourceObj, Object* destintationObj)
 	{
-		Super::RegisterProperties(classDesc);
-		REGISTER_PROPERTY(World, ObjectProperty, CurrentLevel);
+		Super::Duplicate(sourceObj, destintationObj);
+
+		World* sourceWorld = static_cast<World*>(sourceObj);
+		World* destinationWorld = static_cast<World*>(destintationObj);
+
+		if (!sourceWorld || !destinationWorld)
+			return;
+
+		VM_CORE_TRACE("[Object] Duplicating World: '{0}'", sourceWorld->GetName());
+
+		if (sourceWorld->CurrentLevel)
+		{
+			Level* duplicatedLevel = static_cast<Level*>(sourceWorld->CurrentLevel->DuplicateObject(
+				sourceWorld->CurrentLevel.Get(),
+				destinationWorld,
+				sourceWorld->CurrentLevel->m_Name,
+				sourceWorld->CurrentLevel->GetClass()
+			));
+			destinationWorld->CurrentLevel = duplicatedLevel;
+			duplicatedLevel->OwningWorld = destinationWorld;
+		}
+		if (sourceWorld->GetSettings())
+		{
+			SharedPtr<WorldSettings> duplicatedSettings = MakeShared<WorldSettings>(*sourceWorld->GetSettings());
+			destinationWorld->GetCurrentLevel()->SetWorldSettings(duplicatedSettings);
+		}
+
+		// TODO: RenderScene and Physics scene duplication
+
 	}
+
+
 
 	World* World::CreateWorld(const EWorldType worldType, StringID name, bool bAddToRoot)
 	{
-		const String worldName = name.ToEStringID() == EStringID::None ? "Unnamed" : name.ToString();
+		const String worldName = name == EStringID::None ? "Unnamed" : name.ToString();
 		World* newWorld = NewObject<World>(nullptr, StringID(worldName.data()));
 		if (bAddToRoot)
 		{
@@ -419,6 +507,30 @@ namespace VeiM
 		newWorld->InitializeNewWorld();
 
 		return newWorld;
+	}
+
+	World* World::GetDuplicateForEditorPlay(World* editorWorld)
+	{
+#ifdef VM_WITH_EDITOR
+		if (!editorWorld)
+		{
+			VM_CORE_ERROR("[World] Cannot duplicate null editor world for Editor Play World");
+			return nullptr;
+		}
+
+		Object* playWorldObj = editorWorld->DuplicateObject(editorWorld, editorWorld->GetCreator(), StringID("Editor_Play_World"), editorWorld->GetClass());
+		World* playWorld = static_cast<World*>(playWorldObj);
+
+		playWorld->WorldType = EWorldType::EditorPlay;
+		playWorld->MarkAsRoot();
+		playWorld->Initialize();
+		playWorld->InitializeEntities();
+
+		editorWorld->ResolveObjectReferences(editorWorld, playWorld);
+		return playWorld;
+#else
+		return nullptr;
+#endif
 	}
 
 }

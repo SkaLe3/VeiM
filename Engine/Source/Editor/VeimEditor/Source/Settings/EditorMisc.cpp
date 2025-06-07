@@ -3,6 +3,7 @@
 #include "Application/Application.h"
 #include "Misc/Paths.h"
 #include "DesktopPlatformModule.h"
+#include "EditorLayer.h"
 
 namespace VeiM
 {

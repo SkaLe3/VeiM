@@ -13,12 +13,15 @@ namespace VeiM
 		if (src == nullptr)
 			return nullptr;
 
-		static ClassDescriptor* toClass = To::StaticClass();
+		ClassDescriptor* toClass = To::StaticClass();
+		ClassDescriptor* fromClass = src->GetClass();
 
-		if (src->IsA(toClass))
-		{
+		if (toClass == fromClass)
 			return static_cast<To*>(src);
-		}
+
+		if (fromClass->IsChildOf(toClass))
+			return static_cast<To*>(src);
+
 		return nullptr;
 	}
 
@@ -26,6 +29,7 @@ namespace VeiM
 	T* NewObject(ClassDescriptor* objClass, Object* creator, StringID name, Object::Flags flags = Object::FLAG_None)
 	{
 		Object* newObject = ClassRegistry::FindClass(objClass->Name)->ConstructorFunc();
+		newObject->ClearFlag(Object::Flags::FLAG_INITIALIZING);
 		newObject->SetCreator(creator);
 		newObject->m_Name = name;
 		newObject->SetFlag(flags);

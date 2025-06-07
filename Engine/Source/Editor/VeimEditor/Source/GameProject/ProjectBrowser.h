@@ -3,6 +3,7 @@
 #include "UI/Image.h"
 #include "Application/Application.h"
 #include "GameProject/ProjectBrowserHandler.h"
+#include "Widgets/Widget.h"
 
 #include <imgui.h>
 
@@ -22,15 +23,15 @@ namespace VeiM
 
 	// TODO: Add CreatedProjectsPath in EditorSettings.ini
 	// Show only path in tooltip, avoid project file
-	class ProjectBrowser
+	class ProjectBrowser : public Widget
 	{
 	public:
 		void Open();
 		void Close();
 
 	public:
-		ProjectBrowser();
-		bool OnGUI();
+		ProjectBrowser(Widget* parent);
+		virtual bool OnGUI() override;
 
 	private:
 		SharedPtr<TemplateItem> GetSelectedTemplateItem() const;

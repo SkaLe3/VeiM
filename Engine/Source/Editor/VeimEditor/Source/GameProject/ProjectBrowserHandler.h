@@ -1,17 +1,18 @@
 #pragma once
 #include "CoreDefines.h"
+#include "Widgets/Widget.h"
 
 namespace VeiM
 {
 	struct ProjectItem;
 
-	class ProjectBrowserHandler
+	class ProjectBrowserHandler : public Widget
 	{
 	public:
-		ProjectBrowserHandler();
+		ProjectBrowserHandler(Widget* parent);
 		~ProjectBrowserHandler() {}
 
-		void OnGUI();
+		virtual bool OnGUI() override;
 
 		bool HasProjects() const;
 		bool HasSelectedProjectFile() const;

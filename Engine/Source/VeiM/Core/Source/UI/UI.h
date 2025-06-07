@@ -16,6 +16,8 @@ namespace VeiM::UI
 	{
 		CORE_API void SetCharArrayData(char* destinationLocation, size_t destinationSize, const String& sourceData);
 		CORE_API String WStringToString(const std::wstring& wstr);
+
+		CORE_API glm::vec2 GetNormalizedNextWidgetPos();
 	}
 
 

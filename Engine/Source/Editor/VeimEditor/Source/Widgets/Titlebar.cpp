@@ -4,6 +4,7 @@
 #include "UI/UI.h"
 #include "UI/Theme.h"
 #include "Misc/Paths.h"
+#include "EditorLayer.h"
 
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
@@ -257,7 +258,7 @@ namespace VeiM::UI
 			const float padY = (m_Style.ButtonSize.y - (float)iconHeight) / 2.0f;
 			const float padX = (m_Style.ButtonSize.x - (float)iconWidth) / 2.0f;
 			if (ImGui::InvisibleButton("Close", ImVec2(m_Style.ButtonSize.x + 6, m_Style.ButtonSize.y)))
-				Application::Get().Close();
+				EditorLayer::Get().Close();
 
 			UI::DrawButtonImage(m_IconClose, UI::Theme::Get().EditorColors.Text, UI::Colors::ColorWithMultipliedValue(UI::Theme::Get().EditorColors.Text, 1.4f), buttonColP,
 				ImRect({ ImGui::GetItemRectMin().x + padX, ImGui::GetItemRectMin().y + padY }, { ImGui::GetItemRectMax().x - padX - 6, ImGui::GetItemRectMax().y - padY }));

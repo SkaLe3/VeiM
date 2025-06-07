@@ -3,6 +3,14 @@
 
 #include <unordered_map>
 
+#if IS_UNIFIED
+#define IMPLEMENT_MAIN_GAME_MODULE(Name) static VeiM::String s_AppName = #Name; static VeiM::String s_AppTitle = #Name;
+#define VM_GAME_MODULE_IMPLEMENTATION <Application/EntryPoint.h>
+#else
+#define IMPLEMENT_MAIN_GAME_MODULE(Name)
+#define VM_GAME_MODULE_IMPLEMENTATION "CoreDefines.h"
+#endif
+
 namespace VeiM
 {
 	// Used to load game dll for editor
@@ -23,5 +31,8 @@ namespace VeiM
 	private:
 		std::unordered_map<std::wstring, void*> m_Modules;
 	};
-	// Remove Module interface functions from DesktopPlatform. Make it just as plain singleton
 }
+
+
+
+	// Remove Module interface functions from DesktopPlatform. Make it just as plain singleton

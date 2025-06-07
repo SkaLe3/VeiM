@@ -1,6 +1,7 @@
 #pragma once
 #include "Misc/Build.h"
 
+#include <format>
 
 #ifdef VM_DEBUG
 	#define VM_DEBUGBREAK() __debugbreak()
@@ -22,17 +23,24 @@
 
 #ifdef VM_ENABLE_ASSERTS
 	#define VM_INTERNAL_ASSERT_IMPL(type, check, msg, ...) {if(!(check)) { VM##type##ERROR(msg, __VA_ARGS__); VM_DEBUGBREAK();}}
-	#define VM_INTERNAL_ASSERT_WITH_MSG(type, check, ...) VM_INTERNAL_ASSERT_IMPL(type, check, "Assertion failed: {0}: at {1}:{2}", __VA_ARGS__, std::filesystem::path(__FILE__).filename().filename().string(), __LINE__)
-	#define	VM_INTERNAL_ASSERT_NO_MSG(type, check) VM_INTERNAL_ASSERT_IMPL(type, check, "Assertion '{0}' failed at {1}:{2}", VM_STRINGIFY_MACRO(check), std::filesystem::path(__FILE__).filename().filename().string(), __LINE__)
+#define VM_INTERNAL_ASSERT_WITH_MSG(type, check, msg, ...) VM_INTERNAL_ASSERT_IMPL(type, check, "Assertion failed: " msg " {} at {}:{}", __VA_ARGS__, std::filesystem::path(__FILE__).filename().string(), __LINE__)
+	#define	VM_INTERNAL_ASSERT_NO_MSG(type, check) VM_INTERNAL_ASSERT_IMPL(type, check, "Assertion '{}' failed at {}:{}", VM_STRINGIFY_MACRO(check), std::filesystem::path(__FILE__).filename().string(), __LINE__)
 	
-	#define VM_INTERNAL_ASSERT_GET_MACRO_NAME(arg1, arg2, macro, ...) macro
-	#define VM_INTERNAL_ASSERT_GET_MACRO(...) VM_EXPAND_MACRO(VM_INTERNAL_ASSERT_GET_MACRO_NAME(__VA_ARGS__, VM_INTERNAL_ASSERT_WITH_MSG, VM_INTERNAL_ASSERT_NO_MSG))
-	
-	#define	VM_ASSERT(...) VM_EXPAND_MACRO( VM_INTERNAL_ASSERT_GET_MACRO(__VA_ARGS__)(_, __VA_ARGS__))
-	#define	VM_CORE_ASSERT(...) VM_EXPAND_MACRO( VM_INTERNAL_ASSERT_GET_MACRO(__VA_ARGS__)(_CORE_, __VA_ARGS__))
-#else
-	#define VM_ASSERT(...) // TODO: use VM_ERROR
-	#define VM_CORE_ASSERT(...) // TODO: use VM_CORE_ERROR
+	#define VM_INTERNAL_ASSERT_GET_MACRO_NAME(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10,  macro, ...) macro
+	#define VM_INTERNAL_ASSERT_MACRO_CHOOSER(...) VM_EXPAND_MACRO(VM_INTERNAL_ASSERT_GET_MACRO_NAME(__VA_ARGS__,\
+				VM_INTERNAL_ASSERT_WITH_MSG, \
+				VM_INTERNAL_ASSERT_WITH_MSG, \
+				VM_INTERNAL_ASSERT_WITH_MSG, \
+				VM_INTERNAL_ASSERT_WITH_MSG, \
+				VM_INTERNAL_ASSERT_WITH_MSG, \
+				VM_INTERNAL_ASSERT_WITH_MSG, \
+				VM_INTERNAL_ASSERT_WITH_MSG, \
+				VM_INTERNAL_ASSERT_WITH_MSG, \
+				VM_INTERNAL_ASSERT_WITH_MSG, \
+				VM_INTERNAL_ASSERT_NO_MSG))
+// Supported up to 10 arguments (including condition)
+	#define	VM_ASSERT(...) VM_EXPAND_MACRO( VM_INTERNAL_ASSERT_MACRO_CHOOSER(__VA_ARGS__)(_, __VA_ARGS__, "-"))
+	#define	VM_CORE_ASSERT(...) VM_EXPAND_MACRO( VM_INTERNAL_ASSERT_MACRO_CHOOSER(__VA_ARGS__)(_CORE_, __VA_ARGS__, "-"))
 #endif
 
 #if IS_UNIFIED
