@@ -879,7 +879,7 @@ namespace VeiM
 	{
 		m_InputEvents.push_back(newInput);
 	}
-
+#define DRAW_BACKPACK_MODEL 1
 	void Application::Run()
 	{
 		Startup();
@@ -1054,8 +1054,9 @@ namespace VeiM
 
 			m_CubeMesh = new CubeMesh();
 			m_SphereMesh = new SphereMesh(8, 8);
-
-			//backpackMesh = new Model(backpackModelFilename);
+#ifdef DRAW_BACKPACK_MODEL
+			backpackMesh = new Model(backpackModelFilename);
+#endif
 			coinMesh = new Model(coinMeshFilename);
 			skyboxMesh = new SkyBoxCube();
 			skyboxMesh->Finilize();

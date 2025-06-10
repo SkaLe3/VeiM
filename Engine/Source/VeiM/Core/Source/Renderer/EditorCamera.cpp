@@ -55,11 +55,9 @@ namespace VeiM
 
 	void EditorCamera::InputMouse(const glm::vec2& delta)
 	{
-		VM_CORE_TRACE("Camera Input: [{} , {}]", delta.x, delta.y);
 		glm::vec2 movement = delta * m_MouseSensitivity;
 		m_Yaw += movement.x;
 		m_Pitch += movement.y;
-		VM_CORE_TRACE("Yaw: {} | Pitch: {}", m_Yaw, m_Pitch);
 		if (m_Pitch > 90.0f)  m_Pitch = 90.0f;
 		if (m_Pitch < -90.0f) m_Pitch = -90.0f;
 	}
